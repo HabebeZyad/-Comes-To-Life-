@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, Lightbulb, SkipForward } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { useGameAudio } from '@/hooks/useGameAudio';
+import { useHighScores } from '@/hooks/useHighScores';
 
 interface HieroglyphDecoderGameProps {
   onBack: () => void;
@@ -44,22 +46,21 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
   const [shuffledPuzzles, setShuffledPuzzles] = useState<HieroglyphPuzzle[]>([]);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [gameOver, setGameOver] = useState(false);
+  const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
+  const { addScore } = useHighScores();
 
   const maxPuzzles = 10;
   const maxHints = 3;
   const maxSkips = 2;
 
-  // Shuffle puzzles based on difficulty
   const initializeGame = useCallback((level: 'easy' | 'medium' | 'hard') => {
     setDifficulty(level);
-    
     let filteredPuzzles = puzzles;
     if (level === 'easy') {
       filteredPuzzles = puzzles.filter(p => p.difficulty === 'easy' || p.difficulty === 'medium');
     } else if (level === 'hard') {
       filteredPuzzles = puzzles.filter(p => p.difficulty === 'medium' || p.difficulty === 'hard');
     }
-    
     const shuffled = [...filteredPuzzles].sort(() => Math.random() - 0.5).slice(0, maxPuzzles);
     setShuffledPuzzles(shuffled);
     setCurrentPuzzleIndex(0);
@@ -73,16 +74,20 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
     setSkipsUsed(0);
     setIsPlaying(true);
     setGameOver(false);
+    playSound('gameStart');
+    startAmbientMusic();
   }, []);
 
-  // Timer
   useEffect(() => {
     if (isPlaying && timeLeft > 0 && !gameOver) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      if (timeLeft <= 10) playSound('tick');
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && isPlaying) {
       setGameOver(true);
       setIsPlaying(false);
+      stopAmbientMusic();
+      playSound('defeat');
     }
   }, [timeLeft, isPlaying, gameOver]);
 
@@ -90,19 +95,21 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
 
   const checkAnswer = () => {
     if (!currentPuzzle) return;
-    
     const isCorrect = userInput.toUpperCase().trim() === currentPuzzle.meaning;
     setFeedback(isCorrect ? 'correct' : 'wrong');
 
+    let earnedPoints = 0;
     if (isCorrect) {
+      playSound('correct');
+      if (streak >= 2) playSound('streak');
       const basePoints = currentPuzzle.difficulty === 'easy' ? 50 : currentPuzzle.difficulty === 'medium' ? 100 : 150;
       const streakBonus = streak * 10;
       const hintPenalty = showHint ? 25 : 0;
-      const points = Math.max(10, basePoints + streakBonus - hintPenalty);
-      
-      setScore(prev => prev + points);
+      earnedPoints = Math.max(10, basePoints + streakBonus - hintPenalty);
+      setScore(prev => prev + earnedPoints);
       setStreak(prev => prev + 1);
     } else {
+      playSound('wrong');
       setStreak(0);
     }
 
@@ -110,33 +117,38 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
       setFeedback(null);
       setShowHint(false);
       setUserInput('');
-      
       if (currentPuzzleIndex >= shuffledPuzzles.length - 1) {
         setGameOver(true);
         setIsPlaying(false);
+        stopAmbientMusic();
+        const finalScore = score + earnedPoints;
+        playSound(finalScore >= 300 ? 'victory' : 'defeat');
+        addScore({ playerName: 'Explorer', score: finalScore, game: 'decoder', difficulty, details: `Best streak: ${isCorrect ? streak + 1 : streak}` });
       } else {
         setCurrentPuzzleIndex(prev => prev + 1);
       }
     }, 1500);
   };
 
-  const useHint = () => {
+  const useHintAction = () => {
     if (hintsUsed < maxHints) {
       setShowHint(true);
       setHintsUsed(prev => prev + 1);
+      playSound('hint');
     }
   };
 
   const skipPuzzle = () => {
     if (skipsUsed < maxSkips) {
+      playSound('click');
       setSkipsUsed(prev => prev + 1);
       setStreak(0);
       setShowHint(false);
       setUserInput('');
-      
       if (currentPuzzleIndex >= shuffledPuzzles.length - 1) {
         setGameOver(true);
         setIsPlaying(false);
+        stopAmbientMusic();
       } else {
         setCurrentPuzzleIndex(prev => prev + 1);
       }
@@ -154,19 +166,17 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={onBack}
+            onClick={() => { stopAmbientMusic(); onBack(); }}
             className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg"
           >
             <ArrowLeft size={20} />
             Back to Games
           </button>
-          
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Hieroglyph Decoder</h1>
           <p className="text-xl text-muted-foreground font-body">Decipher the ancient symbols and unlock their secrets</p>
         </div>
 
         <EgyptianCard variant="tomb" padding="lg">
-          {/* Stats Bar */}
           {isPlaying && (
             <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
               <div className="flex items-center gap-2 bg-lapis/50 px-4 py-2 rounded-lg border border-lapis-light/30">
@@ -189,44 +199,26 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
               <div className="text-8xl mb-6">𓂀</div>
               <h2 className="text-4xl font-display text-gold-gradient mb-6">Decode the Ancients</h2>
               <p className="text-xl text-muted-foreground font-body mb-4 max-w-2xl mx-auto">
-                Look at the hieroglyphs and type what they represent. 
-                Use hints wisely and build your streak for bonus points!
+                Look at the hieroglyphs and type what they represent. Use hints wisely and build your streak for bonus points!
               </p>
-              <p className="text-lg text-muted-foreground/80 font-body mb-8">
-                {maxHints} hints • {maxSkips} skips • {maxPuzzles} puzzles
-              </p>
+              <p className="text-lg text-muted-foreground/80 font-body mb-8">{maxHints} hints • {maxSkips} skips • {maxPuzzles} puzzles</p>
               <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="turquoise"
-                    size="xl"
-                    onClick={() => initializeGame('easy')}
-                    className="w-full h-auto flex-col py-8"
-                  >
+                  <EgyptianButton variant="turquoise" size="xl" onClick={() => initializeGame('easy')} className="w-full h-auto flex-col py-8">
                     <div className="text-4xl mb-2">📜</div>
                     <span className="text-xl">Scribe</span>
                     <span className="text-sm opacity-80">Easy symbols • 180s</span>
                   </EgyptianButton>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="default"
-                    size="xl"
-                    onClick={() => initializeGame('medium')}
-                    className="w-full h-auto flex-col py-8"
-                  >
+                  <EgyptianButton variant="default" size="xl" onClick={() => initializeGame('medium')} className="w-full h-auto flex-col py-8">
                     <div className="text-4xl mb-2">🏺</div>
                     <span className="text-xl">Priest</span>
                     <span className="text-sm opacity-80">Mixed symbols • 120s</span>
                   </EgyptianButton>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="danger"
-                    size="xl"
-                    onClick={() => initializeGame('hard')}
-                    className="w-full h-auto flex-col py-8"
-                  >
+                  <EgyptianButton variant="danger" size="xl" onClick={() => initializeGame('hard')} className="w-full h-auto flex-col py-8">
                     <div className="text-4xl mb-2">👑</div>
                     <span className="text-xl">Pharaoh</span>
                     <span className="text-sm opacity-80">Hard symbols • 90s</span>
@@ -236,56 +228,29 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
             </div>
           ) : isPlaying && currentPuzzle ? (
             <AnimatePresence mode="wait">
-              <motion.div
-                key={currentPuzzleIndex}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="space-y-8"
-              >
-                {/* Progress */}
+              <motion.div key={currentPuzzleIndex} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="space-y-8">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-muted-foreground font-body">
-                    Puzzle {currentPuzzleIndex + 1} of {shuffledPuzzles.length}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-body ${
-                    currentPuzzle.difficulty === 'easy' ? 'bg-scarab/30 text-scarab' :
-                    currentPuzzle.difficulty === 'medium' ? 'bg-primary/30 text-primary' :
-                    'bg-terracotta/30 text-terracotta'
-                  }`}>
+                  <span className="text-muted-foreground font-body">Puzzle {currentPuzzleIndex + 1} of {shuffledPuzzles.length}</span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-body ${currentPuzzle.difficulty === 'easy' ? 'bg-scarab/30 text-scarab' : currentPuzzle.difficulty === 'medium' ? 'bg-primary/30 text-primary' : 'bg-terracotta/30 text-terracotta'}`}>
                     {currentPuzzle.difficulty.toUpperCase()}
                   </span>
                 </div>
 
-                {/* Hieroglyph Display */}
                 <div className="bg-gradient-to-br from-lapis-deep/50 to-obsidian/50 rounded-2xl p-8 border-2 border-gold/30">
                   <div className="flex items-center justify-center gap-4 text-7xl md:text-8xl mb-4">
                     {currentPuzzle.symbols.map((symbol, index) => (
-                      <motion.span
-                        key={index}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.2 }}
-                        className="drop-shadow-lg"
-                      >
+                      <motion.span key={index} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.2 }} className="drop-shadow-lg">
                         {symbol}
                       </motion.span>
                     ))}
                   </div>
-                  
-                  {/* Hint */}
                   {showHint && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-center text-turquoise font-body text-lg mt-4"
-                    >
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-turquoise font-body text-lg mt-4">
                       💡 Hint: {currentPuzzle.hint}
                     </motion.p>
                   )}
                 </div>
 
-                {/* Input Area */}
                 <div className="space-y-4">
                   <div className="relative">
                     <input
@@ -298,15 +263,9 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
                       className="w-full px-6 py-4 text-2xl font-display text-center bg-muted border-2 border-border rounded-xl focus:border-primary focus:outline-none transition-colors uppercase tracking-widest"
                       autoFocus
                     />
-                    
-                    {/* Feedback overlay */}
                     {feedback && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`absolute inset-0 flex items-center justify-center rounded-xl ${
-                          feedback === 'correct' ? 'bg-scarab/90' : 'bg-terracotta/90'
-                        }`}
+                      <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+                        className={`absolute inset-0 flex items-center justify-center rounded-xl ${feedback === 'correct' ? 'bg-scarab/90' : 'bg-terracotta/90'}`}
                       >
                         <span className="text-3xl font-display text-foreground">
                           {feedback === 'correct' ? '✨ Correct!' : `❌ It was: ${currentPuzzle.meaning}`}
@@ -316,33 +275,14 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
                   </div>
 
                   <div className="flex gap-4 justify-center flex-wrap">
-                    <EgyptianButton
-                      variant="default"
-                      size="lg"
-                      onClick={checkAnswer}
-                      disabled={!userInput.trim() || feedback !== null}
-                    >
+                    <EgyptianButton variant="default" size="lg" onClick={checkAnswer} disabled={!userInput.trim() || feedback !== null}>
                       Submit Answer
                     </EgyptianButton>
-                    
-                    <EgyptianButton
-                      variant="turquoise"
-                      size="lg"
-                      onClick={useHint}
-                      disabled={showHint || hintsUsed >= maxHints || feedback !== null}
-                    >
-                      <Lightbulb size={20} />
-                      Hint ({maxHints - hintsUsed})
+                    <EgyptianButton variant="turquoise" size="lg" onClick={useHintAction} disabled={showHint || hintsUsed >= maxHints || feedback !== null}>
+                      <Lightbulb size={20} /> Hint ({maxHints - hintsUsed})
                     </EgyptianButton>
-                    
-                    <EgyptianButton
-                      variant="lapis"
-                      size="lg"
-                      onClick={skipPuzzle}
-                      disabled={skipsUsed >= maxSkips || feedback !== null}
-                    >
-                      <SkipForward size={20} />
-                      Skip ({maxSkips - skipsUsed})
+                    <EgyptianButton variant="lapis" size="lg" onClick={skipPuzzle} disabled={skipsUsed >= maxSkips || feedback !== null}>
+                      <SkipForward size={20} /> Skip ({maxSkips - skipsUsed})
                     </EgyptianButton>
                   </div>
                 </div>
@@ -350,16 +290,9 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
             </AnimatePresence>
           ) : null}
 
-          {/* Game Over */}
           {gameOver && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12"
-            >
-              <div className="text-9xl mb-6">
-                {score >= 500 ? '👑' : score >= 300 ? '🏺' : '📜'}
-              </div>
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
+              <div className="text-9xl mb-6">{score >= 500 ? '👑' : score >= 300 ? '🏺' : '📜'}</div>
               <h2 className="text-5xl font-display text-gold-gradient mb-4">
                 {score >= 500 ? 'Master Decoder!' : score >= 300 ? 'Skilled Scribe!' : 'Keep Practicing!'}
               </h2>
@@ -368,21 +301,13 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
                 <p className="text-xl text-muted-foreground font-body">Best Streak: {streak}🔥</p>
                 <div className="flex items-center justify-center gap-1 mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={i < Math.min(5, Math.floor(score / 100)) ? 'text-primary fill-primary' : 'text-muted'}
-                      size={32}
-                    />
+                    <Star key={i} className={i < Math.min(5, Math.floor(score / 100)) ? 'text-primary fill-primary' : 'text-muted'} size={32} />
                   ))}
                 </div>
               </div>
               <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>
-                  Play Again
-                </EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={onBack}>
-                  Back to Games
-                </EgyptianButton>
+                <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>Play Again</EgyptianButton>
+                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>Back to Games</EgyptianButton>
               </div>
             </motion.div>
           )}

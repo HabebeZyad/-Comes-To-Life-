@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { useGameAudio } from '@/hooks/useGameAudio';
+import { useHighScores } from '@/hooks/useHighScores';
 
 interface MemoryGameProps {
   onBack: () => void;
@@ -26,13 +28,18 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
+  const { addScore } = useHighScores();
 
   useEffect(() => {
     if (isPlaying && timeLeft > 0 && !gameWon) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      if (timeLeft <= 10) playSound('tick');
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && isPlaying) {
       setIsPlaying(false);
+      stopAmbientMusic();
+      playSound('defeat');
     }
   }, [timeLeft, isPlaying, gameWon]);
 
@@ -40,6 +47,10 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     if (matches > 0 && matches === cards.length / 2) {
       setGameWon(true);
       setIsPlaying(false);
+      stopAmbientMusic();
+      playSound('victory');
+      const finalScore = (cards.length / 2) * 100 - moves * 5 + timeLeft * 2;
+      addScore({ playerName: 'Explorer', score: Math.max(0, finalScore), game: 'memory', difficulty, details: `${moves} moves, ${timeLeft}s left` });
     }
   }, [matches, cards.length]);
 
@@ -65,6 +76,8 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     setTimeLeft(level === 'easy' ? 90 : level === 'medium' ? 120 : 180);
     setIsPlaying(true);
     setGameWon(false);
+    playSound('gameStart');
+    startAmbientMusic();
   };
 
   const handleCardClick = (cardId: number) => {
@@ -72,6 +85,8 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
+
+    playSound('cardFlip');
 
     const newCards = cards.map(c =>
       c.id === cardId ? { ...c, isFlipped: true } : c
@@ -89,6 +104,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
 
       if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
         setTimeout(() => {
+          playSound('match');
           setCards(cards.map(c =>
             c.id === firstId || c.id === secondId
               ? { ...c, isMatched: true }
@@ -99,6 +115,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
         }, 500);
       } else {
         setTimeout(() => {
+          playSound('mismatch');
           setCards(cards.map(c =>
             c.id === firstId || c.id === secondId
               ? { ...c, isFlipped: false }
@@ -117,7 +134,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <button
-            onClick={onBack}
+            onClick={() => { stopAmbientMusic(); onBack(); }}
             className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg"
           >
             <ArrowLeft size={20} />
@@ -208,7 +225,6 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                       className="relative aspect-square cursor-pointer"
                       style={{ transformStyle: 'preserve-3d' }}
                     >
-                      {/* Card Back */}
                       <div
                         className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${
                           card.isMatched 
@@ -224,7 +240,6 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                           <div className="text-4xl text-foreground/30">𓁹</div>
                         )}
                       </div>
-                      {/* Card Front */}
                       <div
                         className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${
                           card.isMatched
@@ -263,7 +278,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                     <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>
                       Try Again
                     </EgyptianButton>
-                    <EgyptianButton variant="lapis" size="lg" onClick={onBack}>
+                    <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
                       Back to Games
                     </EgyptianButton>
                   </div>
@@ -299,7 +314,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                 <EgyptianButton variant="default" size="lg" onClick={() => setGameWon(false)}>
                   New Game
                 </EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={onBack}>
+                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
                   Back to Games
                 </EgyptianButton>
               </div>
