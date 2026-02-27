@@ -1,0 +1,253 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Egyptian-inspired color palette */
+    --background: 40 20% 8%;
+    --foreground: 43 30% 90%;
+
+    --card: 40 15% 12%;
+    --card-foreground: 43 30% 90%;
+
+    --popover: 40 15% 10%;
+    --popover-foreground: 43 30% 90%;
+
+    /* Gold - Primary */
+    --primary: 43 70% 47%;
+    --primary-foreground: 40 20% 8%;
+
+    /* Lapis Lazuli - Secondary */
+    --secondary: 210 50% 25%;
+    --secondary-foreground: 43 30% 90%;
+
+    /* Papyrus - Muted */
+    --muted: 40 20% 18%;
+    --muted-foreground: 40 15% 55%;
+
+    /* Turquoise - Accent */
+    --accent: 175 60% 40%;
+    --accent-foreground: 40 20% 8%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 43 30% 90%;
+
+    --border: 40 20% 20%;
+    --input: 40 20% 15%;
+    --ring: 43 70% 47%;
+
+    --radius: 0.5rem;
+
+    /* Custom Egyptian tokens */
+    --gold: 43 70% 47%;
+    --gold-light: 43 80% 60%;
+    --gold-dark: 40 60% 35%;
+    --lapis: 210 50% 25%;
+    --lapis-light: 210 45% 40%;
+    --lapis-deep: 215 55% 18%;
+    --papyrus: 40 35% 85%;
+    --papyrus-dark: 40 25% 70%;
+    --sandstone: 35 30% 45%;
+    --sandstone-light: 35 25% 60%;
+    --turquoise: 175 60% 40%;
+    --turquoise-glow: 175 70% 50%;
+    --scarab: 160 50% 30%;
+    --terracotta: 15 60% 45%;
+    --obsidian: 240 10% 8%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43 80% 60%) 0%, hsl(43 70% 47%) 50%, hsl(40 60% 35%) 100%);
+    --gradient-lapis: linear-gradient(180deg, hsl(210 50% 25%) 0%, hsl(215 55% 18%) 100%);
+    --gradient-papyrus: linear-gradient(180deg, hsl(40 35% 85%) 0%, hsl(40 25% 70%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(40 20% 8%) 0%, hsl(40 15% 12%) 50%, hsl(215 55% 18%) 100%);
+    --gradient-tomb: radial-gradient(ellipse at center, hsl(40 20% 12%) 0%, hsl(40 20% 6%) 100%);
+
+    /* Shadows */
+    --shadow-gold: 0 0 30px hsl(43 70% 47% / 0.3);
+    --shadow-glow: 0 0 60px hsl(43 70% 47% / 0.2);
+    --shadow-deep: 0 20px 60px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.3);
+
+    /* Typography */
+    --font-display: 'Cinzel', serif;
+    --font-body: 'Cormorant Garamond', serif;
+
+    --sidebar-background: 40 15% 10%;
+    --sidebar-foreground: 43 30% 90%;
+    --sidebar-primary: 43 70% 47%;
+    --sidebar-primary-foreground: 40 20% 8%;
+    --sidebar-accent: 40 20% 18%;
+    --sidebar-accent-foreground: 43 30% 90%;
+    --sidebar-border: 40 20% 20%;
+    --sidebar-ring: 43 70% 47%;
+  }
+
+  .dark {
+    --background: 40 20% 8%;
+    --foreground: 43 30% 90%;
+    --card: 40 15% 12%;
+    --card-foreground: 43 30% 90%;
+    --popover: 40 15% 10%;
+    --popover-foreground: 43 30% 90%;
+    --primary: 43 70% 47%;
+    --primary-foreground: 40 20% 8%;
+    --secondary: 210 50% 25%;
+    --secondary-foreground: 43 30% 90%;
+    --muted: 40 20% 18%;
+    --muted-foreground: 40 15% 55%;
+    --accent: 175 60% 40%;
+    --accent-foreground: 40 20% 8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 43 30% 90%;
+    --border: 40 20% 20%;
+    --input: 40 20% 15%;
+    --ring: 43 70% 47%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .text-gold-gradient {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .bg-tomb-gradient {
+    background: var(--gradient-tomb);
+  }
+
+  .shadow-gold-glow {
+    box-shadow: var(--shadow-gold);
+  }
+
+  .shadow-deep {
+    box-shadow: var(--shadow-deep);
+  }
+
+  .border-gold {
+    border-color: hsl(var(--gold));
+  }
+
+  .hieroglyph-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.05'%3E%3Cpath d='M30 30l15-15v30L30 30zm0 0L15 15v30l15-15z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .papyrus-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  .animate-dust {
+    animation: dust 20s linear infinite;
+  }
+
+  .animate-flicker {
+    animation: flicker 4s ease-in-out infinite;
+  }
+
+  .animate-hieroglyph-reveal {
+    animation: hieroglyph-reveal 1s ease-out forwards;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    opacity: 1;
+    filter: drop-shadow(0 0 20px hsl(43 70% 47% / 0.5));
+  }
+  50% { 
+    opacity: 0.8;
+    filter: drop-shadow(0 0 40px hsl(43 70% 47% / 0.8));
+  }
+}
+
+@keyframes dust {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+  52% { opacity: 0.95; }
+  54% { opacity: 0.9; }
+}
+
+@keyframes hieroglyph-reveal {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    filter: blur(10px);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--gold) / 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--gold) / 0.7);
+}
+
+/* Selection styling */
+::selection {
+  background: hsl(var(--gold) / 0.3);
+  color: hsl(var(--foreground));
+}

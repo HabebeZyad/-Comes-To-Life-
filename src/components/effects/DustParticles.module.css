@@ -1,0 +1,7 @@
+.particle {
+  left: calc(var(--x) * 1%);
+  width: calc(var(--size) * 1px);
+  height: calc(var(--size) * 1px);
+  animation-delay: calc(var(--delay) * 1s);
+  animation-duration: calc(var(--duration) * 1s);
+}

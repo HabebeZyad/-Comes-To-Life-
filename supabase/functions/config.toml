@@ -1,0 +1,13 @@
+project_id = "ukhicuaegyqsyqkbznqq"
+
+[functions.ai-story-generator]
+verify_jwt = false
+
+[functions.hieroglyph-recognition]
+verify_jwt = false
+
+[functions.adaptive-quiz]
+verify_jwt = false
+
+[functions.timeline-predictions]
+verify_jwt = false
