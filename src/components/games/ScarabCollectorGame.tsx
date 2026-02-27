@@ -25,13 +25,15 @@ const FIELD_HEIGHT = 400;
 
 export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
   const [scarabs, setScarabs] = useState<Scarab[]>([]);
-  const [score, setScore] = useState(0);
+  const [gameState, setGameState] = useState({
+    score: 0,
+    collected: 0,
+    cursedHits: 0,
+    combo: 0
+  });
   const [timeLeft, setTimeLeft] = useState(60);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [collected, setCollected] = useState(0);
-  const [cursedHits, setCursedHits] = useState(0);
-  const [combo, setCombo] = useState(0);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const lastClickRef = useRef(Date.now());
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
@@ -40,10 +42,12 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
   const startGame = useCallback((level: 'easy' | 'medium' | 'hard') => {
     setDifficulty(level);
     setScarabs([]);
-    setScore(0);
-    setCollected(0);
-    setCursedHits(0);
-    setCombo(0);
+    setGameState({
+      score: 0,
+      collected: 0,
+      cursedHits: 0,
+      combo: 0
+    });
     setTimeLeft(level === 'easy' ? 90 : level === 'medium' ? 60 : 45);
     setIsPlaying(true);
     setGameOver(false);
@@ -58,8 +62,8 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
       setIsPlaying(false);
       setGameOver(true);
       stopAmbientMusic();
-      playSound(score >= 500 ? 'victory' : 'defeat');
-      addScore({ playerName: 'Explorer', score, game: 'scarab-collector', difficulty, details: `${collected} caught, ${cursedHits} cursed` });
+      playSound(gameState.score >= 500 ? 'victory' : 'defeat');
+      addScore({ playerName: 'Explorer', score: gameState.score, game: 'scarab-collector', difficulty, details: `${gameState.collected} caught, ${gameState.cursedHits} cursed` });
       return;
     }
     const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
@@ -118,17 +122,24 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
 
     if (scarab.type === 'cursed') {
       playSound('wrong');
-      setCursedHits(c => c + 1);
-      setCombo(0);
-      setScore(s => Math.max(0, s + scarab.points));
+      setGameState(prev => ({
+        ...prev,
+        cursedHits: prev.cursedHits + 1,
+        combo: 0,
+        score: Math.max(0, prev.score + scarab.points)
+      }));
     } else {
       playSound('collect');
-      setCollected(c => c + 1);
-      const newCombo = timeSinceLastClick < 1500 ? combo + 1 : 1;
-      setCombo(newCombo);
+      const newCombo = timeSinceLastClick < 1500 ? gameState.combo + 1 : 1;
       const comboBonus = Math.floor(newCombo / 3) * 25;
       const points = scarab.points + comboBonus;
-      setScore(s => s + points);
+
+      setGameState(prev => ({
+        ...prev,
+        collected: prev.collected + 1,
+        combo: newCombo,
+        score: prev.score + points
+      }));
       if (newCombo >= 3) playSound('streak');
     }
   };
@@ -148,11 +159,11 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
           <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
             <div className="flex items-center gap-2 bg-lapis/50 px-4 py-2 rounded-lg border border-lapis-light/30">
               <Trophy className="text-primary" size={24} />
-              <span className="text-xl text-foreground font-body">{score}</span>
+              <span className="text-xl text-foreground font-body">{gameState.score}</span>
             </div>
             <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
               <Star className="text-turquoise" size={24} />
-              <span className="text-xl text-foreground font-body">Combo: {combo}x</span>
+              <span className="text-xl text-foreground font-body">Combo: {gameState.combo}x</span>
             </div>
             <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
               <Timer className={`${timeLeft <= 10 ? 'text-terracotta animate-pulse' : 'text-scarab'}`} size={24} />
@@ -227,22 +238,22 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
 
           {isPlaying && (
             <div className="text-center mt-4 text-muted-foreground font-body">
-              <p>Caught: <span className="text-primary font-bold">{collected}</span> • Cursed: <span className="text-terracotta font-bold">{cursedHits}</span></p>
+              <p>Caught: <span className="text-primary font-bold">{gameState.collected}</span> • Cursed: <span className="text-terracotta font-bold">{gameState.cursedHits}</span></p>
             </div>
           )}
 
           {gameOver && (
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12 absolute inset-0 bg-obsidian/95 rounded-lg flex flex-col items-center justify-center">
-              <div className="text-9xl mb-6">{score >= 500 ? '👑' : score >= 300 ? '🏺' : '📜'}</div>
+              <div className="text-9xl mb-6">{gameState.score >= 500 ? '👑' : gameState.score >= 300 ? '🏺' : '📜'}</div>
               <h2 className="text-5xl font-display text-gold-gradient mb-4">
-                {score >= 500 ? 'Master Collector!' : score >= 300 ? 'Skilled Hunter!' : 'Keep Practicing!'}
+                {gameState.score >= 500 ? 'Master Collector!' : gameState.score >= 300 ? 'Skilled Hunter!' : 'Keep Practicing!'}
               </h2>
               <div className="space-y-2 mb-8">
-                <p className="text-2xl text-foreground font-body">Score: {score}</p>
-                <p className="text-xl text-muted-foreground font-body">Collected: {collected} • Cursed Hits: {cursedHits}</p>
+                <p className="text-2xl text-foreground font-body">Score: {gameState.score}</p>
+                <p className="text-xl text-muted-foreground font-body">Collected: {gameState.collected} • Cursed Hits: {gameState.cursedHits}</p>
                 <div className="flex items-center justify-center gap-1 mt-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={i < Math.min(5, Math.floor(score / 150)) ? 'text-primary fill-primary' : 'text-muted'} size={32} />
+                    <Star key={i} className={i < Math.min(5, Math.floor(gameState.score / 150)) ? 'text-primary fill-primary' : 'text-muted'} size={32} />
                   ))}
                 </div>
               </div>

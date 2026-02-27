@@ -31,6 +31,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
   const [timeLeft, setTimeLeft] = useState(60);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [perfectDrops, setPerfectDrops] = useState(0);
+  const [showSparkle, setShowSparkle] = useState(false);
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
@@ -112,6 +113,12 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
           ? { ...block, placed: true, position: { x: movingX, y: block.position.y } }
           : block
       ));
+
+      // Visual feedback for successful drop
+      if (isPerfect) {
+        setShowSparkle(true);
+        setTimeout(() => setShowSparkle(false), 1000);
+      }
       if (currentBlockIndex >= blocks.length - 1) {
         setGameWon(true);
         setIsPlaying(false);
@@ -238,6 +245,19 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                     style={{ width: blocks[currentBlockIndex]?.width || 0, height: blockHeight - 4, left: (containerWidth - (blocks[currentBlockIndex]?.width || 0)) / 2, bottom: currentBlockIndex * blockHeight }}
                   />
                 )}
+                <AnimatePresence>
+                  {showSparkle && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1.5 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 pointer-events-none flex items-center justify-center"
+                    >
+                      <div className="w-full h-full bg-primary/20 animate-pulse rounded-full" />
+                      <div className="absolute text-4xl">✨</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="text-center mt-6 text-muted-foreground font-body">
                 <p>Press <span className="text-primary font-bold">SPACE</span> or <span className="text-primary font-bold">TAP</span> to drop the block</p>

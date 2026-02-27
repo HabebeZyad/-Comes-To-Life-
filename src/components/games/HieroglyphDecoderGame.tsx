@@ -30,6 +30,16 @@ const puzzles: HieroglyphPuzzle[] = [
   { symbols: ['𓏏', '𓅱', '𓏏', '𓋹'], meaning: 'TUT', hint: 'Young pharaoh', difficulty: 'hard' },
   { symbols: ['𓆣', '𓊪', '𓂋', '𓇋'], meaning: 'KHEPRI', hint: 'Scarab beetle god', difficulty: 'hard' },
   { symbols: ['𓊃', '𓎼', '𓏏'], meaning: 'SEKHMET', hint: 'Lioness goddess of war', difficulty: 'hard' },
+  { symbols: ['𓇋', '𓈖', '𓊪', '𓅱'], meaning: 'ANUBIS', hint: 'God of mummification', difficulty: 'medium' },
+  { symbols: ['𓂋', '𓈖', '𓊪', '𓏏'], meaning: 'RENPET', hint: 'The word for year', difficulty: 'hard' },
+  { symbols: ['𓉐', '𓉻'], meaning: 'PHARAOH', hint: 'Great House', difficulty: 'hard' },
+  { symbols: ['𓈗'], meaning: 'NILE', hint: 'The sacred water', difficulty: 'easy' },
+  { symbols: ['𓋹', '𓏤'], meaning: 'LIFE', hint: 'Symbol of breath', difficulty: 'easy' },
+  { symbols: ['𓊹'], meaning: 'GOD', hint: 'Divine being', difficulty: 'easy' },
+  { symbols: ['𓅓', '𓂋'], meaning: 'PYRAMID', hint: 'Place of ascension', difficulty: 'medium' },
+  { symbols: ['𓊃', '𓈙'], meaning: 'SCRIBE', hint: 'He who writes', difficulty: 'medium' },
+  { symbols: ['𓋴', '𓃭'], meaning: 'SPHINX', hint: 'Guardian of the plateau', difficulty: 'medium' },
+  { symbols: ['𓎛', '𓏏', '𓉐'], meaning: 'TEMPLE', hint: 'House of the god', difficulty: 'hard' },
 ];
 
 export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
