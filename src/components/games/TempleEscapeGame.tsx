@@ -89,7 +89,7 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
         }, 1500);
       }
     }
-  }, [timeLeft, isPlaying, showResult, gameOver]);
+  }, [timeLeft, isPlaying, showResult, gameOver, lives, currentTrap, score, addScore, playSound, stopAmbientMusic]);
 
   const handleChoice = (index: number) => {
     if (showResult || !isPlaying) return;
@@ -145,9 +145,13 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <button onClick={() => { stopAmbientMusic(); onBack(); }} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
+          <EgyptianButton
+            variant="nav"
+            onClick={() => { stopAmbientMusic(); onBack(); }}
+            className="mb-4 -ml-4"
+          >
             <ArrowLeft size={20} /> Back to Games
-          </button>
+          </EgyptianButton>
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Temple Escape</h1>
           <p className="text-xl text-muted-foreground font-body">Navigate deadly traps to escape the ancient temple!</p>
         </div>
@@ -211,15 +215,14 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
                     whileTap={!showResult ? { scale: 0.97 } : {}}
                     onClick={() => handleChoice(index)}
                     disabled={showResult}
-                    className={`p-5 rounded-xl text-lg font-body border-2 transition-all text-left ${
-                      showResult
-                        ? option.safe
-                          ? 'bg-scarab/50 border-turquoise/50 text-foreground'
-                          : index === selectedOption
-                            ? 'bg-terracotta/50 border-terracotta/50 text-foreground'
-                            : 'bg-card/50 border-border text-muted-foreground'
-                        : 'bg-card hover:bg-muted border-gold/30 hover:border-gold/50 text-foreground'
-                    }`}
+                    className={`p-5 rounded-xl text-lg font-body border-2 transition-all text-left ${showResult
+                      ? option.safe
+                        ? 'bg-scarab/50 border-turquoise/50 text-foreground'
+                        : index === selectedOption
+                          ? 'bg-terracotta/50 border-terracotta/50 text-foreground'
+                          : 'bg-card/50 border-border text-muted-foreground'
+                      : 'bg-card hover:bg-muted border-gold/30 hover:border-gold/50 text-foreground'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 text-primary-foreground font-display text-sm">

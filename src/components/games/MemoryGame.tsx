@@ -41,7 +41,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
       stopAmbientMusic();
       playSound('defeat');
     }
-  }, [timeLeft, isPlaying, gameWon]);
+  }, [timeLeft, isPlaying, gameWon, playSound, stopAmbientMusic]);
 
   useEffect(() => {
     if (matches > 0 && matches === cards.length / 2) {
@@ -52,14 +52,14 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
       const finalScore = (cards.length / 2) * 100 - moves * 5 + timeLeft * 2;
       addScore({ playerName: 'Explorer', score: Math.max(0, finalScore), game: 'memory', difficulty, details: `${moves} moves, ${timeLeft}s left` });
     }
-  }, [matches, cards.length]);
+  }, [matches, cards.length, moves, timeLeft, addScore, difficulty, playSound, stopAmbientMusic]);
 
   const initializeGame = (level: 'easy' | 'medium' | 'hard') => {
     setDifficulty(level);
     const pairCount = level === 'easy' ? 6 : level === 'medium' ? 8 : 12;
     const selectedSymbols = symbols.slice(0, pairCount);
     const cardPairs = [...selectedSymbols, ...selectedSymbols];
-    
+
     const shuffled = cardPairs
       .map((symbol, index) => ({
         id: index,
@@ -82,7 +82,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
 
   const handleCardClick = (cardId: number) => {
     if (!isPlaying || flippedCards.length === 2) return;
-    
+
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
@@ -133,14 +133,14 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
-          <button
+          <EgyptianButton
+            variant="nav"
             onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg"
+            className="mb-4 -ml-4"
           >
-            <ArrowLeft size={20} />
-            Back to Games
-          </button>
-          
+            <ArrowLeft size={20} /> Back to Games
+          </EgyptianButton>
+
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Sacred Symbols Memory</h1>
           <p className="text-xl text-muted-foreground font-body">Match the divine symbols of ancient Egypt</p>
         </div>
@@ -226,11 +226,10 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                       style={{ transformStyle: 'preserve-3d' }}
                     >
                       <div
-                        className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${
-                          card.isMatched 
-                            ? 'bg-scarab/50 opacity-50'
-                            : 'bg-gradient-to-br from-lapis to-lapis-deep'
-                        } border-2 border-gold/30`}
+                        className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${card.isMatched
+                          ? 'bg-scarab/50 opacity-50'
+                          : 'bg-gradient-to-br from-lapis to-lapis-deep'
+                          } border-2 border-gold/30`}
                         style={{
                           backfaceVisibility: 'hidden',
                           transform: card.isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -241,11 +240,10 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                         )}
                       </div>
                       <div
-                        className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${
-                          card.isMatched
-                            ? 'bg-scarab'
-                            : 'bg-gradient-to-br from-gold-dark to-primary'
-                        } border-2 border-gold-light/50`}
+                        className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${card.isMatched
+                          ? 'bg-scarab'
+                          : 'bg-gradient-to-br from-gold-dark to-primary'
+                          } border-2 border-gold-light/50`}
                         style={{
                           backfaceVisibility: 'hidden',
                           transform: card.isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)'

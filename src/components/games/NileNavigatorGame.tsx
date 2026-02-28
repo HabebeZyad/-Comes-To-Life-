@@ -215,9 +215,13 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <button onClick={() => { stopAmbientMusic(); onBack(); }} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
+          <EgyptianButton
+            variant="nav"
+            onClick={() => { stopAmbientMusic(); onBack(); }}
+            className="mb-4 -ml-4"
+          >
             <ArrowLeft size={20} /> Back to Games
-          </button>
+          </EgyptianButton>
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Nile Navigator</h1>
           <p className="text-xl text-muted-foreground font-body">Sail the sacred river, reach the goals, and become a master navigator!</p>
         </div>
@@ -319,10 +323,10 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
 
                 {/* Progress Bar */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
-                   <div
+                  <div
                     className="h-full bg-primary transition-all duration-300"
                     style={{ width: `${Math.min(100, (distance / goal.distance) * 100)}%` }}
-                   />
+                  />
                 </div>
               </div>
             </div>
@@ -363,14 +367,14 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
           )}
 
           {!isPlaying && score > 0 && !levelComplete && !gameOver && (
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-obsidian/95 z-50 flex flex-col items-center justify-center p-8 rounded-lg text-center">
-                <Trophy className="w-20 h-20 text-primary mb-4" />
-                <h2 className="text-5xl font-display text-gold-gradient mb-2">Grand Captain!</h2>
-                <p className="text-2xl text-foreground mb-8 font-body">Final Score: {score}</p>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
-                  Return to Port
-                </EgyptianButton>
-             </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-obsidian/95 z-50 flex flex-col items-center justify-center p-8 rounded-lg text-center">
+              <Trophy className="w-20 h-20 text-primary mb-4" />
+              <h2 className="text-5xl font-display text-gold-gradient mb-2">Grand Captain!</h2>
+              <p className="text-2xl text-foreground mb-8 font-body">Final Score: {score}</p>
+              <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
+                Return to Port
+              </EgyptianButton>
+            </motion.div>
           )}
         </EgyptianCard>
       </div>

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy } from 'lucide-react';
+import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { MemoryGame } from '@/components/games/MemoryGame';
@@ -11,12 +11,14 @@ import { HieroglyphDecoderGame } from '@/components/games/HieroglyphDecoderGame'
 import { TempleEscapeGame } from '@/components/games/TempleEscapeGame';
 import { NileNavigatorGame } from '@/components/games/NileNavigatorGame';
 import { ScarabCollectorGame } from '@/components/games/ScarabCollectorGame';
+import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh';
 
 const games = [
+  { id: 'guess-the-pharaoh' as const, title: 'Guess the Pharaoh', description: 'Identify the pharaoh from the given clue', icon: Crown, color: 'from-yellow-400 to-amber-600', emoji: '👑' },
   { id: 'memory' as const, title: 'Sacred Symbols Memory', description: 'Match pairs of ancient Egyptian hieroglyphs and sacred symbols', icon: Puzzle, color: 'from-lapis to-lapis-deep', emoji: '𓋹' },
   { id: 'maze' as const, title: 'Mummy Maze Runner', description: 'Navigate the tomb labyrinth while escaping the pursuing mummy', icon: Map, color: 'from-gold-dark to-primary', emoji: '🧟' },
   { id: 'riddles' as const, title: "Pharaoh's Riddles", description: "Answer the sphinx's riddles and prove your ancient wisdom", icon: Brain, color: 'from-scarab to-turquoise', emoji: '🦁' },
@@ -36,15 +38,28 @@ const gameComponents: Record<string, React.FC<{ onBack: () => void }>> = {
   'temple-escape': TempleEscapeGame,
   'nile-navigator': NileNavigatorGame,
   'scarab-collector': ScarabCollectorGame,
+  'guess-the-pharaoh': GuessThePharaohGame,
 };
 
 export default function Games() {
   const [currentGame, setCurrentGame] = useState<GameType>('menu');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentGame]);
+
+  const handleBackToMenu = () => {
+    setCurrentGame('menu');
+  };
+
+  const handleGameSelect = (gameId: GameType) => {
+    setCurrentGame(gameId);
+  };
+
   if (currentGame !== 'menu') {
     const GameComponent = gameComponents[currentGame];
-    if (GameComponent) return <GameComponent onBack={() => setCurrentGame('menu')} />;
+    if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
   }
 
   return (
@@ -69,14 +84,12 @@ export default function Games() {
           </EgyptianButton>
         </motion.div>
 
-        {/* Leaderboard */}
         {showLeaderboard && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
             <Leaderboard />
           </motion.div>
         )}
 
-        {/* Games Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {games.map((game, index) => (
             <motion.div
@@ -102,7 +115,7 @@ export default function Games() {
                     <EgyptianCardDescription className="mb-4 text-base">
                       {game.description}
                     </EgyptianCardDescription>
-                    <EgyptianButton variant="default" className="w-full" onClick={() => setCurrentGame(game.id)}>
+                    <EgyptianButton variant="default" className="w-full" onClick={() => handleGameSelect(game.id)}>
                       Play Now
                     </EgyptianButton>
                   </EgyptianCardContent>

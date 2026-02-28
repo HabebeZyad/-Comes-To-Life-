@@ -69,7 +69,7 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
     if (timeLeft <= 10) playSound('tick');
     return () => clearTimeout(timer);
-  }, [timeLeft, isPlaying, gameOver]);
+  }, [timeLeft, isPlaying, gameOver, difficulty, gameState.score, gameState.collected, gameState.cursedHits, addScore, playSound, stopAmbientMusic]);
 
   // Spawn scarabs
   useEffect(() => {
@@ -148,9 +148,13 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <button onClick={() => { stopAmbientMusic(); onBack(); }} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
+          <EgyptianButton
+            variant="nav"
+            onClick={() => { stopAmbientMusic(); onBack(); }}
+            className="mb-4 -ml-4"
+          >
             <ArrowLeft size={20} /> Back to Games
-          </button>
+          </EgyptianButton>
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Scarab Collector</h1>
           <p className="text-xl text-muted-foreground font-body">Catch sacred scarabs, avoid the cursed scorpions!</p>
         </div>
@@ -222,10 +226,9 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
                       transition={{ duration: 0.2 }}
                       whileHover={{ scale: 1.3 }}
                       onClick={() => catchScarab(scarab)}
-                      className={`absolute text-3xl cursor-pointer z-10 ${
-                        scarab.type === 'sacred' ? 'animate-glow-pulse' :
+                      className={`absolute text-3xl cursor-pointer z-10 ${scarab.type === 'sacred' ? 'animate-glow-pulse' :
                         scarab.type === 'cursed' ? 'animate-pulse' : ''
-                      }`}
+                        }`}
                       style={{ left: scarab.x, top: scarab.y }}
                     >
                       {scarab.emoji}

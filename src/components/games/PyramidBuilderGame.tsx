@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, RotateCcw } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
+import { pyramidLevels, PyramidLevel } from '@/data/pyramidBuilderLevels';
 
 interface PyramidBuilderGameProps {
   onBack: () => void;
@@ -17,9 +18,8 @@ interface Block {
   position: { x: number; y: number };
 }
 
-const BLOCK_WIDTHS = [200, 180, 160, 140, 120, 100, 80, 60];
-
 export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
+  const [currentLevel, setCurrentLevel] = useState<PyramidLevel | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [movingX, setMovingX] = useState(0);
@@ -28,8 +28,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [gameLost, setGameLost] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [timeLeft, setTimeLeft] = useState(0);
   const [perfectDrops, setPerfectDrops] = useState(0);
   const [showSparkle, setShowSparkle] = useState(false);
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
@@ -39,9 +38,9 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
   const blockHeight = 30;
   const baseY = 300;
 
-  const initializeGame = useCallback((level: 'easy' | 'medium' | 'hard') => {
-    setDifficulty(level);
-    const initialBlocks: Block[] = BLOCK_WIDTHS.map((width, index) => ({
+  const initializeGame = useCallback((level: PyramidLevel) => {
+    setCurrentLevel(level);
+    const initialBlocks: Block[] = level.blocks.map((width, index) => ({
       id: index,
       width,
       placed: false,
@@ -49,17 +48,17 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
     }));
     setBlocks(initialBlocks);
     setCurrentBlockIndex(0);
-    setMovingX((containerWidth - BLOCK_WIDTHS[0]) / 2);
+    setMovingX((containerWidth - level.blocks[0]) / 2);
     setDirection(1);
     setScore(0);
     setPerfectDrops(0);
-    setTimeLeft(level === 'easy' ? 90 : level === 'medium' ? 60 : 45);
+    setTimeLeft(level.timeLimit);
     setIsPlaying(true);
     setGameWon(false);
     setGameLost(false);
     playSound('gameStart');
     startAmbientMusic();
-  }, []);
+  }, [playSound, startAmbientMusic]);
 
   useEffect(() => {
     if (isPlaying && timeLeft > 0 && !gameWon && !gameLost) {
@@ -72,13 +71,15 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
       stopAmbientMusic();
       playSound('defeat');
     }
-  }, [timeLeft, isPlaying, gameWon, gameLost]);
+  }, [timeLeft, isPlaying, gameWon, gameLost, playSound, stopAmbientMusic]);
 
   useEffect(() => {
-    if (!isPlaying || gameWon || gameLost) return;
-    const speed = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 3 : 4;
+    if (!isPlaying || gameWon || gameLost || !currentLevel) return;
+
+    const speed = currentLevel.speed;
     const currentBlock = blocks[currentBlockIndex];
     if (!currentBlock) return;
+
     const interval = setInterval(() => {
       setMovingX(prev => {
         const newX = prev + direction * speed;
@@ -88,14 +89,16 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
         return newX;
       });
     }, 16);
+
     return () => clearInterval(interval);
-  }, [isPlaying, currentBlockIndex, direction, blocks, difficulty, gameWon, gameLost]);
+  }, [isPlaying, currentBlockIndex, direction, blocks, currentLevel, gameWon, gameLost]);
 
   const dropBlock = useCallback(() => {
-    if (!isPlaying || currentBlockIndex >= blocks.length) return;
+    if (!isPlaying || !currentLevel || currentBlockIndex >= blocks.length) return;
+
     const currentBlock = blocks[currentBlockIndex];
     const targetX = (containerWidth - currentBlock.width) / 2;
-    const tolerance = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 20 : 10;
+    const tolerance = currentLevel.tolerance;
     const diff = Math.abs(movingX - targetX);
 
     if (diff <= tolerance) {
@@ -104,21 +107,18 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
       if (isPerfect) {
         setPerfectDrops(prev => prev + 1);
         playSound('perfect');
+        setShowSparkle(true);
+        setTimeout(() => setShowSparkle(false), 800);
       } else {
         playSound('drop');
       }
       setScore(prev => prev + points);
-      setBlocks(prev => prev.map((block, index) => 
-        index === currentBlockIndex 
+      setBlocks(prev => prev.map((block, index) =>
+        index === currentBlockIndex
           ? { ...block, placed: true, position: { x: movingX, y: block.position.y } }
           : block
       ));
 
-      // Visual feedback for successful drop
-      if (isPerfect) {
-        setShowSparkle(true);
-        setTimeout(() => setShowSparkle(false), 1000);
-      }
       if (currentBlockIndex >= blocks.length - 1) {
         setGameWon(true);
         setIsPlaying(false);
@@ -126,7 +126,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
         setScore(finalScore);
         stopAmbientMusic();
         playSound('victory');
-        addScore({ playerName: 'Explorer', score: finalScore, game: 'pyramid', difficulty, details: `${perfectDrops + (isPerfect ? 1 : 0)} perfect drops` });
+        addScore({ playerName: 'Architect', score: finalScore, game: 'pyramid', details: `${perfectDrops + (isPerfect ? 1 : 0)} perfect drops` });
       } else {
         setCurrentBlockIndex(prev => prev + 1);
         setMovingX(0);
@@ -138,32 +138,72 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
       stopAmbientMusic();
       playSound('defeat');
     }
-  }, [isPlaying, currentBlockIndex, blocks, movingX, difficulty, timeLeft]);
+  }, [isPlaying, currentBlockIndex, blocks, movingX, currentLevel, timeLeft, score, perfectDrops, playSound, stopAmbientMusic, addScore]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && isPlaying) {
-        e.preventDefault();
+    const handleInteraction = () => {
+      if (isPlaying) {
         dropBlock();
       }
     };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleInteraction();
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('touchstart', handleInteraction);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
   }, [isPlaying, dropBlock]);
+
+  if (!currentLevel) {
+    return (
+      <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <EgyptianButton
+              variant="nav"
+              onClick={onBack}
+              className="mb-4 -ml-4"
+            >
+              <ArrowLeft size={20} /> Back to Games
+            </EgyptianButton>
+            <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Pyramid Builder</h1>
+            <p className="text-xl text-muted-foreground font-body">Select a blueprint to begin construction</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {pyramidLevels.map((level) => (
+              <motion.div key={level.level} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <EgyptianButton onClick={() => initializeGame(level)} size="xl" variant="outline" className="w-full h-auto flex-col py-8">
+                  <span className="text-4xl mb-4">{level.level === 1 ? '🌊' : level.level === 2 ? '🏛️' : '🔥'}</span>
+                  <span className="text-2xl mb-1">Level {level.level}</span>
+                  <span className="text-gold font-body mb-2">{level.title}</span>
+                  <span className="text-sm opacity-60 font-body">{level.blocks.length} Blocks • {level.timeLimit}s</span>
+                </EgyptianButton>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <button
-            onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg"
-          >
-            <ArrowLeft size={20} />
-            Back to Games
+          <button onClick={() => { stopAmbientMusic(); setCurrentLevel(null); }} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
+            <ArrowLeft size={20} /> Back to Blueprints
           </button>
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Pyramid Builder</h1>
-          <p className="text-xl text-muted-foreground font-body">Stack the sacred blocks to build the perfect pyramid</p>
+          <p className="text-xl text-muted-foreground font-body">Building: {currentLevel.title}</p>
         </div>
 
         <EgyptianCard variant="tomb" padding="lg">
@@ -178,136 +218,104 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
             </div>
             <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
               <Timer className={`${timeLeft < 15 ? 'text-terracotta animate-pulse' : 'text-scarab'}`} size={24} />
-              <span className="text-xl text-foreground font-body">{timeLeft}s</span>
+              <span className="text-xl text-foreground font-body uppercase tracking-widest">{timeLeft}s</span>
             </div>
           </div>
 
-          {!isPlaying && !gameWon && !gameLost ? (
-            <div className="text-center py-12">
-              <div className="text-8xl mb-6">🏛️</div>
-              <h2 className="text-4xl font-display text-gold-gradient mb-6">Build Your Pyramid</h2>
-              <p className="text-xl text-muted-foreground font-body mb-4 max-w-2xl mx-auto">
-                Press SPACE or tap to drop blocks. Align them perfectly to build the pyramid!
-              </p>
-              <p className="text-lg text-muted-foreground/80 font-body mb-8">The closer to center, the more points you earn.</p>
-              <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton variant="turquoise" size="xl" onClick={() => initializeGame('easy')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">🐪</div>
-                    <span className="text-xl">Easy</span>
-                    <span className="text-sm opacity-80">Slow blocks • 90s</span>
-                  </EgyptianButton>
+          <div
+            className="relative mx-auto bg-gradient-to-b from-lapis-deep/30 to-obsidian rounded-xl border-2 border-gold/30 overflow-hidden cursor-pointer shadow-inner"
+            style={{ width: containerWidth, height: 380 }}
+            onClick={dropBlock}
+          >
+            <div className="absolute top-0 bottom-0 w-0.5 bg-primary/20" style={{ left: containerWidth / 2 }} />
+
+            {blocks.map((block, index) => (
+              block.placed && (
+                <motion.div key={block.id} initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                  className="absolute bg-gradient-to-r from-gold-dark via-primary to-gold-dark border-2 border-gold-light/40 rounded flex items-center justify-center text-obsidian/40 font-display"
+                  style={{ width: block.width, height: blockHeight - 4, left: block.position.x, bottom: index * blockHeight }}
+                >
+                  <span className="text-xs">🧱</span>
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton variant="default" size="xl" onClick={() => initializeGame('medium')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">🏺</div>
-                    <span className="text-xl">Medium</span>
-                    <span className="text-sm opacity-80">Normal speed • 60s</span>
-                  </EgyptianButton>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton variant="danger" size="xl" onClick={() => initializeGame('hard')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">⚡</div>
-                    <span className="text-xl">Hard</span>
-                    <span className="text-sm opacity-80">Fast blocks • 45s</span>
-                  </EgyptianButton>
-                </motion.div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div 
-                className="relative mx-auto bg-gradient-to-b from-lapis-deep/30 to-obsidian rounded-xl border-2 border-gold/30 overflow-hidden cursor-pointer"
-                style={{ width: containerWidth, height: 380 }}
-                onClick={dropBlock}
+              )
+            ))}
+
+            {isPlaying && currentBlockIndex < blocks.length && (
+              <motion.div
+                className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-turquoise-glow/50 rounded shadow-lg flex items-center justify-center text-obsidian"
+                style={{ width: blocks[currentBlockIndex].width, height: blockHeight - 4, left: movingX, top: 20 }}
               >
-                <div className="absolute top-0 bottom-0 w-0.5 bg-primary/30" style={{ left: containerWidth / 2 }} />
-                {blocks.map((block, index) => (
-                  block.placed && (
-                    <motion.div key={block.id} initial={{ y: -50 }} animate={{ y: 0 }}
-                      className="absolute bg-gradient-to-r from-gold-dark via-primary to-gold-dark border-2 border-gold-light/50 rounded"
-                      style={{ width: block.width, height: blockHeight - 4, left: block.position.x, bottom: index * blockHeight }}
-                    >
-                      <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian/70">𓊪</div>
-                    </motion.div>
-                  )
-                ))}
-                {isPlaying && currentBlockIndex < blocks.length && (
-                  <motion.div
-                    className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-turquoise-glow/50 rounded shadow-lg"
-                    style={{ width: blocks[currentBlockIndex].width, height: blockHeight - 4, left: movingX, top: 20 }}
-                  >
-                    <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian">𓊪</div>
-                  </motion.div>
-                )}
-                {isPlaying && (
-                  <div className="absolute border-2 border-dashed border-primary/40 rounded"
-                    style={{ width: blocks[currentBlockIndex]?.width || 0, height: blockHeight - 4, left: (containerWidth - (blocks[currentBlockIndex]?.width || 0)) / 2, bottom: currentBlockIndex * blockHeight }}
-                  />
-                )}
-                <AnimatePresence>
-                  {showSparkle && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1.5 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 pointer-events-none flex items-center justify-center"
-                    >
-                      <div className="w-full h-full bg-primary/20 animate-pulse rounded-full" />
-                      <div className="absolute text-4xl">✨</div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="text-center mt-6 text-muted-foreground font-body">
-                <p>Press <span className="text-primary font-bold">SPACE</span> or <span className="text-primary font-bold">TAP</span> to drop the block</p>
-                <p className="text-sm mt-1">Block {currentBlockIndex + 1} of {blocks.length}</p>
-              </div>
-            </>
-          )}
+                <span className="text-xs">🧱</span>
+              </motion.div>
+            )}
 
-          {gameWon && (
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12 absolute inset-0 bg-scarab/95 rounded-lg flex flex-col items-center justify-center"
-            >
-              <div className="text-9xl mb-6">🏛️</div>
-              <h2 className="text-5xl font-display text-gold-gradient mb-4">Pyramid Complete!</h2>
-              <div className="space-y-2 mb-8">
-                <p className="text-2xl text-foreground font-body">Final Score: {score}</p>
-                <p className="text-xl text-muted-foreground font-body">Perfect Drops: {perfectDrops}/{blocks.length}</p>
-                <div className="flex items-center justify-center gap-1 mt-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={i < Math.min(5, Math.floor(perfectDrops / 2) + 1) ? 'text-primary fill-primary' : 'text-muted'} size={32} />
-                  ))}
+            <AnimatePresence>
+              {showSparkle && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1.5 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 pointer-events-none flex items-center justify-center"
+                >
+                  <div className="text-6xl">✨</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="text-center mt-6 text-muted-foreground font-body">
+            <p className="flex items-center justify-center gap-2">
+              <span className="bg-primary/20 p-1 rounded text-primary border border-primary/30">SPACE</span>
+              or
+              <span className="bg-primary/20 p-1 rounded text-primary border border-primary/30">TAP</span>
+              to drop
+            </p>
+            <p className="text-sm mt-2 opacity-60">Block {currentBlockIndex + 1} of {blocks.length}</p>
+          </div>
+
+          <AnimatePresence>
+            {gameWon && (
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                className="text-center py-12 absolute inset-0 bg-obsidian/95 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-50 p-6"
+              >
+                <div className="text-9xl mb-6">🏛️</div>
+                <h2 className="text-5xl font-display text-gold-gradient mb-4">Pyramid Complete!</h2>
+                <div className="space-y-4 mb-8">
+                  <div className="bg-gold/10 p-6 rounded-2xl border border-gold/30">
+                    <p className="text-5xl font-display text-primary">{score}</p>
+                    <p className="text-muted-foreground uppercase tracking-widest text-sm">Final Score</p>
+                  </div>
+                  <p className="text-xl text-foreground font-body">Perfect Hits: {perfectDrops}/{blocks.length}</p>
                 </div>
-              </div>
-              <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>
-                  <RotateCcw size={20} /> Play Again
-                </EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>Back to Games</EgyptianButton>
-              </div>
-            </motion.div>
-          )}
+                <div className="flex gap-4">
+                  <EgyptianButton variant="hero" size="lg" onClick={() => initializeGame(currentLevel)}>
+                    <RotateCcw size={20} className="mr-2" /> Rebuild
+                  </EgyptianButton>
+                  <EgyptianButton variant="lapis" size="lg" onClick={onBack}>
+                    Back to Games
+                  </EgyptianButton>
+                </div>
+              </motion.div>
+            )}
 
-          {gameLost && (
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12 absolute inset-0 bg-obsidian/95 rounded-lg flex flex-col items-center justify-center"
-            >
-              <div className="text-9xl mb-6">💥</div>
-              <h2 className="text-5xl font-display text-terracotta mb-4">{timeLeft === 0 ? "Time's Up!" : "Block Misaligned!"}</h2>
-              <div className="space-y-2 mb-8">
-                <p className="text-2xl text-foreground font-body">Score: {score}</p>
-                <p className="text-xl text-muted-foreground font-body">Blocks Placed: {currentBlockIndex}/{blocks.length}</p>
-              </div>
-              <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>
-                  <RotateCcw size={20} /> Try Again
-                </EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>Back to Games</EgyptianButton>
-              </div>
-            </motion.div>
-          )}
+            {gameLost && (
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+                className="text-center py-12 absolute inset-0 bg-obsidian/95 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-50 p-6"
+              >
+                <div className="text-9xl mb-6">💀</div>
+                <h2 className="text-5xl font-display text-terracotta mb-4">{timeLeft === 0 ? "Time Expired!" : "Construction Failed!"}</h2>
+                <p className="text-xl text-muted-foreground font-body mb-8">Your structure was too unstable for the gods.</p>
+                <div className="flex gap-4">
+                  <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(currentLevel)}>
+                    <RotateCcw size={20} className="mr-2" /> Try Again
+                  </EgyptianButton>
+                  <EgyptianButton variant="lapis" size="lg" onClick={() => setCurrentLevel(null)}>
+                    Blueprints
+                  </EgyptianButton>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </EgyptianCard>
       </div>
     </div>

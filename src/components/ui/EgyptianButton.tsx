@@ -25,6 +25,8 @@ const egyptianButtonVariants = cva(
           "bg-terracotta text-foreground hover:bg-terracotta/80 border border-terracotta/50",
         museum:
           "bg-card text-card-foreground hover:bg-muted border-2 border-gold/50 text-lg py-6 px-8",
+        nav:
+          "bg-gold/20 text-primary border border-gold/30 hover:bg-gold/30 hover:text-foreground transition-all",
       },
       size: {
         default: "h-10 px-6 py-2 rounded-md",
@@ -44,7 +46,7 @@ const egyptianButtonVariants = cva(
 
 export interface EgyptianButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof egyptianButtonVariants> {
+  VariantProps<typeof egyptianButtonVariants> {
   shimmer?: boolean;
 }
 

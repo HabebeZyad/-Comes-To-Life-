@@ -86,7 +86,7 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
     setGameOver(false);
     playSound('gameStart');
     startAmbientMusic();
-  }, []);
+  }, [playSound, startAmbientMusic]);
 
   useEffect(() => {
     if (isPlaying && timeLeft > 0 && !gameOver) {
@@ -99,7 +99,7 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
       stopAmbientMusic();
       playSound('defeat');
     }
-  }, [timeLeft, isPlaying, gameOver]);
+  }, [timeLeft, isPlaying, gameOver, playSound, stopAmbientMusic]);
 
   const currentPuzzle = shuffledPuzzles[currentPuzzleIndex];
 
@@ -175,13 +175,13 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
     <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <button
+          <EgyptianButton
+            variant="nav"
             onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg"
+            className="mb-4 -ml-4"
           >
-            <ArrowLeft size={20} />
-            Back to Games
-          </button>
+            <ArrowLeft size={20} /> Back to Games
+          </EgyptianButton>
           <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Hieroglyph Decoder</h1>
           <p className="text-xl text-muted-foreground font-body">Decipher the ancient symbols and unlock their secrets</p>
         </div>
