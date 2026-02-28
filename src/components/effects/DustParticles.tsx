@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, memo } from 'react';
 import styles from './DustParticles.module.css';
 
 interface Particle {
@@ -9,18 +9,20 @@ interface Particle {
   duration: number;
 }
 
-export function DustParticles({ count = 20 }: { count?: number }) {
-  const [particles, setParticles] = useState<Particle[]>([]);
-
-  useEffect(() => {
-    const newParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
+/**
+ * DustParticles Component
+ * Optimized to use useMemo for particle generation and React.memo to prevent unnecessary re-renders.
+ * This avoids the double-render on mount caused by useEffect.
+ */
+const DustParticlesComponent = ({ count = 20 }: { count?: number }) => {
+  const particles = useMemo<Particle[]>(() => {
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       size: Math.random() * 3 + 1,
       delay: Math.random() * 20,
       duration: Math.random() * 10 + 15,
     }));
-    setParticles(newParticles);
   }, [count]);
 
   return (
@@ -41,4 +43,6 @@ export function DustParticles({ count = 20 }: { count?: number }) {
       ))}
     </div>
   );
-}
+};
+
+export const DustParticles = memo(DustParticlesComponent);
