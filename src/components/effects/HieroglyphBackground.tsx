@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 
 const hieroglyphs = ['𓀀', '𓀁', '𓀂', '𓀃', '𓁀', '𓁁', '𓁂', '𓁃', '𓂀', '𓂁', '𓃀', '𓃁', '𓄀', '𓄁', '𓅀', '𓅁', '𓆀', '𓆁', '𓇀', '𓇁', '𓈀', '𓈁', '𓉀', '𓉁', '𓊀', '𓊁', '𓋀', '𓋁', '𓌀', '𓌁', '𓍀', '𓍁', '𓎀', '𓎁', '𓏀', '𓏁'];
@@ -8,19 +8,28 @@ interface HieroglyphBackgroundProps {
   animated?: boolean;
 }
 
-export function HieroglyphBackground({ density = 'medium', animated = true }: HieroglyphBackgroundProps) {
-  const counts = { low: 15, medium: 30, high: 50 };
-  const count = counts[density];
+const DENSITY_COUNTS = { low: 15, medium: 30, high: 50 };
 
-  const symbols = Array.from({ length: count }, (_, i) => ({
-    id: i,
-    symbol: hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)],
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 2 + 1.5,
-    opacity: Math.random() * 0.1 + 0.03,
-    delay: Math.random() * 5,
-  }));
+/**
+ * HieroglyphBackground Component
+ * Optimized to use useMemo for stable symbol generation and React.memo to prevent
+ * unnecessary re-renders when parent state changes. This ensures the background
+ * remains stable and efficient.
+ */
+function HieroglyphBackgroundComponent({ density = 'medium', animated = true }: HieroglyphBackgroundProps) {
+  const count = DENSITY_COUNTS[density];
+
+  const symbols = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => ({
+      id: i,
+      symbol: hieroglyphs[Math.floor(Math.random() * hieroglyphs.length)],
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2 + 1.5,
+      opacity: Math.random() * 0.1 + 0.03,
+      delay: Math.random() * 5,
+    }));
+  }, [count]);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -51,3 +60,5 @@ export function HieroglyphBackground({ density = 'medium', animated = true }: Hi
     </div>
   );
 }
+
+export const HieroglyphBackground = memo(HieroglyphBackgroundComponent);
