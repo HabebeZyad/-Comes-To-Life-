@@ -42,9 +42,8 @@ export const Footer = () => {
                         <h4 className="font-display text-xs font-bold tracking-[0.3em] text-gold uppercase">Knowledge</h4>
                         <ul className="space-y-4">
                             {[
-                                { name: 'Interactive Manga', path: '/manga' },
+                                { name: 'Storytelling', path: '/storytelling' },
                                 { name: 'Historical Stories', path: '/stories' },
-                                { name: 'Period Maps', path: '/maps' },
                                 { name: 'Hieroglyphs', path: '/hieroglyphs' },
                                 { name: 'Games', path: '/games' },
                                 { name: 'Profile', path: '/profile' }

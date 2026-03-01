@@ -1,22 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PlayerProfile, MangaProgress, TombProgress, StoryChoice, Achievement, MuseumSettings } from '@/types/game';
+import { PlayerProfile, EpisodeProgress, TombProgress, StoryChoice, Achievement, MuseumSettings } from '@/types/game';
 
 interface GameContextType {
   profile: PlayerProfile | null;
   setProfile: (profile: PlayerProfile) => void;
-  updateMangaProgress: (progress: Partial<MangaProgress>) => void;
+  updateStoryProgress: (progress: Partial<EpisodeProgress>) => void;
   updateTombProgress: (progress: Partial<TombProgress>) => void;
   addStoryChoice: (choice: StoryChoice) => void;
   unlockAchievement: (achievementId: string) => void;
   unlockEnding: (endingId: string) => void;
   resetProgress: () => void;
-  
+
   // Museum mode
   museumSettings: MuseumSettings;
   setMuseumSettings: (settings: Partial<MuseumSettings>) => void;
   isMuseumMode: boolean;
   toggleMuseumMode: () => void;
-  
+
   // Audio settings
   audioEnabled: boolean;
   setAudioEnabled: (enabled: boolean) => void;
@@ -30,7 +30,7 @@ const defaultProfile: PlayerProfile = {
   avatar: '🏺',
   createdAt: new Date(),
   lastPlayed: new Date(),
-  mangaProgress: {
+  storyProgress: {
     episodesCompleted: [],
     currentEpisode: 1,
     currentPanel: 0,
@@ -76,16 +76,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedProfile = localStorage.getItem('comesToLife_profile');
     const savedMuseumSettings = localStorage.getItem('comesToLife_museumSettings');
-    
+
     if (savedProfile) {
       const parsed = JSON.parse(savedProfile);
+
+      // Migration: legacy progress -> storyProgress
+      if (parsed.mangaProgress && !parsed.storyProgress) {
+        parsed.storyProgress = parsed.mangaProgress;
+        delete parsed.mangaProgress;
+      }
+
       parsed.createdAt = new Date(parsed.createdAt);
       parsed.lastPlayed = new Date(parsed.lastPlayed);
       setProfileState(parsed);
     } else {
       setProfileState(defaultProfile);
     }
-    
+
     if (savedMuseumSettings) {
       setMuseumSettingsState(JSON.parse(savedMuseumSettings));
     }
@@ -106,11 +113,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setProfileState({ ...newProfile, lastPlayed: new Date() });
   };
 
-  const updateMangaProgress = (progress: Partial<MangaProgress>) => {
+  const updateStoryProgress = (progress: Partial<EpisodeProgress>) => {
     if (profile) {
       setProfileState({
         ...profile,
-        mangaProgress: { ...profile.mangaProgress, ...progress },
+        storyProgress: { ...profile.storyProgress, ...progress },
         lastPlayed: new Date(),
       });
     }
@@ -175,7 +182,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     <GameContext.Provider value={{
       profile,
       setProfile,
-      updateMangaProgress,
+      updateStoryProgress,
       updateTombProgress,
       addStoryChoice,
       unlockAchievement,

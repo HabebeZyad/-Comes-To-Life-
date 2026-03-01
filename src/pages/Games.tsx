@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown } from 'lucide-react';
+import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { MemoryGame } from '@/components/games/MemoryGame';
@@ -12,10 +12,13 @@ import { TempleEscapeGame } from '@/components/games/TempleEscapeGame';
 import { NileNavigatorGame } from '@/components/games/NileNavigatorGame';
 import { ScarabCollectorGame } from '@/components/games/ScarabCollectorGame';
 import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
+import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
+import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
+import { GreatMindsGame } from '@/components/games/GreatMindsGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds';
 
 const games = [
   { id: 'guess-the-pharaoh' as const, title: 'Guess the Pharaoh', description: 'Identify the pharaoh from the given clue', icon: Crown, color: 'from-yellow-400 to-amber-600', emoji: '👑' },
@@ -27,6 +30,9 @@ const games = [
   { id: 'temple-escape' as const, title: 'Temple Escape', description: 'Navigate deadly traps and puzzles to escape the cursed temple', icon: Timer, color: 'from-terracotta to-gold-dark', emoji: '🏛️' },
   { id: 'nile-navigator' as const, title: 'Nile Navigator', description: 'Sail the sacred river dodging obstacles and collecting treasures', icon: Sailboat, color: 'from-lapis to-turquoise', emoji: '⛵' },
   { id: 'scarab-collector' as const, title: 'Scarab Collector', description: 'Catch sacred scarabs before they vanish, avoid cursed scorpions!', icon: Bug, color: 'from-scarab to-gold-dark', emoji: '𓆣' },
+  { id: 'pyramid-trail' as const, title: 'The Pyramid Trail', description: 'Place the great pyramids on the map of Old Kingdom Egypt', icon: Map, color: 'from-gold to-amber-600', emoji: '📍' },
+  { id: 'order-builders' as const, title: 'Order of the Builders', description: 'Arrange Old Kingdom events in chronological order', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳' },
+  { id: 'great-minds' as const, title: 'The Great Minds', description: 'Match Old Kingdom figures to their achievements', icon: Users, color: 'from-lapis to-primary', emoji: '🧠' },
 ];
 
 const gameComponents: Record<string, React.FC<{ onBack: () => void }>> = {
@@ -39,6 +45,9 @@ const gameComponents: Record<string, React.FC<{ onBack: () => void }>> = {
   'nile-navigator': NileNavigatorGame,
   'scarab-collector': ScarabCollectorGame,
   'guess-the-pharaoh': GuessThePharaohGame,
+  'pyramid-trail': PyramidTrailGame,
+  'order-builders': OrderOfBuildersGame,
+  'great-minds': GreatMindsGame,
 };
 
 export default function Games() {
@@ -65,7 +74,7 @@ export default function Games() {
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative">
       <DustParticles />
-      
+
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">

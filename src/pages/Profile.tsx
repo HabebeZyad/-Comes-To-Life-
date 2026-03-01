@@ -95,6 +95,8 @@ export default function Profile() {
                       setEditAvatar(avatarOptions[(currentIdx + 1) % avatarOptions.length]);
                     }}
                     className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gold text-primary-foreground flex items-center justify-center"
+                    aria-label="Change avatar"
+                    title="Change avatar"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -110,6 +112,9 @@ export default function Profile() {
                     onChange={(e) => setEditName(e.target.value)}
                     className="font-display text-3xl bg-transparent border-b-2 border-gold text-foreground focus:outline-none w-full md:w-auto text-center md:text-left"
                     maxLength={20}
+                    aria-label="Edit explorer name"
+                    title="Edit name"
+                    placeholder="Enter your name"
                   />
                 ) : (
                   <h1 className="font-display text-3xl text-gold-gradient">{profile.name}</h1>
@@ -124,7 +129,7 @@ export default function Profile() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Book className="w-4 h-4 text-gold" />
-                    <span className="text-foreground/70">{profile.mangaProgress.episodesCompleted.length} episodes</span>
+                    <span className="text-foreground/70">{(profile.storyProgress?.episodesCompleted?.length || 0)} episodes</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Camera className="w-4 h-4 text-lapis-light" />
@@ -199,19 +204,19 @@ export default function Profile() {
               <Book className="w-6 h-6" />
               Story Progress
             </h2>
-            
+
             <EgyptianCard variant="tomb" className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="font-body text-foreground">Episodes Completed</span>
                 <span className="font-display text-turquoise">
-                  {profile.mangaProgress.episodesCompleted.length} / 3
+                  {profile.storyProgress?.episodesCompleted?.length || 0} / 3
                 </span>
               </div>
-              
+
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-gold to-turquoise"
-                  style={{ width: `${(profile.mangaProgress.episodesCompleted.length / 3) * 100}%` }}
+                  style={{ width: `${((profile.storyProgress?.episodesCompleted?.length || 0) / 3) * 100}%` }}
                 />
               </div>
 
@@ -300,7 +305,7 @@ export default function Profile() {
           <div className="grid md:grid-cols-3 gap-4">
             {achievements.map((achievement) => {
               const unlocked = profile.achievements.find(a => a.id === achievement.id && a.unlockedAt);
-              
+
               return (
                 <EgyptianCard
                   key={achievement.id}

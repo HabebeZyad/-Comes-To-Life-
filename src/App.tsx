@@ -7,13 +7,12 @@ import { GameProvider } from "@/contexts/GameContext";
 import { Navigation } from "@/components/layout/Navigation";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import Index from "./pages/Index";
-import MangaHomePage from "./pages/MangaHomePage";
-import MangaEpisode3 from "./pages/MangaEpisode3";
-import MangaEpisode4 from "./pages/MangaEpisode4";
-import MangaEpisode5 from "./pages/MangaEpisode5";
+import StorytellingHomePage from "./pages/StorytellingHomePage";
+import StorytellingEpisode3 from "./pages/StorytellingEpisode3";
+import StorytellingEpisode4 from "./pages/StorytellingEpisode4";
+import StorytellingEpisode5 from "./pages/StorytellingEpisode5";
 import HieroglyphsPage from "./pages/HieroglyphicsPage";
 import Profile from "./pages/Profile";
-import { PeriodMaps } from "./pages/PeriodMaps";
 import Stories from "./pages/Stories";
 import StoryReader from "./pages/StoryReader";
 import NotFound from "./pages/NotFound";
@@ -32,15 +31,14 @@ const App = () => (
           <Navigation />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/manga" element={<MangaHomePage />} />
-            <Route path="/manga/episode-3" element={<MangaEpisode3 />} />
-            <Route path="/manga/episode-4" element={<MangaEpisode4 />} />
-            <Route path="/manga/episode-5" element={<MangaEpisode5 />} />
+            <Route path="/storytelling" element={<StorytellingHomePage />} />
+            <Route path="/storytelling/episode-3" element={<StorytellingEpisode3 />} />
+            <Route path="/storytelling/episode-4" element={<StorytellingEpisode4 />} />
+            <Route path="/storytelling/episode-5" element={<StorytellingEpisode5 />} />
             <Route path="/hieroglyphs" element={<HieroglyphsPage />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/maps" element={<PeriodMaps />} />
             <Route path="/stories" element={<Stories />} />
-            <Route path="/story/:storyId" element={<StoryReader />} />
+            <Route path="/stories/:storyId" element={<StoryReader />} />
             <Route path="/games" element={<Games />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -17,9 +17,10 @@ interface Props {
   };
   onSolve: (points: number) => void;
   onClose: () => void;
+  isEmbed?: boolean;
 }
 
-export function TimelineOrderPuzzle({ puzzle, onSolve, onClose }: Props) {
+export function TimelineOrderPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props) {
   const [items, setItems] = useState(() =>
     [...puzzle.data.events].sort(() => Math.random() - 0.5)
   );
@@ -87,10 +88,10 @@ export function TimelineOrderPuzzle({ puzzle, onSolve, onClose }: Props) {
     hard: 'text-terracotta'
   };
 
-  return (
-    <EgyptianCard variant="tomb" className="max-w-2xl mx-auto">
-      <EgyptianCardContent className="p-6 space-y-6">
-        {/* Header */}
+  const content = (
+    <div className="space-y-6">
+      {/* Header - Only if not embedded */}
+      {!isEmbed && (
         <div className="flex items-start justify-between">
           <div>
             <h3 className="font-display text-xl font-bold text-gold-gradient">{puzzle.title}</h3>
@@ -112,138 +113,150 @@ export function TimelineOrderPuzzle({ puzzle, onSolve, onClose }: Props) {
             </div>
           )}
         </div>
+      )}
 
-        {/* Instructions */}
-        <div className="bg-primary/10 rounded-lg p-3 text-sm">
-          <p className="text-foreground/80">
-            <strong>Drag and drop</strong> the events to arrange them in chronological order, from earliest to latest.
-          </p>
-        </div>
+      {/* Instructions */}
+      <div className="bg-primary/10 rounded-lg p-3 text-sm">
+        <p className="text-foreground/80">
+          <strong>Drag and drop</strong> the events to arrange them in chronological order, from earliest to latest.
+        </p>
+      </div>
 
-        {/* Reorderable Timeline */}
-        <Reorder.Group
-          axis="y"
-          values={items}
-          onReorder={setItems}
-          className="space-y-2"
-        >
-          {items.map((event, index) => (
-            <Reorder.Item
-              key={event.id}
-              value={event}
-              className={`cursor-grab active:cursor-grabbing ${revealed ? 'pointer-events-none' : ''}`}
-            >
-              <motion.div
-                className={`p-4 rounded-lg border-2 transition-colors ${revealed
-                  ? puzzle.data.correctOrder[index] === event.id
-                    ? 'border-scarab bg-scarab/10'
-                    : 'border-terracotta bg-terracotta/10'
-                  : 'border-border bg-card hover:border-gold/50'
-                  }`}
-                whileHover={!revealed ? { scale: 1.01 } : {}}
-                layout
-              >
-                <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center font-display text-sm">
-                    {index + 1}
-                  </span>
-                  <span className="flex-1 font-body">{event.title}</span>
-                  {!revealed && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleHint(event.id);
-                      }}
-                      className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-                      title="Get hint (-25 pts)"
-                    >
-                      <Lightbulb className="w-4 h-4" />
-                    </button>
-                  )}
-                  {revealed && (
-                    <span>
-                      {puzzle.data.correctOrder[index] === event.id
-                        ? <Check className="w-5 h-5 text-scarab" />
-                        : <X className="w-5 h-5 text-terracotta" />
-                      }
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
-
-        {/* Hint Display */}
-        <AnimatePresence>
-          {showHint && !revealed && (
+      {/* Reorderable Timeline */}
+      <Reorder.Group
+        axis="y"
+        values={items}
+        onReorder={setItems}
+        className="space-y-2"
+      >
+        {items.map((event, index) => (
+          <Reorder.Item
+            key={event.id}
+            value={event}
+            className={`cursor-grab active:cursor-grabbing ${revealed ? 'pointer-events-none' : ''}`}
+          >
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="bg-gold/10 border border-gold/30 rounded-lg p-3 text-sm"
+              className={`p-4 rounded-lg border-2 transition-colors ${revealed
+                ? puzzle.data.correctOrder[index] === event.id
+                  ? 'border-scarab bg-scarab/10'
+                  : 'border-terracotta bg-terracotta/10'
+                : 'border-border bg-card hover:border-gold/50'
+                }`}
+              whileHover={!revealed ? { scale: 1.01 } : {}}
+              layout
             >
-              <div className="flex items-start gap-2">
-                <Lightbulb className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
-                <p className="text-foreground/80">{showHint}</p>
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center font-display text-sm">
+                  {index + 1}
+                </span>
+                <span className="flex-1 font-body">{event.title}</span>
+                {!revealed && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleHint(event.id);
+                    }}
+                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                    title="Get hint (-25 pts)"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                  </button>
+                )}
+                {revealed && (
+                  <span>
+                    {puzzle.data.correctOrder[index] === event.id
+                      ? <Check className="w-5 h-5 text-scarab" />
+                      : <X className="w-5 h-5 text-terracotta" />
+                    }
+                  </span>
+                )}
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </Reorder.Item>
+        ))}
+      </Reorder.Group>
 
-        {/* Feedback */}
-        <AnimatePresence>
-          {revealed && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-lg ${isCorrect ? 'bg-scarab/20 border border-scarab/30' : 'bg-terracotta/20 border border-terracotta/30'
-                }`}
-            >
-              {isCorrect ? (
-                <div className="text-center">
-                  <span className="text-3xl block mb-2">𓋹</span>
-                  <span className="font-display text-scarab block">
-                    Excellent! You've mastered the timeline of history!
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    Hints used: {hintsUsed} | Points earned: {Math.max(puzzle.points - hintsUsed * 25, 10)}
-                  </span>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <span className="font-display text-terracotta block mb-2">
-                    The timeline is still confused...
-                  </span>
-                  <button
-                    onClick={handleReset}
-                    className="font-body text-sm text-foreground/70 underline hover:text-foreground"
-                  >
-                    Try again
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Hint Display */}
+      <AnimatePresence>
+        {showHint && !revealed && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="bg-gold/10 border border-gold/30 rounded-lg p-3 text-sm"
+          >
+            <div className="flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+              <p className="text-foreground/80">{showHint}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <EgyptianButton variant="outline" onClick={onClose} className="flex-1">
-            Close
-          </EgyptianButton>
-          {!revealed && (
-            <>
-              <EgyptianButton variant="outline" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4" />
-              </EgyptianButton>
-              <EgyptianButton variant="hero" onClick={handleCheck} className="flex-1">
-                <Check className="w-4 h-4 mr-2" />
-                Check Order
-              </EgyptianButton>
-            </>
-          )}
-        </div>
+      {/* Feedback */}
+      <AnimatePresence>
+        {revealed && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-4 rounded-lg ${isCorrect ? 'bg-scarab/20 border border-scarab/30' : 'bg-terracotta/20 border border-terracotta/30'
+              }`}
+          >
+            {isCorrect ? (
+              <div className="text-center">
+                <span className="text-3xl block mb-2">𓋹</span>
+                <span className="font-display text-scarab block">
+                  Excellent! You've mastered the timeline of history!
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  Hints used: {hintsUsed} | Points earned: {Math.max(puzzle.points - hintsUsed * 25, 10)}
+                </span>
+              </div>
+            ) : (
+              <div className="text-center">
+                <span className="font-display text-terracotta block mb-2">
+                  The timeline is still confused...
+                </span>
+                <button
+                  onClick={handleReset}
+                  className="font-body text-sm text-foreground/70 underline hover:text-foreground"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Actions */}
+      <div className="flex gap-3">
+        <EgyptianButton variant="outline" onClick={onClose} className="flex-1">
+          Close
+        </EgyptianButton>
+        {!revealed && (
+          <>
+            <EgyptianButton variant="outline" onClick={handleReset}>
+              <RotateCcw className="w-4 h-4" />
+            </EgyptianButton>
+            <EgyptianButton variant="hero" onClick={handleCheck} className="flex-1">
+              <Check className="w-4 h-4 mr-2" />
+              Check Order
+            </EgyptianButton>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  if (isEmbed) {
+    return content;
+  }
+
+  return (
+    <EgyptianCard variant="tomb" className="max-w-2xl mx-auto">
+      <EgyptianCardContent className="p-6">
+        {content}
       </EgyptianCardContent>
     </EgyptianCard>
   );

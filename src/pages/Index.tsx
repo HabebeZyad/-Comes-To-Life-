@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Book, Map, BookOpen, ChevronDown, Play, Sparkles, Globe, ScrollText, Brain, Check } from 'lucide-react';
+import { Book, Map, BookOpen, ChevronDown, Play, Sparkles, Gamepad2, ScrollText, Brain, Check } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
@@ -11,11 +11,11 @@ import heroImage from '@/assets/hero-tomb.jpg';
 
 const features = [
   {
-    icon: Book,
-    title: 'Interactive Manga',
+    icon: Sparkles,
+    title: 'Storytelling',
     subtitle: 'Episode 3: The Scribe Who Lied',
     description: 'Experience branching narratives where your moral choices shape history itself. Discover secrets, confront lies, and determine the fate of ancient Egypt.',
-    path: '/manga',
+    path: '/storytelling',
     iconColor: 'text-amber-500',
     bgColor: 'bg-amber-500/10',
   },
@@ -29,11 +29,11 @@ const features = [
     bgColor: 'bg-gold/10',
   },
   {
-    icon: Globe,
-    title: 'Interactive Period Maps',
-    subtitle: 'Four Eras of Egypt',
-    description: 'Navigate through Old Kingdom, First Intermediate, Middle Kingdom, and Second Intermediate periods with interactive maps, timelines, and key historical figures.',
-    path: '/maps',
+    icon: Gamepad2,
+    title: 'Interactive Ancient Games',
+    subtitle: 'Challenge Your Mind',
+    description: 'Test your wisdom with puzzles, mazes, and strategy games inspired by ancient Egyptian history, mythology, and daily life.',
+    path: '/games',
     iconColor: 'text-cyan-500',
     bgColor: 'bg-cyan-500/10',
   },
@@ -118,7 +118,7 @@ export default function Index() {
             transition={{ duration: 1, delay: 1.1 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/manga">
+            <Link to="/storytelling">
               <EgyptianButton variant="hero" size="xl" shimmer>
                 <Play className="w-5 h-5" />
                 Begin Your Journey
@@ -165,7 +165,7 @@ export default function Index() {
               DISCOVER THE <span className="text-gold-gradient">ANCIENT WORLD</span>
             </h2>
             <p className="font-body text-muted-foreground max-w-3xl mx-auto leading-relaxed text-xl opacity-80">
-              Four interconnected modes that bring ancient Egypt to life through interactive storytelling, cooperative gameplay, and immersive technology.
+              Four interconnected modes that bring ancient Egypt to life through interactive storytelling, immersive experiences, and cultural discovery.
             </p>
             <motion.div
               animate={{ y: [0, 10, 0] }}
@@ -272,10 +272,10 @@ export default function Index() {
                 </motion.div>
               </div>
 
-              <Link to="/manga">
+              <Link to="/storytelling">
                 <EgyptianButton variant="hero" size="xl" className="mt-6 h-14 px-12 text-lg uppercase tracking-[0.2em] transition-all duration-500 hover:shadow-[0_8px_40px_rgba(189,144,36,0.9)] group">
                   <div className="flex items-center gap-3">
-                    <BookOpen className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5" />
                     <span>READ EPISODE 3</span>
                   </div>
                 </EgyptianButton>
