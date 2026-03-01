@@ -10,7 +10,7 @@ import { InteractiveEpisode, StoryPanel, AdventureChoice } from '@/types/game';
 import { DustParticles } from '@/components/effects/DustParticles';
 
 // Import storytelling panel images (using placeholders)
-import panelCover from '@/assets/storytelling/Picture1.png';
+import panelCover from '@/assets/hero-tomb.jpg';
 import panel1 from '@/assets/storytelling/ep3-panel1.jpg';
 import panel2 from '@/assets/storytelling/ep3-panel2.jpg';
 import panel3 from '@/assets/storytelling/ep3-panel3.jpg';

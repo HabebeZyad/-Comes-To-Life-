@@ -7,9 +7,9 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
-import episode3Cover from '@/assets/storytelling/Picture1.png';
-import episode4Cover from '@/assets/storytelling/Picture1.png'; // Placeholder
-import episode5Cover from '@/assets/storytelling/Picture1.png'; // Placeholder
+import episode3Cover from '@/assets/hero-tomb.jpg';
+import episode4Cover from '@/assets/hero-tomb.jpg'; // Placeholder
+import episode5Cover from '@/assets/hero-tomb.jpg'; // Placeholder
 
 const episodes = [
   {
@@ -77,7 +77,7 @@ export default function StorytellingHomePage() {
               className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center"
             >
               <div className="lg:col-span-3 relative rounded-2xl overflow-hidden border-2 border-gold/30 shadow-deep">
-                <img src={latestEpisode.coverImage} alt={latestEpisode.title} className="w-full h-auto max-h-[60vh] object-cover" />
+                <img src={latestEpisode.coverImage} alt={latestEpisode.title} className="w-full h-auto max-h-[60vh] object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 p-8">
                   <span className="px-4 py-2 text-sm font-display rounded-full bg-turquoise text-black mb-3 inline-block">{latestEpisode.status}</span>
@@ -120,7 +120,7 @@ export default function StorytellingHomePage() {
                 <EgyptianCard variant="papyrus" className="h-full group bg-card/50 backdrop-blur-sm">
                   <EgyptianCardHeader className="p-0">
                     <div className="relative overflow-hidden rounded-t-xl">
-                      <img src={episode.coverImage} alt={episode.title} className="w-full h-56 object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+                      <img src={episode.coverImage} alt={episode.title} className="w-full h-56 object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
                     </div>
                   </EgyptianCardHeader>

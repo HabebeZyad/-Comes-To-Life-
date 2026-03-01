@@ -10,7 +10,7 @@ import { InteractiveEpisode, StoryPanel, AdventureChoice } from '@/types/game';
 import { DustParticles } from '@/components/effects/DustParticles';
 
 // Import storytelling panel images
-import panelCover from '@/assets/storytelling/Picture1.png';
+import panelCover from '@/assets/hero-tomb.jpg';
 import panel1 from '@/assets/storytelling/ep3-panel1.jpg';
 import panel2 from '@/assets/storytelling/ep3-panel2.jpg';
 import panel3 from '@/assets/storytelling/ep3-panel3.jpg';
@@ -157,6 +157,7 @@ export default function StorytellingEpisode3() {
                   src={getPanelImage(currentPanel.id)}
                   alt={`Panel ${currentPanelIndex + 1}`}
                   className="w-full h-full object-contain"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
                 {currentPanel.narration && (
