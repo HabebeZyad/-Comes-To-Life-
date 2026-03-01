@@ -15,6 +15,10 @@ const GAME_NAMES: Record<string, { label: string; emoji: string }> = {
   'temple-escape': { label: 'Temple Escape', emoji: '🏛️' },
   'nile-navigator': { label: 'Nile Navigator', emoji: '⛵' },
   'scarab-collector': { label: 'Scarab Collector', emoji: '𓆣' },
+  'guess-the-pharaoh': { label: 'Guess the Pharaoh', emoji: '👑' },
+  'pyramid-trail': { label: 'The Pyramid Trail', emoji: '📍' },
+  'order-builders': { label: 'Order of the Builders', emoji: '⏳' },
+  'great-minds': { label: 'The Great Minds', emoji: '🧠' },
 };
 
 export function Leaderboard() {
@@ -43,11 +47,10 @@ export function Leaderboard() {
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-body transition-all border ${
-              filter === key
+            className={`px-3 py-1.5 rounded-lg text-sm font-body transition-all border ${filter === key
                 ? 'bg-primary text-primary-foreground border-gold-light/50'
                 : 'bg-card text-muted-foreground border-border hover:border-gold/30'
-            }`}
+              }`}
           >
             {emoji} {label}
           </button>
@@ -69,9 +72,8 @@ export function Leaderboard() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`flex items-center gap-3 p-3 rounded-lg border ${
-                  index < 3 ? 'bg-gold-dark/10 border-gold/20' : 'bg-card/50 border-border'
-                }`}
+                className={`flex items-center gap-3 p-3 rounded-lg border ${index < 3 ? 'bg-gold-dark/10 border-gold/20' : 'bg-card/50 border-border'
+                  }`}
               >
                 <div className="w-6 flex justify-center">{getRankIcon(index)}</div>
                 <div className="flex-1 min-w-0">

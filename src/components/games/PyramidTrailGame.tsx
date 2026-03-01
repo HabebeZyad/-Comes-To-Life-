@@ -5,14 +5,26 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { ArrowLeft, Map } from 'lucide-react';
 
+import { useHighScores } from '@/hooks/useHighScores';
+
 interface PyramidTrailGameProps {
     onBack: () => void;
 }
 
 export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) => {
     const puzzle = getPuzzleById('pyramid-locations') as MapPuzzle;
+    const { addScore } = useHighScores();
 
     if (!puzzle) return <div>Puzzle not found</div>;
+
+    const handleSolve = (points: number) => {
+        addScore({
+            playerName: 'Explorer',
+            score: points,
+            game: 'pyramid-trail',
+            details: 'Pyramids accurately placed'
+        });
+    };
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
@@ -35,7 +47,7 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
                             ...puzzle,
                             data: puzzle.data as any
                         }}
-                        onSolve={(points) => console.log(`Solved for ${points} points`)}
+                        onSolve={handleSolve}
                         onClose={onBack}
                         isEmbed={true}
                     />

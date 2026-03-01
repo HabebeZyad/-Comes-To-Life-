@@ -5,14 +5,26 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { ArrowLeft, Clock } from 'lucide-react';
 
+import { useHighScores } from '@/hooks/useHighScores';
+
 interface OrderOfBuildersGameProps {
     onBack: () => void;
 }
 
 export const OrderOfBuildersGame: React.FC<OrderOfBuildersGameProps> = ({ onBack }) => {
     const puzzle = getPuzzleById('old-kingdom-timeline') as MapPuzzle;
+    const { addScore } = useHighScores();
 
     if (!puzzle) return <div>Puzzle not found</div>;
+
+    const handleSolve = (points: number) => {
+        addScore({
+            playerName: 'Chronologer',
+            score: points,
+            game: 'order-builders',
+            details: 'Chronology mastered'
+        });
+    };
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
@@ -35,7 +47,7 @@ export const OrderOfBuildersGame: React.FC<OrderOfBuildersGameProps> = ({ onBack
                             ...puzzle,
                             data: puzzle.data as any
                         }}
-                        onSolve={(points) => console.log(`Solved for ${points} points`)}
+                        onSolve={handleSolve}
                         onClose={onBack}
                         isEmbed={true}
                     />

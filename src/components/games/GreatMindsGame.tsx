@@ -5,14 +5,26 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { ArrowLeft, Users } from 'lucide-react';
 
+import { useHighScores } from '@/hooks/useHighScores';
+
 interface GreatMindsGameProps {
     onBack: () => void;
 }
 
 export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
     const puzzle = getPuzzleById('architect-achievements') as MapPuzzle;
+    const { addScore } = useHighScores();
 
     if (!puzzle) return <div>Puzzle not found</div>;
+
+    const handleSolve = (points: number) => {
+        addScore({
+            playerName: 'Sage',
+            score: points,
+            game: 'great-minds',
+            details: 'Achievements matched'
+        });
+    };
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
@@ -35,7 +47,7 @@ export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
                             ...puzzle,
                             data: puzzle.data as any
                         }}
-                        onSolve={(points) => console.log(`Solved for ${points} points`)}
+                        onSolve={handleSolve}
                         onClose={onBack}
                         isEmbed={true}
                     />
