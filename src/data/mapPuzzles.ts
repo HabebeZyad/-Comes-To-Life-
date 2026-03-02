@@ -15,7 +15,7 @@ export interface MapPuzzle {
 
 export interface LocationMatchData {
   type: 'location-match';
-  locations: { id: string; name: string; hint: string }[];
+  locations: { id: string; name: string; hint: string; discoveryLog?: string }[];
   correctPositions: { locationId: string; x: number; y: number }[];
 }
 
@@ -27,8 +27,8 @@ export interface TimelineOrderData {
 
 export interface FigureMatchData {
   type: 'figure-match';
-  figures: { id: string; name: string; title: string }[];
-  achievements: { id: string; text: string; figureId: string }[];
+  figures: { id: string; name: string; title: string; image?: string; period?: string }[];
+  achievements: { id: string; text: string; figureId: string; type?: 'monument' | 'deed' | 'wisdom' }[];
 }
 
 export interface RouteTraceData {
@@ -48,10 +48,10 @@ export interface TerritoryClaimData {
 export const mapPuzzles: MapPuzzle[] = [
   // OLD KINGDOM PUZZLES
   {
-    id: 'pyramid-locations',
+    id: 'pyramid-locations-giza',
     type: 'location-match',
-    title: 'The Pyramid Trail',
-    description: 'Place the great pyramids on the map of Old Kingdom Egypt.',
+    title: 'Giza Plateau',
+    description: 'Place the great pyramids on the map of the Giza Plateau.',
     periodId: 'old-kingdom',
     difficulty: 'easy',
     points: 100,
@@ -60,23 +60,135 @@ export const mapPuzzles: MapPuzzle[] = [
     data: {
       type: 'location-match',
       locations: [
-        { id: 'step-pyramid', name: 'Step Pyramid of Djoser', hint: 'The first pyramid, at the ancient necropolis' },
-        { id: 'great-pyramid', name: 'Great Pyramid of Khufu', hint: 'The wonder of the world, on the Giza plateau' },
-        { id: 'bent-pyramid', name: 'Bent Pyramid', hint: 'Sneferu\'s pyramid that changed angle midway' },
-        { id: 'red-pyramid', name: 'Red Pyramid', hint: 'Sneferu\'s true pyramid at Dahshur' }
+        {
+          id: 'khufu',
+          name: 'Great Pyramid of Khufu',
+          hint: 'The largest and oldest of the Giza pyramids',
+          discoveryLog: 'Constructed around 2560 BCE, this monument was the tallest man-made structure in the world for over 3,800 years. It consists of an estimated 2.3 million stone blocks.'
+        },
+        {
+          id: 'khafre',
+          name: 'Pyramid of Khafre',
+          hint: 'The pyramid that still retains casing stones at its peak',
+          discoveryLog: 'Built by Khufu\'s son, it appears taller than the Great Pyramid because it sits on higher ground. It is the only one that still shows the original polished limestone casing at its summit.'
+        },
+        {
+          id: 'menkaure',
+          name: 'Pyramid of Menkaure',
+          hint: 'The smallest of the three main Giza pyramids',
+          discoveryLog: 'Though smaller, this pyramid was uniquely encased in expensive red granite for its lower 16 courses. It represents the final great pyramid of the Giza dynasty.'
+        },
+        {
+          id: 'sphinx',
+          name: 'Great Sphinx',
+          hint: 'The guardian of the plateau',
+          discoveryLog: 'Carved directly from the limestone bedrock, this colossal figure with a lion\'s body and human head likely represents Pharaoh Khafre guarding the sacred site.'
+        }
       ],
       correctPositions: [
-        { locationId: 'step-pyramid', x: 48, y: 32 },
-        { locationId: 'great-pyramid', x: 47, y: 28 },
-        { locationId: 'bent-pyramid', x: 46, y: 35 },
-        { locationId: 'red-pyramid', x: 46, y: 34 }
+        { locationId: 'khufu', x: 47, y: 28 },
+        { locationId: 'khafre', x: 45, y: 30 },
+        { locationId: 'menkaure', x: 43, y: 32 },
+        { locationId: 'sphinx', x: 50, y: 30 }
+      ]
+    }
+  },
+  {
+    id: 'pyramid-locations-saqqara',
+    type: 'location-match',
+    title: 'Saqqara Necropolis',
+    description: 'Map the evolution of the pyramid at Saqqara.',
+    periodId: 'old-kingdom',
+    difficulty: 'medium',
+    points: 150,
+    timeLimit: 120,
+    category: 'game',
+    data: {
+      type: 'location-match',
+      locations: [
+        {
+          id: 'djoser',
+          name: 'Step Pyramid of Djoser',
+          hint: 'The first pyramid ever built',
+          discoveryLog: 'Designed by the legendary architect Imhotep, this revolutionized burial by stacking six stone mastabas. It is the earliest large-scale cut-stone structure in the world.'
+        },
+        {
+          id: 'unas',
+          name: 'Pyramid of Unas',
+          hint: 'Smallest Old Kingdom pyramid, first with Pyramid Texts',
+          discoveryLog: 'Though ruined on the outside, the interior walls are covered with the earliest known religious texts in history, intended to guide the King through the afterlife.'
+        },
+        {
+          id: 'teti',
+          name: 'Pyramid of Teti',
+          hint: 'Founder of the 6th Dynasty',
+          discoveryLog: 'Its substructure is remarkably well-preserved, featuring a vaulted ceiling decorated with stars, continuing the tradition of the sacred Pyramid Texts.'
+        },
+        {
+          id: 'userkaf',
+          name: 'Pyramid of Userkaf',
+          hint: 'Founder of the 5th Dynasty',
+          discoveryLog: 'This pyramid marked a shift in design, focusing more on the surrounding mortuary temple complex than the scale of the pyramid itself.'
+        }
+      ],
+      correctPositions: [
+        { locationId: 'djoser', x: 48, y: 32 },
+        { locationId: 'unas', x: 47, y: 33 },
+        { locationId: 'teti', x: 49, y: 31 },
+        { locationId: 'userkaf', x: 49, y: 32 }
+      ]
+    }
+  },
+  {
+    id: 'pyramid-locations-dahshur',
+    type: 'location-match',
+    title: 'The Royal Road',
+    description: 'Identify the great pyramids along the southern road.',
+    periodId: 'old-kingdom',
+    difficulty: 'hard',
+    points: 200,
+    timeLimit: 120,
+    category: 'game',
+    data: {
+      type: 'location-match',
+      locations: [
+        {
+          id: 'bent',
+          name: 'Bent Pyramid',
+          hint: 'Sneferu\'s experimental angled pyramid',
+          discoveryLog: 'Halfway through construction, the angle was changed from 54 to 43 degrees to prevent collapse, giving it its unique "bent" shape.'
+        },
+        {
+          id: 'red',
+          name: 'Red Pyramid',
+          hint: 'The first successful smooth-sided pyramid',
+          discoveryLog: 'The first successful smooth-sided pyramid in history. It gets its name from the rusty reddish hue of its exposed limestone core.'
+        },
+        {
+          id: 'meidum',
+          name: 'Meidum Pyramid',
+          hint: 'The collapsed "onion" pyramid to the south',
+          discoveryLog: 'Originally built as a step pyramid and then filled in to be smooth, it eventually partially collapsed, leaving only the core visible today.'
+        },
+        {
+          id: 'amenemhat-iii',
+          name: 'Black Pyramid',
+          hint: 'A Middle Kingdom pyramid built of mudbrick',
+          discoveryLog: 'A later experiment from the Middle Kingdom. Made of mudbrick instead of stone, it has suffered significantly from erosion over the millennia.'
+        }
+      ],
+      correctPositions: [
+        { locationId: 'bent', x: 46, y: 35 },
+        { locationId: 'red', x: 46, y: 34 },
+        { locationId: 'meidum', x: 46, y: 42 },
+        { locationId: 'amenemhat-iii', x: 46, y: 36 }
       ]
     }
   },
   {
     id: 'old-kingdom-timeline',
     type: 'timeline-order',
-    title: 'Order of the Builders',
+    title: 'The Dawn of Kings',
     description: 'Arrange these Old Kingdom events in chronological order.',
     periodId: 'old-kingdom',
     difficulty: 'medium',
@@ -96,6 +208,50 @@ export const mapPuzzles: MapPuzzle[] = [
     }
   },
   {
+    id: 'middle-kingdom-timeline',
+    type: 'timeline-order',
+    title: 'The Pyramid Age',
+    description: 'Order the great monumental achievements of the Middle Kingdom.',
+    periodId: 'middle-kingdom',
+    difficulty: 'medium',
+    points: 150,
+    timeLimit: 90,
+    category: 'game',
+    data: {
+      type: 'timeline-order',
+      events: [
+        { id: 'm1', title: 'Mentuhotep II reunifies Egypt', hint: 'The 11th Dynasty begins the new era' },
+        { id: 'm2', title: 'Amenemhat I founds Itjtawy', hint: 'A new capital for a new age' },
+        { id: 'm3', title: 'Senusret III conquers Nubia', hint: 'The warrior king expands the borders' },
+        { id: 'm4', title: 'Amenemhat III develops Faiyum', hint: 'Agricultural mastery and the Labyrinth' },
+        { id: 'm5', title: '12th Dynasty ends', hint: 'The golden age fades into fragmentation' }
+      ],
+      correctOrder: ['m1', 'm2', 'm3', 'm4', 'm5']
+    }
+  },
+  {
+    id: 'liberation-timeline-game',
+    type: 'timeline-order',
+    title: 'The Golden Dynasty',
+    description: 'Arrange the events of the war for liberation.',
+    periodId: 'second-intermediate',
+    difficulty: 'hard',
+    points: 200,
+    timeLimit: 120,
+    category: 'game',
+    data: {
+      type: 'timeline-order',
+      events: [
+        { id: 'l1', title: 'Thebes rises against Hyksos', hint: 'The 17th Dynasty challenges the foreign kings' },
+        { id: 'l2', title: 'Seqenenre Tao dies in battle', hint: 'A martyr for Egyptian freedom' },
+        { id: 'l3', title: 'Kamose intercepting secret letters', hint: 'Revealing the alliance between enemies' },
+        { id: 'l4', title: 'Ahmose I captures Avaris', hint: 'The final victory in the Delta' },
+        { id: 'l5', title: 'The New Kingdom begins', hint: 'The era of the great empires starts' }
+      ],
+      correctOrder: ['l1', 'l2', 'l3', 'l4', 'l5']
+    }
+  },
+  {
     id: 'architect-achievements',
     type: 'figure-match',
     title: 'The Great Minds',
@@ -106,17 +262,17 @@ export const mapPuzzles: MapPuzzle[] = [
     data: {
       type: 'figure-match',
       figures: [
-        { id: 'imhotep', name: 'Imhotep', title: 'Architect of Djoser' },
-        { id: 'hemiunu', name: 'Hemiunu', title: 'Architect of Khufu' },
-        { id: 'ptahhotep', name: 'Ptahhotep', title: 'Vizier and Sage' },
-        { id: 'harkhuf', name: 'Harkhuf', title: 'Explorer of Nubia' }
+        { id: 'imhotep', name: 'Imhotep', title: 'High Priest & Architect', period: 'Old Kingdom' },
+        { id: 'hemiunu', name: 'Hemiunu', title: 'Royal Vizier', period: 'Old Kingdom' },
+        { id: 'ptahhotep', name: 'Ptahhotep', title: 'City Administrator', period: 'Old Kingdom' },
+        { id: 'harkhuf', name: 'Harkhuf', title: 'Governor of Upper Egypt', period: 'Old Kingdom' }
       ],
       achievements: [
-        { id: 'a1', text: 'Designed the first pyramid in history', figureId: 'imhotep' },
-        { id: 'a2', text: 'Oversaw construction of the Great Pyramid', figureId: 'hemiunu' },
-        { id: 'a3', text: 'Wrote famous wisdom instructions', figureId: 'ptahhotep' },
-        { id: 'a4', text: 'Brought a dancing pygmy from the south', figureId: 'harkhuf' },
-        { id: 'a5', text: 'Later worshipped as a god of medicine', figureId: 'imhotep' }
+        { id: 'a1', text: 'Pioneered the use of stone masonry to create the Step Pyramid.', figureId: 'imhotep', type: 'monument' },
+        { id: 'a2', text: 'Coordinated the complex logistics for the Great Pyramid of Giza.', figureId: 'hemiunu', type: 'monument' },
+        { id: 'a3', text: 'Authored the "Maxims," teaching social order and morality.', figureId: 'ptahhotep', type: 'wisdom' },
+        { id: 'a4', text: 'Led four major trade expeditions into the heart of Africa.', figureId: 'harkhuf', type: 'deed' },
+        { id: 'a5', text: 'Deified centuries after death as the patron of healers.', figureId: 'imhotep', type: 'wisdom' }
       ]
     }
   },
@@ -227,18 +383,18 @@ export const mapPuzzles: MapPuzzle[] = [
     data: {
       type: 'figure-match',
       figures: [
-        { id: 'mentuhotep', name: 'Mentuhotep II', title: 'Reunifier' },
-        { id: 'amenemhat-i', name: 'Amenemhat I', title: '12th Dynasty Founder' },
-        { id: 'senusret-iii', name: 'Senusret III', title: 'Warrior King' },
-        { id: 'amenemhat-iii', name: 'Amenemhat III', title: 'Builder' }
+        { id: 'mentuhotep', name: 'Mentuhotep II', title: 'The Reunifier', period: 'Middle Kingdom' },
+        { id: 'amenemhat-i', name: 'Amenemhat I', title: 'Dynasty Founder', period: 'Middle Kingdom' },
+        { id: 'senusret-iii', name: 'Senusret III', title: 'The Divine Warrior', period: 'Middle Kingdom' },
+        { id: 'amenemhat-iii', name: 'Amenemhat III', title: 'The Great Builder', period: 'Middle Kingdom' }
       ],
       achievements: [
-        { id: 'a1', text: 'Reunified Egypt after the First Intermediate Period', figureId: 'mentuhotep' },
-        { id: 'a2', text: 'Founded Itjtawy as the new capital', figureId: 'amenemhat-i' },
-        { id: 'a3', text: 'Conquered Nubia and built the fortress chain', figureId: 'senusret-iii' },
-        { id: 'a4', text: 'Developed the Faiyum oasis', figureId: 'amenemhat-iii' },
-        { id: 'a5', text: 'Was possibly assassinated by his guards', figureId: 'amenemhat-i' },
-        { id: 'a6', text: 'Built the temple at Deir el-Bahri', figureId: 'mentuhotep' }
+        { id: 'mka1', text: 'Ended the civil war and founded the Middle Kingdom state.', figureId: 'mentuhotep', type: 'deed' },
+        { id: 'mka2', text: 'Constructed the strategic capital of Itjtawy.', figureId: 'amenemhat-i', type: 'monument' },
+        { id: 'mka3', text: 'Established the massive chain of Nubian mudbrick fortresses.', figureId: 'senusret-iii', type: 'monument' },
+        { id: 'mka4', text: 'Oversaw the irrigation of the Faiyum and the "Labyrinth".', figureId: 'amenemhat-iii', type: 'deed' },
+        { id: 'mka5', text: 'Subject of the "Instructions of Amenemhat" warning against betrayal.', figureId: 'amenemhat-i', type: 'wisdom' },
+        { id: 'mka6', text: 'Created the unique terraced mortuary temple at Deir el-Bahri.', figureId: 'mentuhotep', type: 'monument' }
       ]
     }
   },
@@ -320,17 +476,24 @@ export const mapPuzzles: MapPuzzle[] = [
 export interface StoryPuzzle {
   id: string;
   storyId: string;
-  type: 'sequence' | 'riddle' | 'decode' | 'choice';
+  type: 'sequence' | 'riddle' | 'decode' | 'choice' | 'logic-fragments';
   title: string;
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
-  data: SequencePuzzleData | RiddlePuzzleData | DecodePuzzleData | ChoicePuzzleData;
+  data: SequencePuzzleData | RiddlePuzzleData | DecodePuzzleData | ChoicePuzzleData | LogicFragmentsData;
 }
 
 export interface SequencePuzzleData {
   type: 'sequence';
-  panels: { id: string; image: string; caption: string }[];
+  panels: { id: string; image?: string; caption: string }[];
+  correctOrder: string[];
+}
+
+export interface LogicFragmentsData {
+  type: 'logic-fragments';
+  clues: string[];
+  fragments: { id: string; text: string }[];
   correctOrder: string[];
 }
 
@@ -357,6 +520,30 @@ export interface ChoicePuzzleData {
 }
 
 export const storyPuzzles: StoryPuzzle[] = [
+  {
+    id: 'scribes-journal-1',
+    storyId: 'great-expedition',
+    type: 'logic-fragments',
+    title: 'The Scribe\'s Lost Journal',
+    description: 'Restore the logical flow of the scribe\'s account using the discovered clues.',
+    difficulty: 'medium',
+    points: 175,
+    data: {
+      type: 'logic-fragments',
+      clues: [
+        'The morning ritual at the Temple of Ptah always preceded the departure.',
+        'The fleet encountered the first sandbank exactly three hours after sailing.',
+        'The sun was directly overhead when the governor of the south greeted the fleet.'
+      ],
+      fragments: [
+        { id: 'f1', text: 'The Pharaoh offered incense and libations to the Creator God.' },
+        { id: 'f2', text: 'Thirty cedar-wood vessels pushed off into the heavy currents.' },
+        { id: 'f3', text: 'A sudden grounding required the oarsmen to leap into the shallow waters.' },
+        { id: 'f4', text: 'Shadows were at their shortest as the fleet docked at Elephantine.' }
+      ],
+      correctOrder: ['f1', 'f2', 'f3', 'f4']
+    }
+  },
   {
     id: 'imhotep-riddle',
     storyId: 'imhotep-vision',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { LocationMatchPuzzle } from '../puzzles/LocationMatchPuzzle';
 import { getPuzzleById, MapPuzzle, LocationMatchData } from '@/data/mapPuzzles';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
@@ -11,27 +12,49 @@ interface PyramidTrailGameProps {
     onBack: () => void;
 }
 
+const trailRegions = [
+    { id: 'pyramid-locations-saqqara', intro: "The path begins at Saqqara, where the first stone pyramid rose. Locate the early monuments that paved the way for the Pharaohs' glory.", victoryDesc: "You have mapped the foundations of the pyramid age." },
+    { id: 'pyramid-locations-dahshur', intro: "Follow the Royal Road south to Dahshur. Here, Sneferu experimented with the angles of eternity to create the first true pyramids.", victoryDesc: "The engineering secrets of the Old Kingdom are yours." },
+    { id: 'pyramid-locations-giza', intro: "The final destination: Giza. Place the most iconic monuments in human history upon the sacred plateau.", victoryDesc: "The entire landscape of eternity is now complete." }
+];
+
 export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) => {
-    const [gameState, setGameState] = useState<'intro' | 'playing' | 'victory'>('intro');
-    const [score, setScore] = useState(0);
-    const puzzle = getPuzzleById('pyramid-locations') as MapPuzzle;
+    const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelUp' | 'victory'>('intro');
+    const [currentRegion, setCurrentRegion] = useState(0);
+    const [totalScore, setTotalScore] = useState(0);
+    const [currentScore, setCurrentScore] = useState(0);
+
+    const region = trailRegions[currentRegion];
+    const puzzle = getPuzzleById(region.id) as MapPuzzle;
     const { addScore } = useHighScores();
 
     if (!puzzle) return <div>Puzzle not found</div>;
 
     const handleSolve = (points: number) => {
-        setScore(points);
-        addScore({
-            playerName: 'Explorer',
-            score: points,
-            game: 'pyramid-trail',
-            details: 'Pyramids accurately placed'
-        });
-        setGameState('victory');
+        setCurrentScore(points);
+        const newTotal = totalScore + points;
+        setTotalScore(newTotal);
+
+        if (currentRegion < trailRegions.length - 1) {
+            setGameState('levelUp');
+        } else {
+            addScore({
+                playerName: 'Explorer',
+                score: newTotal,
+                game: 'pyramid-trail',
+                details: 'Pyramid Trail Mastered'
+            });
+            setGameState('victory');
+        }
     };
 
     const startGame = () => {
         setGameState('playing');
+    };
+
+    const nextRegion = () => {
+        setCurrentRegion(prev => prev + 1);
+        setGameState('intro');
     };
 
     return (
@@ -51,12 +74,25 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
                     >
                         <ArrowLeft size={20} className="mr-2" /> Back to Games
                     </EgyptianButton>
-                    <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-2">The Pyramid Trail</h1>
-                    <p className="text-xl text-muted-foreground font-body italic">"Map the landscape of eternity. Know where the kings rest."</p>
+                    <div className="flex justify-between items-end mb-4">
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-2">The Pyramid Trail</h1>
+                            <p className="text-xl text-muted-foreground font-body italic">"Map the landscape of eternity. Know where the kings rest."</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-sm font-display text-gold uppercase tracking-widest block">Score</span>
+                            <span className="text-3xl font-display text-primary">{totalScore}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <EgyptianCard variant="tomb" padding="lg" className="border-gold/30">
+                    <div className="mb-6 flex items-center justify-between border-b border-gold/10 pb-4">
+                        <h2 className="text-2xl font-display text-primary">{puzzle.title}</h2>
+                        <span className="px-3 py-1 bg-primary/10 rounded-full text-xs font-bold text-primary uppercase">Region {currentRegion + 1}/3</span>
+                    </div>
                     <LocationMatchPuzzle
+                        key={region.id}
                         puzzle={{
                             ...puzzle,
                             data: puzzle.data as LocationMatchData
@@ -72,9 +108,25 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
               {gameState === 'intro' && (
                 <GameOverlay
                   type="intro"
-                  title="The Cartographer's Trial"
-                  description="The sacred geography of the Old Kingdom must be preserved. Locate the Great Pyramids and place them correctly upon the map of the Nile."
+                  title={puzzle.title}
+                  description={region.intro}
+                  actionLabel="Begin Region"
                   onAction={startGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'levelUp' && (
+                <GameOverlay
+                  type="levelup"
+                  title="Region Mapped!"
+                  description={region.victoryDesc}
+                  stats={[
+                    { label: 'Region Score', value: currentScore },
+                    { label: 'Total Score', value: totalScore }
+                  ]}
+                  actionLabel="Next Region"
+                  onAction={nextRegion}
                   onSecondaryAction={onBack}
                 />
               )}
@@ -82,16 +134,20 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
               {gameState === 'victory' && (
                 <GameOverlay
                   type="victory"
-                  title="Geography Restored"
-                  description="The map of the Nile is complete once more. Your knowledge of the sacred landscape is impeccable."
-                  score={score}
+                  title="High Cartographer"
+                  description="Every sacred site and royal necropolis has been correctly identified. You are a master of the eternal landscape."
+                  score={totalScore}
                   stars={5}
                   stats={[
-                    { label: 'Final Score', value: score },
-                    { label: 'Rank', value: 'High Cartographer' }
+                    { label: 'Final Score', value: totalScore },
+                    { label: 'Rank', value: 'Master of Geography' }
                   ]}
                   actionLabel="Map Again"
-                  onAction={() => window.location.reload()}
+                  onAction={() => {
+                    setCurrentRegion(0);
+                    setTotalScore(0);
+                    setGameState('intro');
+                  }}
                   onSecondaryAction={onBack}
                 />
               )}

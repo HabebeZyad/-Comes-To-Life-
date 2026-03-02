@@ -581,43 +581,64 @@ export function LocationMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props
         </div>
       </div>
 
-      {/* Feedback */}
+      {/* Discovery Logs */}
       <AnimatePresence>
-        {revealed && (
+        {revealed && score >= puzzle.points * 0.8 && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg ${score >= puzzle.points * 0.8
-              ? 'bg-scarab/20 border border-scarab/30'
-              : 'bg-terracotta/20 border border-terracotta/30'
-              }`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="space-y-4"
           >
-            {score >= puzzle.points * 0.8 ? (
+            <div className="bg-primary/20 border border-primary/30 rounded-xl p-4">
+              <h4 className="font-display text-primary flex items-center gap-2 mb-3">
+                <Lightbulb className="w-4 h-4" /> Explorer's Discovery Log
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {puzzle.data.locations.map(loc => (
+                  <div key={loc.id} className="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <div className="font-display text-sm text-gold-light mb-1">{loc.name}</div>
+                    <div className="text-xs text-muted-foreground font-body leading-tight italic">
+                      {loc.discoveryLog || "Details preserved in the Hall of Records."}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={`p-4 rounded-lg bg-scarab/20 border border-scarab/30`}>
               <div className="text-center">
                 <span className="text-3xl block mb-2">𓏠</span>
                 <span className="font-display text-scarab block">
-                  Cartographer's wisdom! You've mapped the ancient lands perfectly!
+                  Cartographer's wisdom! You've mapped the region perfectly!
                 </span>
                 <span className="text-sm text-muted-foreground">
                   Points earned: {score}/{puzzle.points}
                 </span>
               </div>
-            ) : (
-              <div className="text-center">
-                <span className="font-display text-terracotta block mb-2">
-                  The map needs refinement...
-                </span>
-                <span className="text-sm text-muted-foreground block mb-2">
-                  Score: {score}/{puzzle.points} (need 80% to pass)
-                </span>
-                <button
-                  onClick={handleReset}
-                  className="font-body text-sm text-foreground/70 underline hover:text-foreground"
-                >
-                  Try again
-                </button>
-              </div>
-            )}
+            </div>
+          </motion.div>
+        )}
+
+        {revealed && score < puzzle.points * 0.8 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-lg bg-terracotta/20 border border-terracotta/30"
+          >
+            <div className="text-center">
+              <span className="font-display text-terracotta block mb-2">
+                The map needs refinement...
+              </span>
+              <span className="text-sm text-muted-foreground block mb-2">
+                Score: {score}/{puzzle.points} (need 80% to pass)
+              </span>
+              <button
+                onClick={handleReset}
+                className="font-body text-sm text-foreground/70 underline hover:text-foreground"
+              >
+                Try again
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
