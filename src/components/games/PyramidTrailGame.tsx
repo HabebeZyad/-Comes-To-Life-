@@ -94,8 +94,8 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
-             {/* Themed background */}
-             <div className="absolute inset-0 pointer-events-none opacity-5">
+            {/* Themed background */}
+            <div className="absolute inset-0 pointer-events-none opacity-5">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
                 <Compass className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]" />
             </div>
@@ -158,7 +158,7 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
                         </div>
 
                         <div className="flex items-center gap-4">
-                             <div className="text-right hidden md:block">
+                            <div className="text-right hidden md:block">
                                 <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest mb-1">Current Region</div>
                                 <div className="font-display text-gold-light text-lg leading-none">{region.name}</div>
                             </div>
@@ -239,21 +239,21 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-primary/20 rounded-lg text-primary"><Compass size={20}/></div>
+                        <div className="p-2 bg-primary/20 rounded-lg text-primary"><Compass size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">Cartography</h4>
                             <p className="text-xs text-muted-foreground mt-1">Place the sacred monuments in their correct historical locations on the royal map.</p>
                         </div>
                     </div>
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Map size={20}/></div>
+                        <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Map size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">The Royal Road</h4>
                             <p className="text-xs text-muted-foreground mt-1">Journey from the first Step Pyramid to the world-changing Giza plateau.</p>
                         </div>
                     </div>
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20}/></div>
+                        <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">Discovery Logs</h4>
                             <p className="text-xs text-muted-foreground mt-1">Solve the map with high precision to unlock the explorer's lost records.</p>
@@ -263,43 +263,43 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
             </div>
 
             <AnimatePresence>
-              {gameState === 'levelUp' && (
-                <GameOverlay
-                  type="levelup"
-                  title="Region Mapped!"
-                  description={region.victoryDesc}
-                  stats={[
-                    { label: 'Region Score', value: currentScore },
-                    { label: 'Time', value: formatTime(timeElapsed) }
-                  ]}
-                  actionLabel="Next Region"
-                  onAction={nextRegion}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'levelUp' && (
+                    <GameOverlay
+                        type="levelup"
+                        title="Region Mapped!"
+                        description={region.victoryDesc}
+                        stats={[
+                            { label: 'Region Score', value: currentScore },
+                            { label: 'Time', value: formatTime(timeElapsed) }
+                        ]}
+                        actionLabel="Next Region"
+                        onAction={nextRegion}
+                        onSecondaryAction={onBack}
+                    />
+                )}
 
-              {gameState === 'victory' && (
-                <GameOverlay
-                  type="victory"
-                  title="High Cartographer"
-                  description="Every sacred site and royal necropolis has been correctly identified. You are a master of the eternal landscape."
-                  score={totalScore}
-                  stars={5}
-                  stats={[
-                    { label: 'Final Score', value: totalScore },
-                    { label: 'Total Time', value: formatTime(timeElapsed) },
-                    { label: 'Rank', value: 'Master of Geography' }
-                  ]}
-                  actionLabel="Map Again"
-                  onAction={() => {
-                    setCurrentRegion(0);
-                    setTotalScore(0);
-                    setTimeElapsed(0);
-                    setGameState('intro');
-                  }}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'victory' && (
+                    <GameOverlay
+                        type="victory"
+                        title="High Cartographer"
+                        description="Every sacred site and royal necropolis has been correctly identified. You are a master of the eternal landscape."
+                        score={totalScore}
+                        stars={5}
+                        stats={[
+                            { label: 'Final Score', value: totalScore },
+                            { label: 'Total Time', value: formatTime(timeElapsed) },
+                            { label: 'Rank', value: 'Master of Geography' }
+                        ]}
+                        actionLabel="Map Again"
+                        onAction={() => {
+                            setCurrentRegion(0);
+                            setTotalScore(0);
+                            setTimeElapsed(0);
+                            setGameState('intro');
+                        }}
+                        onSecondaryAction={onBack}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

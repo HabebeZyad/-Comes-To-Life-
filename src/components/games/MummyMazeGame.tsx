@@ -209,13 +209,11 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     }
 
     playSound('move');
-  }, [activeChar, raPos, thothPos, gameState, level, gateOpen, playSound]);
+  }, [activeChar, raPos, thothPos, gameState, currentLevel, level, gateOpen, playSound]);
 
   useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const raOnPlate = TILE_MAP[level.grid[raPos.y][raPos.x]] === 'pressure-plate';
     const thothOnPlate = TILE_MAP[level.grid[thothPos.y][thothPos.x]] === 'pressure-plate';
+    const raOnPlate = TILE_MAP[level.grid[raPos.y][raPos.x]] === 'pressure-plate';
     setGateOpen(raOnPlate || thothOnPlate);
 
     const raOnExit = TILE_MAP[level.grid[raPos.y][raPos.x]] === 'ra-exit';
@@ -246,8 +244,6 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
       }
-
-      if (e.key === 'ArrowUp' || e.key === 'w') moveChar(0, -1);
       if (e.key === 'ArrowDown' || e.key === 's') moveChar(0, 1);
       if (e.key === 'ArrowLeft' || e.key === 'a') moveChar(-1, 0);
       if (e.key === 'ArrowRight' || e.key === 'd') moveChar(1, 0);
@@ -310,9 +306,6 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                 <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
                 <p className="text-xs text-muted-foreground font-body mt-1">Switch: SPACE | Move: ARROWS</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-6">
               <div className={`flex items-center gap-2 px-4 py-1 rounded-full border ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse' : 'bg-obsidian/40 border-gold/20'}`}>
                 <Timer size={18} className={timeLeft < 10 ? 'text-terracotta' : 'text-primary'} />
                 <span className={`font-display text-xl ${timeLeft < 10 ? 'text-terracotta' : 'text-gold'}`}>{timeLeft}s</span>
@@ -460,28 +453,28 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Sun size={20}/></div>
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Sun size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Ra (Sun Spirit)</h4>
               <p className="text-xs text-muted-foreground mt-1">Immune to Lava. Destroyed by Water. Target: Sun Gateway.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Moon size={20}/></div>
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Moon size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Thoth (Moon Spirit)</h4>
               <p className="text-xs text-muted-foreground mt-1">Immune to Water. Destroyed by Lava. Target: Moon Gateway.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20}/></div>
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Mechanism</h4>
               <p className="text-xs text-muted-foreground mt-1">Pressure plates open Golden Gates. Both spirits must reach exits simultaneously.</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

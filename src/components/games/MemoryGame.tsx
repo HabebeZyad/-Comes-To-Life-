@@ -47,7 +47,11 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     const trial = TRIALS[trialIndex];
     setLevel(trialIndex + 1);
 
-    const selectedSymbols = symbols.slice(0, trial.pairs);
+    // Select random symbols for this trial
+    const selectedSymbols = [...symbols]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, trial.pairs);
+
     const cardPairs = [...selectedSymbols, ...selectedSymbols];
 
     const shuffled = cardPairs

@@ -49,7 +49,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
     // Pick random entries from database
     const shuffled = [...hieroglyphDatabase].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, currentWave.pairs);
-
+    
     setSymbols([...selected].sort(() => Math.random() - 0.5));
     setMeanings([...selected].sort(() => Math.random() - 0.5));
     setMatches(new Set());
@@ -102,7 +102,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
       setFeedback({ id: symbolId, type: 'correct' });
       setScore(s => s + 150);
       playSound('correct');
-
+      
       if (newMatches.size === wave.pairs) {
         handleWaveComplete();
       }
@@ -185,7 +185,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
                 <span className="font-display text-gold uppercase text-xs tracking-widest">{wave.name}</span>
               </div>
               <div className="w-48 h-2 bg-obsidian/60 rounded-full border border-gold/20 overflow-hidden">
-                <motion.div
+                <motion.div 
                   className="h-full bg-primary shadow-gold-glow"
                   initial={{ width: 0 }}
                   animate={{ width: `${(matches.size / wave.pairs) * 100}%` }}
@@ -230,7 +230,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
                           </div>
                         )}
                         {feedback?.id === entry.gardinerCode && feedback.type === 'wrong' && (
-                          <motion.div
+                          <motion.div 
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-terracotta/40 flex items-center justify-center"
                           >
@@ -266,7 +266,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
                           {matches.has(entry.gardinerCode) && <Check className="text-scarab w-4 h-4" />}
                         </div>
                         {feedback?.id === entry.gardinerCode && feedback.type === 'wrong' && (
-                          <motion.div
+                          <motion.div 
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-terracotta/20"
                           />

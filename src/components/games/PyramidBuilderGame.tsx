@@ -102,7 +102,6 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
     if (diff <= tolerance) {
       const isPerfect = diff <= 5;
       const points = isPerfect ? 200 : Math.max(20, 100 - Math.floor(diff * 2));
-
       if (isPerfect) {
         setPerfectDrops(prev => prev + 1);
         playSound('perfect');
@@ -213,7 +212,6 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                 <span className="font-display text-gold text-lg">Perfect: {perfectDrops}</span>
               </div>
             </div>
-
             <div className="flex flex-col items-end">
               <h2 className="text-xl font-display text-gold-gradient leading-none">{currentLevel.title}</h2>
               <p className="text-xs text-muted-foreground font-body mt-1">Tolerance: ±{currentLevel.tolerance}px</p>
@@ -228,7 +226,6 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
             >
               {/* Central Alignment Guide */}
               <div className="absolute inset-y-0 w-0.5 bg-primary/10 left-1/2 -translate-x-1/2" />
-
               {/* Base Line */}
               <div className="absolute bottom-0 left-0 right-0 h-2 bg-gold/20" />
 
@@ -253,9 +250,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                     </motion.div>
                   )
                 ))}
-              </AnimatePresence>
-
-              {/* Current Moving Block */}
+              </AnimatePresence>              {/* Current Moving Block */}
               {gameState === 'playing' && currentBlockIndex < blocks.length && (
                 <motion.div
                   className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-white shadow-turquoise-glow rounded z-20"

@@ -151,6 +151,7 @@ export default function StorytellingEpisode4() {
                   src={getPanelImage(currentPanel.id)}
                   alt={`Panel ${currentPanelIndex + 1}`}
                   className="w-full h-full object-contain"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
                 {currentPanel.narration && (
