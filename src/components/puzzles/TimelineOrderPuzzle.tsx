@@ -127,7 +127,7 @@ export function TimelineOrderPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props
         axis="y"
         values={items}
         onReorder={setItems}
-        className="space-y-2"
+        className="space-y-3"
       >
         {items.map((event, index) => (
           <Reorder.Item
@@ -136,39 +136,58 @@ export function TimelineOrderPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props
             className={`cursor-grab active:cursor-grabbing ${revealed ? 'pointer-events-none' : ''}`}
           >
             <motion.div
-              className={`p-4 rounded-lg border-2 transition-colors ${revealed
+              className={`relative overflow-hidden p-5 rounded-xl border-2 transition-all duration-300 ${revealed
                 ? puzzle.data.correctOrder[index] === event.id
-                  ? 'border-scarab bg-scarab/10'
-                  : 'border-terracotta bg-terracotta/10'
-                : 'border-border bg-card hover:border-gold/50'
+                  ? 'border-scarab bg-scarab/10 shadow-[0_0_15px_rgba(34,197,94,0.1)]'
+                  : 'border-terracotta bg-terracotta/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]'
+                : 'border-gold/20 bg-obsidian/60 hover:border-gold/50 shadow-lg'
                 }`}
-              whileHover={!revealed ? { scale: 1.01 } : {}}
+              whileHover={!revealed ? { scale: 1.02, x: 5 } : {}}
               layout
             >
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center font-display text-sm">
+              {/* Background texture */}
+              <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/papyros.png')]" />
+
+              <div className="flex items-center gap-5 relative z-10">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-display text-lg shrink-0 border transition-colors ${
+                  revealed && puzzle.data.correctOrder[index] === event.id ? 'bg-scarab/20 border-scarab text-scarab' : 'bg-black/40 border-gold/20 text-gold-light'
+                }`}>
                   {index + 1}
-                </span>
-                <span className="flex-1 font-body">{event.title}</span>
+                </div>
+
+                <div className="flex-1">
+                  <span className="font-display text-lg text-foreground block leading-tight">{event.title}</span>
+                  {revealed && puzzle.data.correctOrder[index] !== event.id && (
+                    <span className="text-[10px] text-terracotta uppercase font-bold mt-1 block">Misaligned Inscription</span>
+                  )}
+                </div>
+
                 {!revealed && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleHint(event.id);
                     }}
-                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                    className="p-2 rounded-full hover:bg-primary/20 text-gold/40 hover:text-primary transition-all group"
                     title="Get hint (-25 pts)"
                   >
-                    <Lightbulb className="w-4 h-4" />
+                    <Lightbulb className="w-5 h-5 group-hover:drop-shadow-gold-glow" />
                   </button>
                 )}
+
                 {revealed && (
-                  <span>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      puzzle.data.correctOrder[index] === event.id ? 'bg-scarab/20' : 'bg-terracotta/20'
+                    }`}
+                  >
                     {puzzle.data.correctOrder[index] === event.id
                       ? <Check className="w-5 h-5 text-scarab" />
                       : <X className="w-5 h-5 text-terracotta" />
                     }
-                  </span>
+                  </motion.div>
                 )}
               </div>
             </motion.div>

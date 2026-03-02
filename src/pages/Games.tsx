@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter } from 'lucide-react';
+import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { MemoryGame } from '@/components/games/MemoryGame';
@@ -15,10 +15,11 @@ import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
 import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
 import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
 import { GreatMindsGame } from '@/components/games/GreatMindsGame';
+import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal';
 
 interface Game {
   id: GameType;
@@ -43,9 +44,10 @@ const games: Game[] = [
   { id: 'decoder', title: 'Hieroglyph Decoder', description: 'Decipher sacred symbols through 5 waves of scribal tests.', icon: Languages, color: 'from-turquoise to-lapis', emoji: '𓇚', category: 'Wisdom', difficulty: 'Hard', duration: '3-5 min', isNew: true },
   { id: 'temple-escape', title: 'Temple Escape', description: 'Survive 5 chambers of deadly traps in a high-pressure escape.', icon: Timer, color: 'from-terracotta to-gold-dark', emoji: '🏺', category: 'Action', difficulty: 'Expert', duration: '4-6 min', isNew: true },
   { id: 'nile-navigator', title: 'Nile Navigator', description: 'Sail 5 dangerous reaches of the Nile to prove your navigation.', icon: Sailboat, color: 'from-lapis to-turquoise', emoji: '⛵', category: 'Action', difficulty: 'Hard', duration: '3-5 min', isNew: true },
-  { id: 'pyramid-trail', title: 'The Pyramid Trail', description: 'Map the great pyramids across the landscape of Old Kingdom Egypt.', icon: Map, color: 'from-gold to-amber-600', emoji: '📍', category: 'History', difficulty: 'Medium', duration: '4 min' },
-  { id: 'order-builders', title: 'Order of Builders', description: 'Arrange Old Kingdom events in chronological sequence.', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳', category: 'History', difficulty: 'Hard', duration: '3 min' },
-  { id: 'great-minds', title: 'The Great Minds', description: 'Match Old Kingdom figures to their monumental achievements.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Medium', duration: '3 min' },
+  { id: 'pyramid-trail', title: 'The Pyramid Trail', description: 'Embark on a cartographic expedition across the royal necropolis.', icon: Map, color: 'from-gold to-amber-600', emoji: '📍', category: 'History', difficulty: 'Medium', duration: '4 min' },
+  { id: 'order-builders', title: 'Chronicles of the Nile', description: 'Reconstruct the broken timeline of the Pharaohs through the ages.', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳', category: 'History', difficulty: 'Hard', duration: '3 min' },
+  { id: 'great-minds', title: 'Hall of Records', description: 'Investigate the deeds and wisdom of the greatest minds in history.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Medium', duration: '3 min' },
+  { id: 'scribes-journal', title: "Scribe's Journal", description: "Piece together historical events from fragmented journal entries.", icon: BookOpen, color: 'from-emerald-500 to-teal-700', emoji: '📓', category: 'History', difficulty: 'Medium', duration: '5 min', isNew: true },
 ];
 
 const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> = {
@@ -62,6 +64,7 @@ const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> 
   'pyramid-trail': PyramidTrailGame,
   'order-builders': OrderOfBuildersGame,
   'great-minds': GreatMindsGame,
+  'scribes-journal': ScribesLostJournalGame,
 };
 
 export default function Games() {
