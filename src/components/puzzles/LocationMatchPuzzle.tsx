@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Check, X, RotateCcw, Lightbulb } from 'lucide-react';
+import { MapPin, Check, X, RotateCcw, Lightbulb, Compass } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import type { LocationMatchData } from '@/data/mapPuzzles';
@@ -186,11 +186,27 @@ export function LocationMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props
 
         {/* Map Area */}
         <div className="md:col-span-2">
-          <h4 className="font-display text-sm text-muted-foreground mb-3">Ancient Egypt Map</h4>
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="font-display text-sm text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <Compass className="w-4 h-4 text-primary" /> Royal Necropolis Map
+            </h4>
+            {selectedLocation && (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-[10px] font-bold text-primary animate-pulse"
+              >
+                POSITIONING: {puzzle.data.locations.find(l => l.id === selectedLocation)?.name}
+              </motion.div>
+            )}
+          </div>
           <div
-            className="relative aspect-[4/3] bg-gradient-to-br from-sandstone via-sandstone-light to-terracotta/20 rounded-lg border-2 border-sandstone cursor-crosshair overflow-hidden"
+            className="relative aspect-[4/3] bg-gradient-to-br from-sandstone via-sandstone-light to-terracotta/20 rounded-xl border-4 border-gold/20 cursor-crosshair overflow-hidden shadow-2xl"
             onClick={handleMapClick}
           >
+            {/* Background texture overlay */}
+            <div className="absolute inset-0 opacity-40 mix-blend-multiply pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/papyros.png')]" />
+
             {/* Ultra-Realistic Egyptian Cartography for Puzzles */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
               <defs>
@@ -537,23 +553,31 @@ export function LocationMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props
               return (
                 <motion.div
                   key={locationId}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 z-20"
                   style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                  initial={{ scale: 0, y: -20 }}
+                  animate={{ scale: 1, y: 0 }}
                 >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-display",
-                    revealed
-                      ? isCorrect
-                        ? "border-scarab bg-scarab/20 text-scarab"
-                        : "border-terracotta bg-terracotta/20 text-terracotta"
-                      : "border-gold bg-gold/20 text-gold"
-                  )}>
-                    {revealed ? (
-                      isCorrect ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />
-                    ) : (
-                      location?.name.charAt(0)
+                  <div className="relative group">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-display shadow-lg transition-all",
+                      revealed
+                        ? isCorrect
+                          ? "border-scarab bg-scarab/40 text-white shadow-scarab-glow"
+                          : "border-terracotta bg-terracotta/40 text-white shadow-terracotta-glow"
+                        : "border-gold bg-obsidian/80 text-primary shadow-gold-glow"
+                    )}>
+                      {revealed ? (
+                        isCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />
+                      ) : (
+                        <MapPin className="w-4 h-4" />
+                      )}
+                    </div>
+                    {/* Tooltip on marker */}
+                    {!revealed && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {location?.name}
+                      </div>
                     )}
                   </div>
                 </motion.div>

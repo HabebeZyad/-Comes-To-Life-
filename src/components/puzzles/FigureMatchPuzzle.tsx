@@ -122,27 +122,40 @@ export function FigureMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props) 
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-8">
         {/* Figures Column */}
         <div>
-          <h4 className="font-display text-sm text-muted-foreground mb-3">Historical Figures</h4>
-          <div className="space-y-2">
+          <h4 className="font-display text-xs text-primary uppercase tracking-[0.2em] mb-4">Master Builders & Sages</h4>
+          <div className="space-y-3">
             {puzzle.data.figures.map((figure) => (
               <motion.button
                 key={figure.id}
                 onClick={() => handleFigureClick(figure.id)}
                 className={cn(
-                  "w-full p-3 rounded-lg border-2 text-left transition-all",
+                  "relative w-full p-4 rounded-xl border-2 text-left transition-all overflow-hidden",
                   selectedFigure === figure.id
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card hover:border-gold/50"
+                    ? "border-primary bg-primary/10 shadow-gold-glow"
+                    : "border-gold/20 bg-obsidian/40 hover:border-gold/50 shadow-lg"
                 )}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={!revealed ? { scale: 1.02, x: 5 } : {}}
+                whileTap={{ scale: 0.98 }}
                 disabled={revealed}
               >
-                <div className="font-display font-semibold">{figure.name}</div>
-                <div className="text-xs text-muted-foreground">{figure.title}</div>
+                {/* Background texture */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/sandpaper.png')]" />
+
+                <div className="relative z-10 flex items-center gap-4">
+                  <div className={cn(
+                    "w-12 h-12 rounded-lg flex items-center justify-center border-2 shrink-0 transition-colors",
+                    selectedFigure === figure.id ? "bg-primary border-white/20 text-white" : "bg-black/40 border-gold/20 text-gold-light"
+                  )}>
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="font-display text-lg text-foreground">{figure.name}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{figure.title}</div>
+                  </div>
+                </div>
               </motion.button>
             ))}
           </div>
@@ -150,8 +163,8 @@ export function FigureMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props) 
 
         {/* Achievements Column */}
         <div>
-          <h4 className="font-display text-sm text-muted-foreground mb-3">Achievements</h4>
-          <div className="space-y-2">
+          <h4 className="font-display text-xs text-primary uppercase tracking-[0.2em] mb-4">Sacred Deeds & Records</h4>
+          <div className="space-y-3">
             {puzzle.data.achievements.map((achievement) => {
               const matchedFigure = getMatchedFigure(achievement.id);
               const isCorrect = revealed && isCorrectMatch(achievement.id);
@@ -162,37 +175,50 @@ export function FigureMatchPuzzle({ puzzle, onSolve, onClose, isEmbed }: Props) 
                   key={achievement.id}
                   onClick={() => handleAchievementClick(achievement.id)}
                   className={cn(
-                    "w-full p-3 rounded-lg border-2 text-left transition-all",
+                    "relative w-full p-5 rounded-xl border-2 text-left transition-all overflow-hidden min-h-[80px] flex flex-col justify-center",
                     isCorrect
-                      ? "border-scarab bg-scarab/10"
+                      ? "border-scarab bg-scarab/10 shadow-[0_0_15px_rgba(34,197,94,0.1)]"
                       : isIncorrect
-                        ? "border-terracotta bg-terracotta/10"
+                        ? "border-terracotta bg-terracotta/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
                         : matchedFigure
-                          ? "border-gold bg-gold/10"
+                          ? "border-gold bg-gold/10 shadow-lg"
                           : selectedFigure
-                            ? "border-border bg-card hover:border-primary cursor-pointer"
-                            : "border-border bg-card"
+                            ? "border-primary/40 bg-obsidian/60 hover:border-primary cursor-pointer"
+                            : "border-gold/10 bg-obsidian/40"
                   )}
-                  whileHover={!revealed && selectedFigure ? { scale: 1.01 } : {}}
+                  whileHover={!revealed && selectedFigure ? { scale: 1.02, x: -5 } : {}}
                   disabled={revealed || !selectedFigure}
                 >
-                  <p className="text-sm font-body">{achievement.text}</p>
-                  {matchedFigure && (
-                    <div className="flex items-center gap-2 mt-2 text-xs">
-                      <ArrowRight className="w-3 h-3" />
-                      <span className={cn(
-                        "font-display",
-                        isCorrect ? "text-scarab" : isIncorrect ? "text-terracotta" : "text-gold"
-                      )}>
-                        {matchedFigure.name}
-                      </span>
-                      {revealed && (
-                        isCorrect
-                          ? <Check className="w-4 h-4 text-scarab" />
-                          : <X className="w-4 h-4 text-terracotta" />
-                      )}
-                    </div>
-                  )}
+                  <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/papyros.png')]" />
+
+                  <p className="relative z-10 text-sm font-body text-foreground leading-relaxed italic">
+                    "{achievement.text}"
+                  </p>
+
+                  <AnimatePresence>
+                    {matchedFigure && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="relative z-10 flex items-center gap-2 mt-3 pt-3 border-t border-white/5 text-xs"
+                      >
+                        <div className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-display uppercase tracking-widest border",
+                          isCorrect ? "bg-scarab/20 border-scarab text-scarab" : isIncorrect ? "bg-terracotta/20 border-terracotta text-terracotta" : "bg-gold/20 border-gold text-gold"
+                        )}>
+                          {matchedFigure.name}
+                        </div>
+                        {revealed && (
+                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                            {isCorrect
+                              ? <Check className="w-4 h-4 text-scarab shadow-scarab-glow" />
+                              : <X className="w-4 h-4 text-terracotta shadow-terracotta-glow" />
+                            }
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.button>
               );
             })}
