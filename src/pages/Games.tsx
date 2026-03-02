@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { MemoryGame } from '@/components/games/MemoryGame';
@@ -20,22 +20,36 @@ import { DustParticles } from '@/components/effects/DustParticles';
 
 type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds';
 
-const games = [
-  { id: 'guess-the-pharaoh' as const, title: 'Guess the Pharaoh', description: 'Identify the pharaoh from the given clue', icon: Crown, color: 'from-yellow-400 to-amber-600', emoji: '👑' },
-  { id: 'memory' as const, title: 'Sacred Symbols Memory', description: 'Match pairs of ancient Egyptian hieroglyphs and sacred symbols', icon: Puzzle, color: 'from-lapis to-lapis-deep', emoji: '𓋹' },
-  { id: 'maze' as const, title: 'Mummy Maze Runner', description: 'Navigate the tomb labyrinth while escaping the pursuing mummy', icon: Map, color: 'from-gold-dark to-primary', emoji: '🧟' },
-  { id: 'riddles' as const, title: "Pharaoh's Riddles", description: "Answer the sphinx's riddles and prove your ancient wisdom", icon: Brain, color: 'from-scarab to-turquoise', emoji: '🦁' },
-  { id: 'pyramid' as const, title: 'Pyramid Builder', description: 'Stack sacred blocks with precision to construct the perfect pyramid', icon: Building, color: 'from-primary to-gold-light', emoji: '🏛️' },
-  { id: 'decoder' as const, title: 'Hieroglyph Decoder', description: 'Decipher ancient symbols and unlock the secrets of the pharaohs', icon: Languages, color: 'from-turquoise to-lapis', emoji: '𓂀' },
-  { id: 'temple-escape' as const, title: 'Temple Escape', description: 'Navigate deadly traps and puzzles to escape the cursed temple', icon: Timer, color: 'from-terracotta to-gold-dark', emoji: '🏛️' },
-  { id: 'nile-navigator' as const, title: 'Nile Navigator', description: 'Sail the sacred river dodging obstacles and collecting treasures', icon: Sailboat, color: 'from-lapis to-turquoise', emoji: '⛵' },
-  { id: 'scarab-collector' as const, title: 'Scarab Collector', description: 'Catch sacred scarabs before they vanish, avoid cursed scorpions!', icon: Bug, color: 'from-scarab to-gold-dark', emoji: '𓆣' },
-  { id: 'pyramid-trail' as const, title: 'The Pyramid Trail', description: 'Place the great pyramids on the map of Old Kingdom Egypt', icon: Map, color: 'from-gold to-amber-600', emoji: '📍' },
-  { id: 'order-builders' as const, title: 'Order of the Builders', description: 'Arrange Old Kingdom events in chronological order', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳' },
-  { id: 'great-minds' as const, title: 'The Great Minds', description: 'Match Old Kingdom figures to their achievements', icon: Users, color: 'from-lapis to-primary', emoji: '🧠' },
+interface Game {
+  id: GameType;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+  emoji: string;
+  category: 'Wisdom' | 'Action' | 'History';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Expert';
+  duration: string;
+  isNew?: boolean;
+}
+
+const games: Game[] = [
+  { id: 'scarab-collector', title: 'Scarab Collector', description: 'Catch sacred scarabs in a high-stakes 5-wave desert swarm trial.', icon: Bug, color: 'from-scarab to-gold-dark', emoji: '𓆣', category: 'Action', difficulty: 'Hard', duration: '3-5 min', isNew: true },
+  { id: 'memory', title: 'Trials of Wisdom', description: 'Master the divine archives through 5 levels of increasing complexity.', icon: Brain, color: 'from-lapis to-lapis-deep', emoji: '𓂀', category: 'Wisdom', difficulty: 'Medium', duration: '2-4 min', isNew: true },
+  { id: 'maze', title: 'Solar & Lunar Maze', description: 'Coordinate twin spirits through 5 perilous tomb labyrinths.', icon: Map, color: 'from-gold-dark to-primary', emoji: '🧟', category: 'Action', difficulty: 'Hard', duration: '3-5 min', isNew: true },
+  { id: 'riddles', title: "Pharaoh's Riddles", description: "Face the Sphinx and answer 4 levels of cryptic ancient wisdom.", icon: Star, color: 'from-scarab to-turquoise', emoji: '🦁', category: 'Wisdom', difficulty: 'Expert', duration: '5-8 min', isNew: true },
+  { id: 'guess-the-pharaoh', title: 'Guess the Pharaoh', description: 'Identify legendary rulers in this 5-wave historical challenge.', icon: Crown, color: 'from-yellow-400 to-amber-600', emoji: '👑', category: 'History', difficulty: 'Medium', duration: '3-5 min', isNew: true },
+  { id: 'pyramid', title: 'Pyramid Builder', description: 'Stack sacred stones with divine precision in a 4-phase trial.', icon: Building, color: 'from-primary to-gold-light', emoji: '🏛️', category: 'Action', difficulty: 'Medium', duration: '3-5 min', isNew: true },
+  { id: 'decoder', title: 'Hieroglyph Decoder', description: 'Decipher sacred symbols through 5 waves of scribal tests.', icon: Languages, color: 'from-turquoise to-lapis', emoji: '𓇚', category: 'Wisdom', difficulty: 'Hard', duration: '3-5 min', isNew: true },
+  { id: 'temple-escape', title: 'Temple Escape', description: 'Survive 5 chambers of deadly traps in a high-pressure escape.', icon: Timer, color: 'from-terracotta to-gold-dark', emoji: '🏺', category: 'Action', difficulty: 'Expert', duration: '4-6 min', isNew: true },
+  { id: 'nile-navigator', title: 'Nile Navigator', description: 'Sail 5 dangerous reaches of the Nile to prove your navigation.', icon: Sailboat, color: 'from-lapis to-turquoise', emoji: '⛵', category: 'Action', difficulty: 'Hard', duration: '3-5 min', isNew: true },
+  { id: 'pyramid-trail', title: 'The Pyramid Trail', description: 'Map the great pyramids across the landscape of Old Kingdom Egypt.', icon: Map, color: 'from-gold to-amber-600', emoji: '📍', category: 'History', difficulty: 'Medium', duration: '4 min' },
+  { id: 'order-builders', title: 'Order of Builders', description: 'Arrange Old Kingdom events in chronological sequence.', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳', category: 'History', difficulty: 'Hard', duration: '3 min' },
+  { id: 'great-minds', title: 'The Great Minds', description: 'Match Old Kingdom figures to their monumental achievements.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Medium', duration: '3 min' },
 ];
 
-const gameComponents: Record<string, React.FC<{ onBack: () => void }>> = {
+const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> = {
+  menu: null,
   memory: MemoryGame,
   maze: MummyMazeGame,
   riddles: PharaohRiddlesGame,
@@ -53,6 +67,7 @@ const gameComponents: Record<string, React.FC<{ onBack: () => void }>> = {
 export default function Games() {
   const [currentGame, setCurrentGame] = useState<GameType>('menu');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [filter, setFilter] = useState<'All' | 'Wisdom' | 'Action' | 'History'>('All');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -71,67 +86,150 @@ export default function Games() {
     if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
   }
 
+  const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
+
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative">
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative overflow-hidden">
       <DustParticles />
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Gamepad2 className="w-10 h-10 text-primary" />
-            <h1 className="text-4xl md:text-5xl font-display text-gold-gradient">Ancient Games</h1>
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Hero Section */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6">
+            <Trophy size={14} /> NEW PROFESSIONAL TRIALS AVAILABLE
           </div>
-          <p className="text-xl text-muted-foreground font-body max-w-2xl mx-auto mb-6">
-            Challenge your mind with games inspired by ancient Egyptian culture, mythology, and history
+          <h1 className="text-5xl md:text-7xl font-display text-gold-gradient mb-6">Ancient Games</h1>
+          <p className="text-xl text-muted-foreground font-body max-w-3xl mx-auto mb-10 leading-relaxed">
+            Test your prowess in the courts of the Pharaohs. From mental puzzles to swift action,
+            prove your worth and etch your name into the Hall of Records.
           </p>
-          <EgyptianButton
-            variant={showLeaderboard ? 'default' : 'lapis'}
-            size="lg"
-            onClick={() => setShowLeaderboard(!showLeaderboard)}
-          >
-            <Trophy size={20} /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
-          </EgyptianButton>
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)}>
+              <Trophy size={20} className="mr-2" /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
+            </EgyptianButton>
+            <div className="h-10 w-[1px] bg-white/10 hidden md:block" />
+            <div className="flex bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10">
+              {['All', 'Wisdom', 'Action', 'History'].map((cat) => (
+                <button
+                  key={cat}
+      onClick={() => setFilter(cat as 'All' | 'Wisdom' | 'Action' | 'History')}
+                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                    filter === cat ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
         </motion.div>
 
         {showLeaderboard && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-12">
             <Leaderboard />
           </motion.div>
         )}
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {games.map((game, index) => (
-            <motion.div
-              key={game.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <EgyptianCard variant="interactive" padding="none" glowOnHover className="h-full">
-                <div className={`h-32 bg-gradient-to-br ${game.color} flex items-center justify-center`}>
-                  <span className="text-6xl">{game.emoji}</span>
-                </div>
-                <div className="p-5">
-                  <EgyptianCardHeader className="mb-0">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <game.icon className="w-4 h-4 text-primary" />
+        {/* Featured Section */}
+        {filter === 'All' && !showLeaderboard && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-display text-primary mb-6 flex items-center gap-2">
+              <Star className="fill-primary" size={20} /> Featured Trials
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {games.filter(g => g.isNew).map((game) => (
+                <motion.div
+                  key={game.id}
+                  whileHover={{ y: -5 }}
+                  className="group relative cursor-pointer"
+                  onClick={() => handleGameSelect(game.id)}
+                >
+                  <EgyptianCard variant="interactive" padding="none" className="h-full overflow-hidden border-2 border-primary/30">
+                    <div className="flex flex-col md:flex-row h-full">
+                      <div className={`md:w-1/3 bg-gradient-to-br ${game.color} flex items-center justify-center p-8 relative overflow-hidden`}>
+                        <div className="absolute inset-0 opacity-20 hieroglyph-pattern" />
+                        <span className="text-7xl group-hover:scale-110 transition-transform duration-500 relative z-10">{game.emoji}</span>
                       </div>
-                      <EgyptianCardTitle className="text-lg">{game.title}</EgyptianCardTitle>
+                      <div className="md:w-2/3 p-6 flex flex-col justify-between bg-obsidian/40">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold tracking-widest text-primary uppercase">{game.category}</span>
+                            <div className="flex items-center gap-1 text-[10px] text-turquoise font-bold uppercase">
+                              <Timer size={12} /> {game.duration}
+                            </div>
+                          </div>
+                          <h3 className="text-2xl font-display text-white mb-2">{game.title}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed mb-4">{game.description}</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-1">
+                            {[...Array(3)].map((_, i) => (
+                              <Star key={i} size={14} className={i < (game.difficulty === 'Hard' ? 3 : 2) ? "text-primary fill-primary" : "text-white/10"} />
+                            ))}
+                          </div>
+                          <div className="text-primary group-hover:translate-x-1 transition-transform flex items-center text-sm font-bold">
+                            PLAY TRIAL <ChevronRight size={16} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </EgyptianCardHeader>
-                  <EgyptianCardContent>
-                    <EgyptianCardDescription className="mb-4 text-base">
+                  </EgyptianCard>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Games Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AnimatePresence mode="popLayout">
+            {filteredGames.filter(g => filter !== 'All' || !g.isNew).map((game, index) => (
+              <motion.div
+                layout
+                key={game.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <EgyptianCard
+                  variant="interactive"
+                  padding="none"
+                  glowOnHover
+                  className="h-full group hover:border-primary/50 transition-colors"
+                  onClick={() => handleGameSelect(game.id as GameType)}
+                >
+                  <div className={`h-40 bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden`}>
+                    <div className="absolute inset-0 opacity-10 hieroglyph-pattern" />
+                    <span className="text-6xl group-hover:rotate-12 transition-transform duration-300 relative z-10">{game.emoji}</span>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10">
+                        {(() => {
+                          const Icon = game.icon;
+                          return <Icon className="w-3 h-3 text-primary" />;
+                        })()}
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{game.category}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground">{game.duration}</span>
+                    </div>
+                    <h4 className="text-lg font-display text-white mb-2 group-hover:text-primary transition-colors">{game.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
                       {game.description}
-                    </EgyptianCardDescription>
-                    <EgyptianButton variant="default" className="w-full" onClick={() => handleGameSelect(game.id)}>
-                      Play Now
-                    </EgyptianButton>
-                  </EgyptianCardContent>
-                </div>
-              </EgyptianCard>
-            </motion.div>
-          ))}
+                    </p>
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="text-[10px] font-bold text-muted-foreground">DIFF: <span className="text-primary">{game.difficulty}</span></div>
+                      <EgyptianButton variant="default" size="sm" className="h-8 text-[10px] px-4">
+                        PLAY NOW
+                      </EgyptianButton>
+                    </div>
+                  </div>
+                </EgyptianCard>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </div>

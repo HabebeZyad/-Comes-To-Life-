@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Trophy, Timer, Star } from 'lucide-react';
+import { ArrowLeft, Trophy, Timer, Star, Brain, History, Sparkles } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
+import { GameOverlay } from './GameOverlay';
 
 interface MemoryGameProps {
   onBack: () => void;
@@ -17,47 +18,36 @@ interface Card {
   isMatched: boolean;
 }
 
-const symbols = ['𓂀', '𓆣', '𓃭', '𓋹', '𓉔', '𓇳', '𓈖', '𓅓', '𓆓', '𓊪', '𓉽', '𓀭'];
+const symbols = ['𓂀', '𓆣', '𓃭', '𓋹', '𓉔', '𓇳', '𓈖', '𓅓', '𓆓', '𓊪', '𓉽', '𓀭', '𓁹', '𓃻', '𓅊', '𓇚', '𓈗', '𓊿'];
+
+const TRIALS = [
+  { id: 1, name: 'Initiation', pairs: 4, grid: 'grid-cols-4', time: 30, description: 'Begin your journey into the sacred archives.' },
+  { id: 2, name: 'Scribe\'s Test', pairs: 6, grid: 'grid-cols-4', time: 45, description: 'Focus your mind. The symbols grow in number.' },
+  { id: 3, name: 'Priest\'s Wisdom', pairs: 8, grid: 'grid-cols-4', time: 60, description: 'Only those with clear vision may proceed.' },
+  { id: 4, name: 'Vizier\'s Vision', pairs: 12, grid: 'grid-cols-6', time: 90, description: 'The complexity of the divine script increases.' },
+  { id: 5, name: 'Pharaoh\'s Memory', pairs: 15, grid: 'grid-cols-6', time: 120, description: 'Prove you possess the memory of the eternal kings.' }
+];
 
 export function MemoryGame({ onBack }: MemoryGameProps) {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [level, setLevel] = useState(0);
   const [moves, setMoves] = useState(0);
   const [matches, setMatches] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(120);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gameWon, setGameWon] = useState(false);
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelup' | 'victory' | 'defeat'>('intro');
+  const [totalScore, setTotalScore] = useState(0);
+
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
-  useEffect(() => {
-    if (isPlaying && timeLeft > 0 && !gameWon) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      if (timeLeft <= 10) playSound('tick');
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && isPlaying) {
-      setIsPlaying(false);
-      stopAmbientMusic();
-      playSound('defeat');
-    }
-  }, [timeLeft, isPlaying, gameWon, playSound, stopAmbientMusic]);
+  const currentTrial = TRIALS[level - 1] || TRIALS[0];
 
-  useEffect(() => {
-    if (matches > 0 && matches === cards.length / 2) {
-      setGameWon(true);
-      setIsPlaying(false);
-      stopAmbientMusic();
-      playSound('victory');
-      const finalScore = (cards.length / 2) * 100 - moves * 5 + timeLeft * 2;
-      addScore({ playerName: 'Explorer', score: Math.max(0, finalScore), game: 'memory', difficulty, details: `${moves} moves, ${timeLeft}s left` });
-    }
-  }, [matches, cards.length, moves, timeLeft, addScore, difficulty, playSound, stopAmbientMusic]);
+  const initializeTrial = useCallback((trialIndex: number) => {
+    const trial = TRIALS[trialIndex];
+    setLevel(trialIndex + 1);
 
-  const initializeGame = (level: 'easy' | 'medium' | 'hard') => {
-    setDifficulty(level);
-    const pairCount = level === 'easy' ? 6 : level === 'medium' ? 8 : 12;
-    const selectedSymbols = symbols.slice(0, pairCount);
+    const selectedSymbols = symbols.slice(0, trial.pairs);
     const cardPairs = [...selectedSymbols, ...selectedSymbols];
 
     const shuffled = cardPairs
@@ -71,17 +61,72 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
 
     setCards(shuffled);
     setFlippedCards([]);
-    setMoves(0);
     setMatches(0);
-    setTimeLeft(level === 'easy' ? 90 : level === 'medium' ? 120 : 180);
-    setIsPlaying(true);
-    setGameWon(false);
-    playSound('gameStart');
-    startAmbientMusic();
-  };
+    setMoves(0);
+    setTimeLeft(trial.time);
+    setGameState('playing');
+
+    if (trialIndex === 0) {
+      setTotalScore(0);
+      startAmbientMusic();
+      playSound('gameStart');
+    } else {
+      playSound('levelUp');
+    }
+  }, [startAmbientMusic, playSound]);
+
+  // Timer
+  useEffect(() => {
+    if (gameState !== 'playing' || timeLeft <= 0) {
+      if (timeLeft === 0 && gameState === 'playing') {
+        setGameState('defeat');
+        stopAmbientMusic();
+        playSound('defeat');
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        if (prev <= 6) playSound('tick');
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState, timeLeft, playSound, stopAmbientMusic]);
+
+  // Win condition check
+  useEffect(() => {
+    if (gameState === 'playing' && matches > 0 && matches === currentTrial.pairs) {
+      const levelScore = (matches * 100) + (timeLeft * 10) - (moves * 5);
+      const finalLevelScore = Math.max(100, levelScore);
+      setTotalScore(prev => prev + finalLevelScore);
+
+      if (level === TRIALS.length) {
+        setGameState('victory');
+        stopAmbientMusic();
+        playSound('victory');
+        addScore({
+          playerName: 'Explorer',
+          score: totalScore + finalLevelScore,
+          game: 'memory',
+          difficulty: 'hard',
+          details: `Completed all 5 trials!`
+        });
+      } else {
+        setGameState('levelup');
+        playSound('victory');
+      }
+    }
+  }, [matches, currentTrial.pairs, level, timeLeft, moves, gameState, totalScore, addScore, playSound, stopAmbientMusic]);
 
   const handleCardClick = (cardId: number) => {
-    if (!isPlaying || flippedCards.length === 2) return;
+    if (gameState !== 'playing' || flippedCards.length === 2) return;
 
     const card = cards.find(c => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
@@ -97,7 +142,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     setFlippedCards(newFlippedCards);
 
     if (newFlippedCards.length === 2) {
-      setMoves(moves + 1);
+      setMoves(prev => prev + 1);
       const [firstId, secondId] = newFlippedCards;
       const firstCard = newCards.find(c => c.id === firstId);
       const secondCard = newCards.find(c => c.id === secondId);
@@ -105,18 +150,18 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
       if (firstCard && secondCard && firstCard.symbol === secondCard.symbol) {
         setTimeout(() => {
           playSound('match');
-          setCards(cards.map(c =>
+          setCards(prev => prev.map(c =>
             c.id === firstId || c.id === secondId
               ? { ...c, isMatched: true }
               : c
           ));
-          setMatches(matches + 1);
+          setMatches(prev => prev + 1);
           setFlippedCards([]);
         }, 500);
       } else {
         setTimeout(() => {
           playSound('mismatch');
-          setCards(cards.map(c =>
+          setCards(prev => prev.map(c =>
             c.id === firstId || c.id === secondId
               ? { ...c, isFlipped: false }
               : c
@@ -127,91 +172,67 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     }
   };
 
-  const gridCols = difficulty === 'easy' ? 'grid-cols-4' : difficulty === 'medium' ? 'grid-cols-4' : 'grid-cols-6';
-
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <EgyptianButton
-            variant="nav"
-            onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="mb-4 -ml-4"
-          >
-            <ArrowLeft size={20} /> Back to Games
-          </EgyptianButton>
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full hieroglyph-pattern" />
+      </div>
 
-          <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Sacred Symbols Memory</h1>
-          <p className="text-xl text-muted-foreground font-body">Match the divine symbols of ancient Egypt</p>
+      <div className="max-w-5xl mx-auto relative z-10">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <EgyptianButton variant="nav" onClick={() => { stopAmbientMusic(); onBack(); }} className="-ml-4 mb-2">
+              <ArrowLeft className="mr-2" size={18} /> Back to Games
+            </EgyptianButton>
+            <h1 className="text-4xl font-display text-gold-gradient">Trials of Wisdom</h1>
+          </div>
+
+          <div className="hidden md:flex gap-4">
+            <div className="bg-black/40 backdrop-blur-md border border-gold/20 px-4 py-2 rounded-lg text-center">
+              <div className="text-xs uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <Brain size={12} className="text-primary" /> Trial
+              </div>
+              <div className="text-xl font-bold text-primary">{level || 1}/5</div>
+            </div>
+            <div className="bg-black/40 backdrop-blur-md border border-gold/20 px-4 py-2 rounded-lg text-center min-w-[100px]">
+              <div className="text-xs uppercase text-muted-foreground flex items-center justify-center gap-1">
+                <Trophy size={12} className="text-turquoise" /> Score
+              </div>
+              <div className="text-xl font-bold text-turquoise">{totalScore}</div>
+            </div>
+          </div>
         </div>
 
-        <EgyptianCard variant="tomb" padding="lg">
-          {!isPlaying && !gameWon ? (
-            <div className="text-center py-12">
-              <div className="text-8xl mb-6">𓋹</div>
-              <h2 className="text-4xl font-display text-gold-gradient mb-6">Choose Your Challenge</h2>
-              <p className="text-xl text-muted-foreground font-body mb-8">
-                Test your memory by matching pairs of sacred Egyptian symbols
-              </p>
-              <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="turquoise"
-                    size="xl"
-                    onClick={() => initializeGame('easy')}
-                    className="w-full h-auto flex-col py-8"
-                  >
-                    <div className="text-4xl mb-2">😊</div>
-                    <span className="text-xl">Easy</span>
-                    <span className="text-sm opacity-80">6 pairs • 90 seconds</span>
-                  </EgyptianButton>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="default"
-                    size="xl"
-                    onClick={() => initializeGame('medium')}
-                    className="w-full h-auto flex-col py-8"
-                  >
-                    <div className="text-4xl mb-2">🤔</div>
-                    <span className="text-xl">Medium</span>
-                    <span className="text-sm opacity-80">8 pairs • 120 seconds</span>
-                  </EgyptianButton>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <EgyptianButton
-                    variant="danger"
-                    size="xl"
-                    onClick={() => initializeGame('hard')}
-                    className="w-full h-auto flex-col py-8"
-                  >
-                    <div className="text-4xl mb-2">😤</div>
-                    <span className="text-xl">Hard</span>
-                    <span className="text-sm opacity-80">12 pairs • 180 seconds</span>
-                  </EgyptianButton>
-                </motion.div>
+        <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden border-2 border-gold/30 min-h-[500px] flex flex-col">
+          {/* Game Stats Bar */}
+          <div className="bg-black/60 border-b border-gold/20 p-4 flex justify-between items-center">
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2">
+                <Timer className={timeLeft < 10 ? "text-terracotta animate-pulse" : "text-primary"} />
+                <span className={`text-2xl font-mono ${timeLeft < 10 ? "text-terracotta" : "text-foreground"}`}>
+                  {timeLeft}s
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2">
+                <History className="text-scarab" />
+                <span className="text-muted-foreground">Moves:</span>
+                <span className="text-xl font-bold text-scarab">{moves}</span>
               </div>
             </div>
-          ) : (
-            <>
-              {/* Stats Bar */}
-              <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
-                <div className="flex items-center gap-2 bg-lapis/50 px-4 py-2 rounded-lg border border-lapis-light/30">
-                  <Trophy className="text-primary" size={24} />
-                  <span className="text-xl text-foreground font-body">Matches: {matches}/{cards.length / 2}</span>
-                </div>
-                <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
-                  <Star className="text-turquoise" size={24} />
-                  <span className="text-xl text-foreground font-body">Moves: {moves}</span>
-                </div>
-                <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
-                  <Timer className={`${timeLeft < 30 ? 'text-terracotta animate-pulse' : 'text-scarab'}`} size={24} />
-                  <span className="text-xl text-foreground font-body">{timeLeft}s</span>
-                </div>
-              </div>
 
-              {/* Cards Grid */}
-              <div className={`grid ${gridCols} gap-3 md:gap-4 mb-6`}>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground uppercase">Trial Name</div>
+                <div className="text-lg font-display text-gold-light">{currentTrial.name}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Game Grid Area */}
+          <div className="flex-1 p-6 flex items-center justify-center">
+            {gameState === 'playing' && (
+              <div className={`grid ${currentTrial.grid} gap-3 md:gap-4 w-full max-w-4xl mx-auto`}>
                 <AnimatePresence>
                   {cards.map((card) => (
                     <motion.div
@@ -228,7 +249,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                       <div
                         className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${card.isMatched
                           ? 'bg-scarab/50 opacity-50'
-                          : 'bg-gradient-to-br from-lapis to-lapis-deep'
+                          : 'bg-gradient-to-br from-lapis/80 to-lapis-deep'
                           } border-2 border-gold/30`}
                         style={{
                           backfaceVisibility: 'hidden',
@@ -236,12 +257,12 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                         }}
                       >
                         {!card.isFlipped && !card.isMatched && (
-                          <div className="text-4xl text-foreground/30">𓁹</div>
+                          <div className="text-4xl text-foreground/20 font-display">𓁹</div>
                         )}
                       </div>
                       <div
                         className={`absolute inset-0 rounded-xl shadow-lg flex items-center justify-center ${card.isMatched
-                          ? 'bg-scarab'
+                          ? 'bg-scarab border-primary'
                           : 'bg-gradient-to-br from-gold-dark to-primary'
                           } border-2 border-gold-light/50`}
                         style={{
@@ -249,75 +270,97 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
                           transform: card.isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)'
                         }}
                       >
-                        <div className="text-5xl md:text-6xl">
+                        <div className="text-4xl md:text-5xl lg:text-6xl select-none">
                           {card.symbol}
                         </div>
                         {card.isMatched && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-4xl">✓</div>
-                          </div>
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-xl"
+                          >
+                            <Sparkles className="text-white opacity-40" size={40} />
+                          </motion.div>
                         )}
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
+            )}
 
-              {/* Game Over - Time's Up */}
-              {!isPlaying && timeLeft === 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-6"
-                >
-                  <p className="text-3xl text-terracotta font-display mb-6">⏰ Time's Up!</p>
-                  <p className="text-xl text-muted-foreground font-body mb-4">You matched {matches} out of {cards.length / 2} pairs</p>
-                  <div className="flex gap-4 justify-center">
-                    <EgyptianButton variant="default" size="lg" onClick={() => initializeGame(difficulty)}>
-                      Try Again
-                    </EgyptianButton>
-                    <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
-                      Back to Games
-                    </EgyptianButton>
-                  </div>
-                </motion.div>
+            {/* Overlays */}
+            <AnimatePresence>
+              {gameState === 'intro' && (
+                <GameOverlay
+                  type="intro"
+                  title="Trials of Wisdom"
+                  description="Ancient Egypt's secrets are hidden behind these sacred symbols. Match the pairs to prove your mental acuity and advance through the five divine trials."
+                  actionLabel="Begin Trial"
+                  onAction={() => initializeTrial(0)}
+                  onSecondaryAction={onBack}
+                />
               )}
-            </>
-          )}
 
-          {/* Victory */}
-          {gameWon && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12 absolute inset-0 bg-scarab/95 rounded-lg flex flex-col items-center justify-center"
-            >
-              <div className="text-9xl mb-6">🎉</div>
-              <h2 className="text-5xl font-display text-gold-gradient mb-4">Perfect Memory!</h2>
-              <div className="space-y-2 mb-8">
-                <p className="text-2xl text-foreground font-body">All pairs matched!</p>
-                <p className="text-xl text-muted-foreground font-body">Moves: {moves}</p>
-                <p className="text-xl text-muted-foreground font-body">Time remaining: {timeLeft}s</p>
-                <div className="flex items-center justify-center gap-1 mt-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={i < (moves < 20 ? 5 : moves < 30 ? 4 : 3) ? 'text-primary fill-primary' : 'text-muted'}
-                      size={32}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={() => setGameWon(false)}>
-                  New Game
-                </EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
-                  Back to Games
-                </EgyptianButton>
-              </div>
-            </motion.div>
-          )}
+              {gameState === 'levelup' && (
+                <GameOverlay
+                  type="levelup"
+                  title="Trial Passed!"
+                  description={`Your memory is sharp as the eye of Horus. You have completed the ${currentTrial.name}.`}
+                  stats={[
+                    { label: 'Moves', value: moves },
+                    { label: 'Time Bonus', value: `+${timeLeft * 10}` },
+                    { label: 'Trial Score', value: totalScore }
+                  ]}
+                  actionLabel={`Start Trial ${level + 1}`}
+                  onAction={() => initializeTrial(level)}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'victory' && (
+                <GameOverlay
+                  type="victory"
+                  title="Archivist of Ages"
+                  description="The gods are impressed. You have mastered every sacred archive and preserved the wisdom of the Nile."
+                  score={totalScore}
+                  stars={5}
+                  stats={[
+                    { label: 'Total Trials', value: '5/5' },
+                    { label: 'Rank', value: 'High Priest' }
+                  ]}
+                  actionLabel="Master Again"
+                  onAction={() => {
+                    setLevel(0);
+                    setGameState('intro');
+                  }}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'defeat' && (
+                <GameOverlay
+                  type="defeat"
+                  title="Wisdom Lost"
+                  description="The sands of time have covered the symbols. Your focus must be absolute to pass this trial."
+                  score={totalScore}
+                  stats={[
+                    { label: 'Trial', value: currentTrial.name },
+                    { label: 'Matches', value: `${matches}/${currentTrial.pairs}` }
+                  ]}
+                  actionLabel="Retry Trial"
+                  onAction={() => {
+                    initializeTrial(level - 1);
+                  }}
+                  onSecondaryAction={onBack}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="bg-obsidian/40 p-4 border-t border-gold/20 text-center text-xs text-muted-foreground uppercase tracking-widest">
+            Match {currentTrial.pairs} pairs of sacred symbols to advance
+          </div>
         </EgyptianCard>
       </div>
     </div>
