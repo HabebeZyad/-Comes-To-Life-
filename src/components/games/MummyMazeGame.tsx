@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Trophy, Star, RotateCcw, Sun, Moon, Zap, ChevronsLeft, ChevronsRight, ChevronsUp, ChevronsDown, Users } from 'lucide-react';
+import { ArrowLeft, Trophy, Star, Sun, Moon, Zap, ChevronsLeft, ChevronsRight, ChevronsUp, ChevronsDown, Users, Compass, Timer } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useMobile } from '@/hooks/use-mobile';
+import { GameOverlay } from './GameOverlay';
 
 interface MummyMazeGameProps {
   onBack: () => void;
@@ -14,6 +15,8 @@ interface MummyMazeGameProps {
 type TileType = 'empty' | 'wall' | 'lava' | 'water' | 'ra-exit' | 'thoth-exit' | 'pressure-plate' | 'timed-gate';
 
 interface Level {
+  name: string;
+  description: string;
   grid: number[][];
   raStart: { x: number; y: number };
   thothStart: { x: number; y: number };
@@ -37,52 +40,112 @@ const TILE_MAP: Record<number, TileType> = {
 
 const levels: Level[] = [
   {
+    name: "The Divided Path",
+    description: "Ra survives lava, Thoth survives water. Reach your respective exits.",
     grid: [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 4, 0, 0, 1, 0, 0, 1, 0, 0, 5, 1],
-      [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1],
+      [1, 4, 0, 0, 1, 1, 1, 1, 0, 0, 5, 1],
+      [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 0, 2, 2, 1, 0, 0, 1, 3, 3, 0, 1],
-      [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+      [1, 0, 2, 2, 1, 0, 0, 1, 3, 3, 0, 1],
       [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 0, 6, 0, 0, 7, 0, 0, 0, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ],
     raStart: { x: 2, y: 3 },
     thothStart: { x: 9, y: 3 },
+    timeLimit: 45,
+  },
+  {
+    name: "Synchronized Spirits",
+    description: "One spirit must stand on the pressure plate to open the gate for the other.",
+    grid: [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 4, 0, 0, 0, 1, 1, 0, 0, 0, 5, 1],
+      [1, 1, 1, 7, 1, 1, 1, 1, 7, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+      [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+      [1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+      [1, 0, 0, 0, 0, 6, 6, 0, 0, 0, 0, 1],
+      [1, 0, 2, 2, 0, 0, 0, 0, 3, 3, 0, 1],
+      [1, 0, 2, 2, 0, 0, 0, 0, 3, 3, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    raStart: { x: 1, y: 6 },
+    thothStart: { x: 10, y: 6 },
     timeLimit: 60,
   },
   {
+    name: "Elemental Labyrinth",
+    description: "Navigate through shifting elements and hazardous terrain.",
     grid: [
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 4, 8, 0, 0, 1, 1, 0, 0, 9, 5, 1],
-      [1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0, 6, 7, 0, 0, 0, 0, 1],
-      [1, 0, 2, 2, 0, 0, 0, 0, 3, 3, 0, 1],
-      [1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1],
+      [1, 4, 0, 2, 0, 0, 0, 0, 3, 0, 5, 1],
+      [1, 1, 0, 2, 0, 1, 1, 0, 3, 0, 1, 1],
+      [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+      [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+      [1, 0, 0, 0, 6, 0, 0, 6, 0, 0, 0, 1],
+      [1, 1, 1, 1, 0, 7, 7, 0, 1, 1, 1, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 3, 3, 0, 0, 0, 0, 2, 2, 0, 1],
+      [1, 2, 2, 3, 3, 0, 0, 2, 2, 3, 3, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    raStart: { x: 5, y: 7 },
+    thothStart: { x: 6, y: 7 },
+    timeLimit: 75,
+  },
+  {
+    name: "The Sun & Moon Trial",
+    description: "The path is narrow and the gates are many. Perfect coordination is required.",
+    grid: [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+      [1, 4, 7, 1, 0, 6, 6, 0, 1, 7, 5, 1],
+      [1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 2, 2, 2, 1, 7, 7, 1, 3, 3, 3, 1],
+      [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+      [1, 0, 6, 0, 1, 0, 0, 1, 0, 6, 0, 1],
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ],
-    raStart: { x: 5, y: 3 },
-    thothStart: { x: 6, y: 3 },
+    raStart: { x: 1, y: 8 },
+    thothStart: { x: 10, y: 8 },
     timeLimit: 90,
+  },
+  {
+    name: "The Pharaoh's Escape",
+    description: "The ultimate test of spirits. Escape the final chamber before it seals forever.",
+    grid: [
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 4, 7, 0, 2, 0, 0, 3, 0, 7, 5, 1],
+      [1, 1, 1, 0, 2, 6, 6, 3, 0, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+      [1, 0, 1, 1, 7, 1, 1, 7, 1, 1, 0, 1],
+      [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
+      [1, 0, 0, 6, 0, 0, 0, 0, 6, 0, 0, 1],
+      [1, 2, 2, 2, 2, 0, 0, 3, 3, 3, 3, 1],
+      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ],
+    raStart: { x: 5, y: 8 },
+    thothStart: { x: 6, y: 8 },
+    timeLimit: 100,
   }
 ];
 
 export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
+  const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelUp' | 'victory' | 'defeat'>('intro');
   const [currentLevel, setCurrentLevel] = useState(0);
   const [raPos, setRaPos] = useState({ x: 0, y: 0 });
   const [thothPos, setThothPos] = useState({ x: 0, y: 0 });
   const [activeChar, setActiveChar] = useState<'ra' | 'thoth'>('ra');
   const [gateOpen, setGateOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [levelWon, setLevelWon] = useState(false);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [totalTimeSpent, setTotalTimeSpent] = useState(0);
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
   const isMobile = useMobile();
@@ -94,29 +157,30 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     setRaPos(current.raStart);
     setThothPos(current.thothStart);
     setGateOpen(false);
-    setLevelWon(false);
-    setGameOver(false);
-    setIsPlaying(true);
+    setGameState('playing');
     setTimeLeft(current.timeLimit);
     playSound('gameStart');
     startAmbientMusic();
   }, [playSound, startAmbientMusic]);
 
   useEffect(() => {
-    if (isPlaying && !levelWon && !gameOver) {
+    if (gameState === 'playing') {
       if (timeLeft > 0) {
-        const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+        const timer = setInterval(() => {
+          setTimeLeft(t => t - 1);
+          setTotalTimeSpent(t => t + 1);
+        }, 1000);
         return () => clearInterval(timer);
       } else {
-        setGameOver(true);
+        setGameState('defeat');
         playSound('defeat');
         stopAmbientMusic();
       }
     }
-  }, [isPlaying, levelWon, gameOver, timeLeft, playSound, stopAmbientMusic]);
+  }, [gameState, timeLeft, playSound, stopAmbientMusic]);
 
   const moveChar = useCallback((dx: number, dy: number) => {
-    if (!isPlaying || gameOver || levelWon) return;
+    if (gameState !== 'playing') return;
 
     const currentPos = activeChar === 'ra' ? raPos : thothPos;
     const newX = currentPos.x + dx;
@@ -130,14 +194,14 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
 
     if (activeChar === 'ra') {
       if (tile === 'water') {
-        setGameOver(true);
+        setGameState('defeat');
         playSound('defeat');
         return;
       }
       setRaPos({ x: newX, y: newY });
     } else {
       if (tile === 'lava') {
-        setGameOver(true);
+        setGameState('defeat');
         playSound('defeat');
         return;
       }
@@ -145,9 +209,11 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     }
 
     playSound('move');
-  }, [activeChar, raPos, thothPos, isPlaying, gameOver, levelWon, level, gateOpen, playSound]);
+  }, [activeChar, raPos, thothPos, gameState, level, gateOpen, playSound]);
 
   useEffect(() => {
+    if (gameState !== 'playing') return;
+
     const raOnPlate = TILE_MAP[level.grid[raPos.y][raPos.x]] === 'pressure-plate';
     const thothOnPlate = TILE_MAP[level.grid[thothPos.y][thothPos.x]] === 'pressure-plate';
     setGateOpen(raOnPlate || thothOnPlate);
@@ -156,93 +222,107 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     const thothOnExit = TILE_MAP[level.grid[thothPos.y][thothPos.x]] === 'thoth-exit';
 
     if (raOnExit && thothOnExit) {
-      setLevelWon(true);
-      playSound('victory');
-      const levelScore = Math.max(100, timeLeft * 10);
+      const levelScore = Math.max(100, timeLeft * 20);
       setScore(s => s + levelScore);
+      playSound('victory');
+
+      if (currentLevel < levels.length - 1) {
+        setGameState('levelUp');
+      } else {
+        setGameState('victory');
+        addScore({
+          playerName: 'Scribe',
+          score: score + levelScore,
+          game: 'maze',
+          details: `Master Navigator - ${totalTimeSpent}s total`
+        });
+      }
     }
-  }, [raPos, thothPos, level, timeLeft, playSound]);
+  }, [raPos, thothPos, level, timeLeft, gameState, currentLevel, addScore, score, totalTimeSpent, playSound]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameState !== 'playing') return;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
+
       if (e.key === 'ArrowUp' || e.key === 'w') moveChar(0, -1);
       if (e.key === 'ArrowDown' || e.key === 's') moveChar(0, 1);
       if (e.key === 'ArrowLeft' || e.key === 'a') moveChar(-1, 0);
       if (e.key === 'ArrowRight' || e.key === 'd') moveChar(1, 0);
       if (e.key === ' ' || e.key === 'Tab') {
-        e.preventDefault();
         setActiveChar(prev => prev === 'ra' ? 'thoth' : 'ra');
         playSound('click');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [moveChar, playSound]);
+  }, [moveChar, playSound, gameState]);
 
-  const nextLevel = () => {
-    if (currentLevel < levels.length - 1) {
-      const nextIdx = currentLevel + 1;
-      setCurrentLevel(nextIdx);
-      initLevel(nextIdx);
-    } else {
-      setIsPlaying(false);
-      addScore({ playerName: 'Scribe', score, game: 'maze', details: `Completed all ${levels.length} levels!` });
-    }
+  const handleNextLevel = () => {
+    const nextIdx = currentLevel + 1;
+    setCurrentLevel(nextIdx);
+    initLevel(nextIdx);
+  };
+
+  const resetGame = () => {
+    setScore(0);
+    setCurrentLevel(0);
+    setTotalTimeSpent(0);
+    initLevel(0);
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
           <EgyptianButton
             variant="nav"
             onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="mb-4 -ml-4"
+            className="-ml-4"
           >
-            <ArrowLeft size={20} /> Back to Games
+            <ArrowLeft size={20} className="mr-2" /> Back to Games
           </EgyptianButton>
-          <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Mummy Maze: Solar & Lunar</h1>
-          <p className="text-xl text-muted-foreground font-body">Cooperate to escape! Ra (Sun) survives Lava, Thoth (Moon) survives Water.</p>
+          <div className="flex gap-4">
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Compass className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">TRIAL {currentLevel + 1}/5</span>
+            </div>
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Trophy className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">SCORE: {score}</span>
+            </div>
+          </div>
         </div>
 
-        <EgyptianCard variant="tomb" padding="lg" className="relative flex flex-col items-center">
-          <div className="flex justify-between w-full mb-6">
+        <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden shadow-2xl border-2 border-gold/20">
+          {/* Header HUD */}
+          <div className="p-4 border-b border-gold/10 bg-gold/5 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className={`p-2 rounded-lg border-2 transition-all ${activeChar === 'ra' ? 'bg-primary/20 border-primary scale-110' : 'bg-muted border-transparent opacity-50'}`}>
-                <Sun className="text-primary" />
+              <div className={`p-2 rounded-lg border-2 transition-all duration-500 ${activeChar === 'ra' ? 'bg-primary/20 border-primary shadow-gold-glow scale-110' : 'bg-muted border-transparent opacity-40'}`}>
+                <Sun className="text-primary" size={24} />
               </div>
-              <div className={`p-2 rounded-lg border-2 transition-all ${activeChar === 'thoth' ? 'bg-turquoise/20 border-turquoise scale-110' : 'bg-muted border-transparent opacity-50'}`}>
-                <Moon className="text-turquoise" />
+              <div className={`p-2 rounded-lg border-2 transition-all duration-500 ${activeChar === 'thoth' ? 'bg-turquoise/20 border-turquoise shadow-turquoise-glow scale-110' : 'bg-muted border-transparent opacity-40'}`}>
+                <Moon className="text-turquoise" size={24} />
+              </div>
+              <div className="ml-2">
+                <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
+                <p className="text-xs text-muted-foreground font-body mt-1">Switch: SPACE | Move: ARROWS</p>
               </div>
             </div>
+
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Trophy className="text-primary" size={20} />
-                <span className="font-display text-xl">{score}</span>
+              <div className={`flex items-center gap-2 px-4 py-1 rounded-full border ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse' : 'bg-obsidian/40 border-gold/20'}`}>
+                <Timer size={18} className={timeLeft < 10 ? 'text-terracotta' : 'text-primary'} />
+                <span className={`font-display text-xl ${timeLeft < 10 ? 'text-terracotta' : 'text-gold'}`}>{timeLeft}s</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="text-gold" size={20} />
-                <span className="font-display text-xl">Level {currentLevel + 1}</span>
-              </div>
-              <div className="font-display text-xl">⏳ {timeLeft}s</div>
             </div>
           </div>
 
-          {!isPlaying && !levelWon && !gameOver ? (
-            <div className="text-center py-12">
-              <div className="text-8xl mb-6">🧟</div>
-              <h2 className="text-4xl font-display text-gold-gradient mb-6">Escape the Labyrinth!</h2>
-              <p className="text-xl text-muted-foreground font-body mb-8">
-                Switch between Ra and Thoth to navigate hazards. <br />
-                Use <b>Arrow Keys</b> to move and <b>SPACE</b> to switch spirits.
-              </p>
-              <EgyptianButton variant="hero" size="xl" onClick={() => initLevel(0)}>
-                Begin Journey
-              </EgyptianButton>
-            </div>
-          ) : (
+          <div className="relative flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
             <div
-              className="relative bg-obsidian border-4 border-gold/30 rounded-xl overflow-hidden"
+              className="relative bg-obsidian border-4 border-gold/40 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
               style={{ width: GRID_WIDTH * TILE_SIZE, height: GRID_HEIGHT * TILE_SIZE }}
             >
               {/* Grid Rendering */}
@@ -251,13 +331,13 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                 return (
                   <div
                     key={`${x}-${y}`}
-                    className={`absolute transition-colors duration-300 ${type === 'wall' ? 'bg-sandstone border border-obsidian/20' :
+                    className={`absolute transition-all duration-500 ${type === 'wall' ? 'bg-sandstone border border-obsidian/30 shadow-inner' :
                       type === 'lava' ? 'bg-terracotta animate-pulse' :
                         type === 'water' ? 'bg-lapis animate-pulse' :
-                          type === 'pressure-plate' ? 'bg-primary/40 flex items-center justify-center' :
-                            type === 'timed-gate' ? (gateOpen ? 'bg-primary/10 border-2 border-primary/20' : 'bg-primary border-2 border-primary-light shadow-[0_0_10px_rgba(255,191,0,0.5)]') :
-                              type === 'ra-exit' ? 'border-2 border-dashed border-primary flex items-center justify-center' :
-                                type === 'thoth-exit' ? 'border-2 border-dashed border-turquoise flex items-center justify-center' :
+                          type === 'pressure-plate' ? 'bg-primary/20 flex items-center justify-center' :
+                            type === 'timed-gate' ? (gateOpen ? 'bg-primary/5 border border-primary/10' : 'bg-primary border-2 border-primary-light shadow-gold-glow z-10') :
+                              type === 'ra-exit' ? 'border-2 border-dashed border-primary/50 flex items-center justify-center bg-primary/5' :
+                                type === 'thoth-exit' ? 'border-2 border-dashed border-turquoise/50 flex items-center justify-center bg-turquoise/5' :
                                   ''
                       }`}
                     style={{
@@ -267,11 +347,11 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                       height: TILE_SIZE
                     }}
                   >
-                    {type === 'pressure-plate' && <div className={`w-4 h-4 rounded-full bg-primary ${gateOpen ? 'scale-75 opacity-50' : 'scale-110 shadow-lg'}`} />}
-                    {type === 'ra-exit' && <Sun className="w-6 h-6 text-primary opacity-30" />}
-                    {type === 'thoth-exit' && <Moon className="w-6 h-6 text-turquoise opacity-30" />}
-                    {type === 'lava' && <span className="text-xs">🔥</span>}
-                    {type === 'water' && <span className="text-xs">💧</span>}
+                    {type === 'pressure-plate' && <div className={`w-5 h-5 rounded-full border-2 border-primary transition-all duration-300 ${gateOpen ? 'scale-75 bg-primary opacity-50' : 'scale-100 bg-transparent shadow-gold-glow'}`} />}
+                    {type === 'ra-exit' && <Sun className="w-6 h-6 text-primary opacity-40 animate-spin-slow" />}
+                    {type === 'thoth-exit' && <Moon className="w-6 h-6 text-turquoise opacity-40 animate-pulse" />}
+                    {type === 'lava' && <div className="w-full h-full bg-[radial-gradient(circle,_#ef4444_0%,_transparent_70%)] opacity-50" />}
+                    {type === 'water' && <div className="w-full h-full bg-[radial-gradient(circle,_#0ea5e9_0%,_transparent_70%)] opacity-50" />}
                   </div>
                 );
               }))}
@@ -279,89 +359,128 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
               {/* Characters */}
               <motion.div
                 animate={{ x: raPos.x * TILE_SIZE, y: raPos.y * TILE_SIZE }}
-                className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'ra' ? 'ring-2 ring-white shadow-lg' : 'opacity-80'}`}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'ra' ? 'z-30' : 'opacity-70 grayscale-[0.5]'}`}
                 style={{ width: TILE_SIZE, height: TILE_SIZE }}
               >
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white border-2 border-gold shadow-gold-glow">
-                  <Sun size={20} />
+                <div className={`w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white border-2 border-gold-light shadow-gold-glow ${activeChar === 'ra' ? 'scale-110' : 'scale-90'}`}>
+                  <Sun size={22} className={activeChar === 'ra' ? 'animate-spin-slow' : ''} />
                 </div>
               </motion.div>
 
               <motion.div
                 animate={{ x: thothPos.x * TILE_SIZE, y: thothPos.y * TILE_SIZE }}
-                className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'thoth' ? 'ring-2 ring-white shadow-lg' : 'opacity-80'}`}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'thoth' ? 'z-30' : 'opacity-70 grayscale-[0.5]'}`}
                 style={{ width: TILE_SIZE, height: TILE_SIZE }}
               >
-                <div className="w-8 h-8 bg-turquoise rounded-lg flex items-center justify-center text-obsidian border-2 border-turquoise-light shadow-turquoise-glow">
-                  <Moon size={20} />
+                <div className={`w-9 h-9 bg-turquoise rounded-xl flex items-center justify-center text-obsidian border-2 border-turquoise-light shadow-turquoise-glow ${activeChar === 'thoth' ? 'scale-110' : 'scale-90'}`}>
+                  <Moon size={22} className={activeChar === 'thoth' ? 'animate-pulse' : ''} />
                 </div>
               </motion.div>
             </div>
-          )}
 
-          <AnimatePresence>
-            {levelWon && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-obsidian/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-8 rounded-lg text-center">
-                <Zap className="w-16 h-16 text-primary mb-4 animate-bounce" />
-                <h2 className="text-4xl font-display text-gold-gradient mb-2">Labyrinth Cleared!</h2>
-                <p className="text-xl text-foreground mb-6 font-body">You navigated the ancient traps with {timeLeft}s remaining</p>
-                <div className="flex gap-4">
-                  <EgyptianButton variant="hero" size="lg" onClick={nextLevel}>
-                    {currentLevel < levels.length - 1 ? 'Next Chamber' : 'See Results'}
-                  </EgyptianButton>
-                </div>
-              </motion.div>
-            )}
-
-            {gameOver && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-terracotta/20 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-8 rounded-lg text-center">
-                <div className="text-8xl mb-4">💀</div>
-                <h2 className="text-4xl font-display text-terracotta mb-2">A Spirit has Fallen!</h2>
-                <p className="text-xl text-foreground mb-6 font-body">The ancient elements were too strong.</p>
-                <EgyptianButton variant="default" size="lg" onClick={() => initLevel(currentLevel)}>
-                  <RotateCcw className="mr-2" /> Try Again
-                </EgyptianButton>
-              </motion.div>
-            )}
-
-            {!isPlaying && score > 0 && !levelWon && !gameOver && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-obsidian/95 z-40 flex flex-col items-center justify-center p-8 rounded-lg text-center">
-                <Trophy className="w-20 h-20 text-primary mb-4" />
-                <h2 className="text-5xl font-display text-gold-gradient mb-2">Master Navigator!</h2>
-                <p className="text-2xl text-foreground mb-8 font-body">Total Score: {score}</p>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>
-                  Back to Temple
-                </EgyptianButton>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {isPlaying && (
-            <div className="mt-6 flex flex-col items-center gap-4">
-              <div className="flex gap-8 text-muted-foreground font-body text-sm">
-                <p><b>Arrows:</b> Move Spirit</p>
-                <p><b>SPACE:</b> Switch Spirit</p>
-                <p><b>Goal:</b> Both spirits to their exits</p>
-              </div>
-
-              {isMobile && (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div />
-                    <EgyptianButton size="lg" onClick={() => moveChar(0, -1)}><ChevronsUp /></EgyptianButton>
-                    <div />
-                    <EgyptianButton size="lg" onClick={() => moveChar(-1, 0)}><ChevronsLeft /></EgyptianButton>
-                    <EgyptianButton size="lg" onClick={() => moveChar(0, 1)}><ChevronsDown /></EgyptianButton>
-                    <EgyptianButton size="lg" onClick={() => moveChar(1, 0)}><ChevronsRight /></EgyptianButton>
-                  </div>
-                  <EgyptianButton size="lg" variant="outline" className="w-full flex gap-2" onClick={() => setActiveChar(prev => prev === 'ra' ? 'thoth' : 'ra')}>
-                    <Users size={20} /> <span>Switch Spirit</span>
-                  </EgyptianButton>
-                </div>
+            <AnimatePresence>
+              {gameState === 'intro' && (
+                <GameOverlay
+                  type="intro"
+                  title="Mummy Maze: Solar & Lunar"
+                  description="A divine trial of coordination. Guide the spirits of Sun and Moon to their respective gateways while navigating elemental traps."
+                  onAction={() => initLevel(0)}
+                  onSecondaryAction={onBack}
+                />
               )}
+
+              {gameState === 'levelUp' && (
+                <GameOverlay
+                  type="levelup"
+                  title="Chamber Cleared!"
+                  description={`You have mastered ${level.name}. The path deeper into the pyramid opens.`}
+                  stats={[
+                    { label: 'Time Bonus', value: `${timeLeft}s` },
+                    { label: 'Total Score', value: score }
+                  ]}
+                  actionLabel="Next Chamber"
+                  onAction={handleNextLevel}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'victory' && (
+                <GameOverlay
+                  type="victory"
+                  title="Master of the Labyrinth"
+                  description="The spirits have reached the final sanctuary. You have proven yourself a master of coordination and spatial logic."
+                  score={score}
+                  stars={5}
+                  stats={[
+                    { label: 'Total Time', value: `${totalTimeSpent}s` },
+                    { label: 'Rank', value: 'High Priest' }
+                  ]}
+                  actionLabel="Enter Again"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'defeat' && (
+                <GameOverlay
+                  type="defeat"
+                  title="Trapped in Eternity"
+                  description="The spirits have faded or the time has run out. The sands of the pyramid have claimed another victim."
+                  score={score}
+                  stats={[
+                    { label: 'Trial', value: level.name },
+                    { label: 'Score', value: score }
+                  ]}
+                  actionLabel="Retry Trial"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          {gameState === 'playing' && isMobile && (
+            <div className="p-6 bg-gold/5 border-t border-gold/10 flex flex-col items-center gap-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div />
+                <EgyptianButton size="lg" onClick={() => moveChar(0, -1)} className="w-14 h-14 p-0"><ChevronsUp /></EgyptianButton>
+                <div />
+                <EgyptianButton size="lg" onClick={() => moveChar(-1, 0)} className="w-14 h-14 p-0"><ChevronsLeft /></EgyptianButton>
+                <EgyptianButton size="lg" onClick={() => moveChar(0, 1)} className="w-14 h-14 p-0"><ChevronsDown /></EgyptianButton>
+                <EgyptianButton size="lg" onClick={() => moveChar(1, 0)} className="w-14 h-14 p-0"><ChevronsRight /></EgyptianButton>
+              </div>
+              <EgyptianButton size="xl" variant="hero" className="w-full max-w-xs flex gap-3 shadow-turquoise-glow" onClick={() => { setActiveChar(prev => prev === 'ra' ? 'thoth' : 'ra'); playSound('click'); }}>
+                <Users size={24} /> <span>Switch Spirit</span>
+              </EgyptianButton>
             </div>
           )}
         </EgyptianCard>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Sun size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Ra (Sun Spirit)</h4>
+              <p className="text-xs text-muted-foreground mt-1">Immune to Lava. Destroyed by Water. Target: Sun Gateway.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Moon size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Thoth (Moon Spirit)</h4>
+              <p className="text-xs text-muted-foreground mt-1">Immune to Water. Destroyed by Lava. Target: Moon Gateway.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Mechanism</h4>
+              <p className="text-xs text-muted-foreground mt-1">Pressure plates open Golden Gates. Both spirits must reach exits simultaneously.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Timer, Star, RotateCcw } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Trophy, Timer, Star, RotateCcw, Shield, Zap, Skull, Compass } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
+import { GameOverlay } from './GameOverlay';
 
 interface TempleEscapeGameProps {
   onBack: () => void;
@@ -12,273 +13,341 @@ interface TempleEscapeGameProps {
 
 interface Trap {
   id: number;
-  type: 'spikes' | 'boulder' | 'arrows' | 'pit';
+  type: 'spikes' | 'boulder' | 'arrows' | 'pit' | 'magic';
   emoji: string;
   options: { text: string; safe: boolean }[];
   description: string;
 }
 
-const traps: Trap[] = [
+const allTraps: Trap[] = [
   { id: 1, type: 'spikes', emoji: '🗡️', description: 'A floor of retractable spikes blocks your path!', options: [{ text: 'Jump across carefully', safe: true }, { text: 'Run through quickly', safe: false }, { text: 'Find a pressure plate to disable them', safe: true }, { text: 'Try to crawl under', safe: false }] },
   { id: 2, type: 'boulder', emoji: '🪨', description: 'A massive boulder rolls toward you!', options: [{ text: 'Dive into a side alcove', safe: true }, { text: 'Try to outrun it', safe: false }, { text: 'Press against the wall', safe: true }, { text: 'Jump over it', safe: false }] },
   { id: 3, type: 'arrows', emoji: '🏹', description: 'Arrow slits line both walls ahead!', options: [{ text: 'Crawl on the ground', safe: true }, { text: 'Sprint through the middle', safe: false }, { text: 'Use your shield to block', safe: true }, { text: 'Walk slowly through', safe: false }] },
   { id: 4, type: 'pit', emoji: '🕳️', description: 'A hidden pit trap opens beneath you!', options: [{ text: 'Grab the edge and pull up', safe: true }, { text: 'Fall and hope for the best', safe: false }, { text: 'Swing across on a vine', safe: true }, { text: 'Jump straight down', safe: false }] },
-  { id: 5, type: 'spikes', emoji: '⚡', description: 'Electrified hieroglyphs guard the passage!', options: [{ text: 'Touch only the inactive ones', safe: true }, { text: 'Rush through the energy', safe: false }, { text: 'Wait for the pattern to cycle', safe: true }, { text: 'Smash through the wall', safe: false }] },
-  { id: 6, type: 'boulder', emoji: '🔥', description: 'Flaming oil pours from the ceiling!', options: [{ text: 'Roll under the waterfall gap', safe: true }, { text: 'Cover yourself and run', safe: false }, { text: 'Find the shutoff lever', safe: true }, { text: 'Walk through the flames', safe: false }] },
-  { id: 7, type: 'arrows', emoji: '🐍', description: 'Sacred cobras slither across the floor!', options: [{ text: 'Play the charmer flute on the wall', safe: true }, { text: 'Step on them quickly', safe: false }, { text: 'Walk on the raised stones', safe: true }, { text: 'Try to kick them aside', safe: false }] },
-  { id: 8, type: 'pit', emoji: '💀', description: 'A cursed mist fills the corridor!', options: [{ text: 'Hold your breath and dash', safe: true }, { text: 'Breathe normally through it', safe: false }, { text: 'Use your cloak as a mask', safe: true }, { text: 'Walk slowly through the mist', safe: false }] },
-  { id: 9, type: 'spikes', emoji: '🧩', description: 'A riddle lock blocks the door: "What has keys but no locks?"', options: [{ text: 'A piano (correct answer)', safe: true }, { text: 'A treasure chest', safe: false }, { text: 'A keyboard', safe: true }, { text: 'A prison', safe: false }] },
-  { id: 10, type: 'boulder', emoji: '⏳', description: 'Sand fills the room rapidly from above!', options: [{ text: 'Climb the statue to the exit', safe: true }, { text: 'Dig through the sand', safe: false }, { text: 'Break the hourglass mechanism', safe: true }, { text: 'Swim through the sand', safe: false }] },
-  { id: 11, type: 'arrows', emoji: '🎯', description: 'Poison darts fire from the walls in a rhythmic pattern!', options: [{ text: 'Time your dash between shots', safe: true }, { text: 'Use a mirror to deflect them', safe: false }, { text: 'Slide under the darts', safe: true }, { text: 'Block with your bare hands', safe: false }] },
-  { id: 12, type: 'pit', emoji: '🦴', description: 'The floor tiles are crumbling into a bottomless abyss!', options: [{ text: 'Step only on the tiles with the Ankh symbol', safe: true }, { text: 'Run as fast as you can', safe: false }, { text: 'Use a rope to swing across', safe: true }, { text: 'Jump onto the middle tile', safe: false }] },
-  { id: 13, type: 'spikes', emoji: '🦁', description: 'The Sekhmet statue’s eyes glow red, and fire breathes from its mouth!', options: [{ text: 'Hide behind the stone pillars', safe: true }, { text: 'Try to extinguish the fire', safe: false }, { text: 'Crawl through the low-level vents', safe: true }, { text: 'Stand your ground', safe: false }] },
-  { id: 14, type: 'boulder', emoji: '🕸️', description: 'Giant spiders drop from the ceiling, weaving sticky webs!', options: [{ text: 'Use a torch to clear the path', safe: true }, { text: 'Slash through with your blade', safe: false }, { text: 'Dash through the gaps', safe: true }, { text: 'Try to talk to them', safe: false }] },
-  { id: 15, type: 'pit', emoji: '🌀', description: 'A powerful vortex is pulling everything toward a dark hole!', options: [{ text: 'Lash yourself to a heavy altar', safe: true }, { text: 'Run away from the center', safe: false }, { text: 'Use the wind to glide across', safe: true }, { text: 'Jump into the center', safe: false }] },
+  { id: 5, type: 'magic', emoji: '⚡', description: 'Electrified hieroglyphs guard the passage!', options: [{ text: 'Touch only the inactive ones', safe: true }, { text: 'Rush through the energy', safe: false }, { text: 'Wait for the pattern to cycle', safe: true }, { text: 'Smash through the wall', safe: false }] },
+  { id: 6, type: 'magic', emoji: '🔥', description: 'Flaming oil pours from the ceiling!', options: [{ text: 'Roll under the waterfall gap', safe: true }, { text: 'Cover yourself and run', safe: false }, { text: 'Find the shutoff lever', safe: true }, { text: 'Walk through the flames', safe: false }] },
+  { id: 7, type: 'magic', emoji: '🐍', description: 'Sacred cobras slither across the floor!', options: [{ text: 'Play the charmer flute on the wall', safe: true }, { text: 'Step on them quickly', safe: false }, { text: 'Walk on the raised stones', safe: true }, { text: 'Try to kick them aside', safe: false }] },
+  { id: 8, type: 'magic', emoji: '💀', description: 'A cursed mist fills the corridor!', options: [{ text: 'Hold your breath and dash', safe: true }, { text: 'Breathe normally through it', safe: false }, { text: 'Use your cloak as a mask', safe: true }, { text: 'Walk slowly through the mist', safe: false }] },
+  { id: 9, type: 'magic', emoji: '🧩', description: 'A riddle lock blocks the door: "What has keys but no locks?"', options: [{ text: 'A piano (correct answer)', safe: true }, { text: 'A treasure chest', safe: false }, { text: 'A keyboard', safe: true }, { text: 'A prison', safe: false }] },
+  { id: 10, type: 'magic', emoji: '⏳', description: 'Sand fills the room rapidly from above!', options: [{ text: 'Climb the statue to the exit', safe: true }, { text: 'Dig through the sand', safe: false }, { text: 'Break the hourglass mechanism', safe: true }, { text: 'Swim through the sand', safe: false }] },
+];
+
+interface Level {
+  name: string;
+  trapCount: number;
+  timeLimit: number;
+}
+
+const levels: Level[] = [
+  { name: "The Outer Walls", trapCount: 3, timeLimit: 12 },
+  { name: "Temple Courtyard", trapCount: 4, timeLimit: 10 },
+  { name: "Inner Sanctum", trapCount: 4, timeLimit: 8 },
+  { name: "The Tomb of Kings", trapCount: 5, timeLimit: 7 },
+  { name: "The Divine Escape", trapCount: 6, timeLimit: 5 },
 ];
 
 export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
-  const [currentTrap, setCurrentTrap] = useState(0);
+  const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelUp' | 'victory' | 'defeat'>('intro');
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [currentTrapIndex, setCurrentTrapIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [timeLeft, setTimeLeft] = useState(10);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [escaped, setEscaped] = useState(false);
   const [shuffledTraps, setShuffledTraps] = useState<Trap[]>([]);
   const [streak, setStreak] = useState(0);
+
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
-  const startGame = useCallback(() => {
-    const shuffled = [...traps].sort(() => Math.random() - 0.5).slice(0, 7);
+  const level = useMemo(() => levels[currentLevel], [currentLevel]);
+
+  const initLevel = useCallback((levelIdx: number) => {
+    const l = levels[levelIdx];
+    const shuffled = [...allTraps].sort(() => Math.random() - 0.5).slice(0, l.trapCount);
     setShuffledTraps(shuffled);
-    setCurrentTrap(0);
-    setScore(0);
+    setCurrentTrapIndex(0);
     setLives(3);
-    setTimeLeft(10);
+    setTimeLeft(l.timeLimit);
     setSelectedOption(null);
     setShowResult(false);
-    setGameOver(false);
-    setEscaped(false);
-    setStreak(0);
-    setIsPlaying(true);
+    setGameState('playing');
     playSound('gameStart');
     startAmbientMusic();
-  }, []);
+  }, [playSound, startAmbientMusic]);
 
   useEffect(() => {
-    if (isPlaying && !showResult && !gameOver && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-      if (timeLeft <= 3) playSound('tick');
+    if (gameState === 'playing' && !showResult && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(t => t - 1);
+        if (timeLeft <= 3) playSound('tick');
+      }, 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && isPlaying && !showResult) {
-      // Time ran out - lose a life
-      setLives(l => l - 1);
-      setShowResult(true);
-      setSelectedOption(-1);
-      playSound('wrong');
-      if (lives <= 1) {
-        setTimeout(() => {
-          setGameOver(true);
-          setIsPlaying(false);
-          stopAmbientMusic();
-          playSound('defeat');
-          addScore({ playerName: 'Explorer', score, game: 'temple-escape', details: `Reached trap ${currentTrap + 1}` });
-        }, 1500);
-      }
+    } else if (timeLeft === 0 && gameState === 'playing' && !showResult) {
+      handleChoice(-1); // Time out penalty
     }
-  }, [timeLeft, isPlaying, showResult, gameOver, lives, currentTrap, score, addScore, playSound, stopAmbientMusic]);
+  }, [timeLeft, gameState, showResult, playSound]);
 
   const handleChoice = (index: number) => {
-    if (showResult || !isPlaying) return;
+    if (showResult || gameState !== 'playing') return;
+
     setSelectedOption(index);
     setShowResult(true);
-    const trap = shuffledTraps[currentTrap];
-    const isSafe = trap.options[index].safe;
+
+    const trap = shuffledTraps[currentTrapIndex];
+    const isSafe = index !== -1 && trap.options[index].safe;
 
     if (isSafe) {
-      const timeBonus = timeLeft * 5;
-      const streakBonus = streak * 10;
-      setScore(s => s + 100 + timeBonus + streakBonus);
-      setStreak(s => s + 1);
       playSound('correct');
+      const timeBonus = timeLeft * 10;
+      setScore(s => s + 100 + timeBonus + streak * 20);
+      setStreak(s => s + 1);
     } else {
+      playSound('wrong');
       setLives(l => l - 1);
       setStreak(0);
-      playSound('wrong');
+
       if (lives <= 1) {
         setTimeout(() => {
-          setGameOver(true);
-          setIsPlaying(false);
+          setGameState('defeat');
           stopAmbientMusic();
           playSound('defeat');
-          addScore({ playerName: 'Explorer', score, game: 'temple-escape', details: `Reached trap ${currentTrap + 1}` });
-        }, 1500);
+        }, 1200);
         return;
       }
     }
+
+    setTimeout(() => {
+      if (currentTrapIndex >= shuffledTraps.length - 1) {
+        if (currentLevel < levels.length - 1) {
+          setGameState('levelUp');
+          playSound('victory');
+        } else {
+          setGameState('victory');
+          playSound('victory');
+          addScore({
+            playerName: 'Explorer',
+            score: score + lives * 500,
+            game: 'temple-escape',
+            details: `Escaped the Temple with ${lives} lives!`
+          });
+        }
+      } else {
+        setCurrentTrapIndex(prev => prev + 1);
+        setSelectedOption(null);
+        setShowResult(false);
+        setTimeLeft(level.timeLimit);
+      }
+    }, 1500);
   };
 
-  const nextTrap = () => {
-    if (currentTrap >= shuffledTraps.length - 1) {
-      setEscaped(true);
-      setIsPlaying(false);
-      const finalScore = score + lives * 200;
-      setScore(finalScore);
-      stopAmbientMusic();
-      playSound('victory');
-      addScore({ playerName: 'Explorer', score: finalScore, game: 'temple-escape', details: `Escaped! ${lives} lives left` });
-      return;
-    }
-    setCurrentTrap(c => c + 1);
-    setSelectedOption(null);
-    setShowResult(false);
-    setTimeLeft(10);
-    playSound('click');
+  const handleNextLevel = () => {
+    const nextIdx = currentLevel + 1;
+    setCurrentLevel(nextIdx);
+    initLevel(nextIdx);
   };
 
-  const trap = shuffledTraps[currentTrap];
+  const resetGame = () => {
+    setScore(0);
+    setCurrentLevel(0);
+    setStreak(0);
+    initLevel(0);
+  };
+
+  const trap = shuffledTraps[currentTrapIndex];
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
           <EgyptianButton
             variant="nav"
             onClick={() => { stopAmbientMusic(); onBack(); }}
-            className="mb-4 -ml-4"
+            className="-ml-4"
           >
-            <ArrowLeft size={20} /> Back to Games
+            <ArrowLeft size={20} className="mr-2" /> Back to Games
           </EgyptianButton>
-          <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Temple Escape</h1>
-          <p className="text-xl text-muted-foreground font-body">Navigate deadly traps to escape the ancient temple!</p>
-        </div>
-
-        <EgyptianCard variant="tomb" padding="lg" className="relative">
-          {/* Stats */}
-          <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
-            <div className="flex items-center gap-2 bg-lapis/50 px-4 py-2 rounded-lg border border-lapis-light/30">
-              <Trophy className="text-primary" size={24} />
-              <span className="text-xl text-foreground font-body">{score}</span>
+          <div className="flex gap-4">
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Compass className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">CHAMBER {currentLevel + 1}/5</span>
             </div>
-            <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
-              <Star className="text-turquoise" size={24} />
-              <span className="text-xl text-foreground font-body">Streak: {streak}🔥</span>
-            </div>
-            {isPlaying && (
-              <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
-                <Timer className={`${timeLeft <= 3 ? 'text-terracotta animate-pulse' : 'text-scarab'}`} size={24} />
-                <span className="text-xl text-foreground font-body">{timeLeft}s</span>
-              </div>
-            )}
-            <div className="flex gap-2">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full ${i < lives ? 'bg-terracotta' : 'bg-muted'} flex items-center justify-center border border-border`}>❤️</div>
-              ))}
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Trophy className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">SCORE: {score}</span>
             </div>
           </div>
+        </div>
 
-          {!isPlaying && !gameOver && !escaped ? (
-            <div className="text-center py-12">
-              <div className="text-8xl mb-6">🏛️</div>
-              <h2 className="text-4xl font-display text-gold-gradient mb-6">Escape the Temple!</h2>
-              <p className="text-xl text-muted-foreground font-body mb-4 max-w-2xl mx-auto">
-                Navigate through 7 deadly traps. Choose wisely and quickly — time is running out!
-              </p>
-              <p className="text-lg text-muted-foreground/80 font-body mb-8">Fast choices earn bonus points. Build streaks for even more!</p>
-              <EgyptianButton variant="hero" size="xl" shimmer onClick={startGame}>
-                Enter the Temple
-              </EgyptianButton>
-            </div>
-          ) : isPlaying && trap ? (
-            <motion.div key={currentTrap} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="text-center mb-2">
-                <span className="text-muted-foreground font-body">Trap {currentTrap + 1} of {shuffledTraps.length}</span>
-                <div className="w-full bg-muted rounded-full h-2 mt-2">
-                  <div className="bg-gradient-to-r from-gold-dark to-primary h-2 rounded-full transition-all" style={{ width: `${((currentTrap + 1) / shuffledTraps.length) * 100}%` }} />
-                </div>
-              </div>
-
-              <div className="text-center text-8xl mb-4">{trap.emoji}</div>
-
-              <EgyptianCard variant="lapis" padding="lg">
-                <p className="text-2xl text-foreground font-body leading-relaxed text-center">{trap.description}</p>
-              </EgyptianCard>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {trap.options.map((option, index) => (
-                  <motion.button
-                    key={index}
-                    whileHover={!showResult ? { scale: 1.03 } : {}}
-                    whileTap={!showResult ? { scale: 0.97 } : {}}
-                    onClick={() => handleChoice(index)}
-                    disabled={showResult}
-                    className={`p-5 rounded-xl text-lg font-body border-2 transition-all text-left ${showResult
-                      ? option.safe
-                        ? 'bg-scarab/50 border-turquoise/50 text-foreground'
-                        : index === selectedOption
-                          ? 'bg-terracotta/50 border-terracotta/50 text-foreground'
-                          : 'bg-card/50 border-border text-muted-foreground'
-                      : 'bg-card hover:bg-muted border-gold/30 hover:border-gold/50 text-foreground'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 text-primary-foreground font-display text-sm">
-                        {String.fromCharCode(65 + index)}
-                      </div>
-                      <span>{option.text}</span>
-                      {showResult && option.safe && <span className="ml-auto">✅</span>}
-                      {showResult && !option.safe && index === selectedOption && <span className="ml-auto">❌</span>}
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-
-              {showResult && !gameOver && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <EgyptianButton variant="hero" size="lg" shimmer onClick={nextTrap} className="w-full">
-                    {currentTrap >= shuffledTraps.length - 1 ? 'Escape!' : 'Next Trap →'}
-                  </EgyptianButton>
-                </motion.div>
-              )}
-            </motion.div>
-          ) : null}
-
-          {escaped && (
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-              <div className="text-9xl mb-6">🎉</div>
-              <h2 className="text-5xl font-display text-gold-gradient mb-4">You Escaped!</h2>
-              <div className="space-y-2 mb-8">
-                <p className="text-2xl text-foreground font-body">Final Score: {score}</p>
-                <p className="text-xl text-muted-foreground font-body">Lives Remaining: {lives} (+{lives * 200} bonus)</p>
-                <div className="flex items-center justify-center gap-1 mt-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={i < Math.min(5, lives + 1) ? 'text-primary fill-primary' : 'text-muted'} size={32} />
+        <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden shadow-2xl border-2 border-gold/20">
+          {/* Header HUD */}
+          <div className="p-4 border-b border-gold/10 bg-gold/5 flex justify-between items-center">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Skull className="text-terracotta" size={20} />
+                <div className="flex gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ scale: i < lives ? 1 : 0.8, opacity: i < lives ? 1 : 0.3 }}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center border ${i < lives ? 'bg-terracotta border-terracotta/50 shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-muted border-white/10'}`}
+                    >
+                      <span className="text-[10px]">❤️</span>
+                    </motion.div>
                   ))}
                 </div>
               </div>
-              <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={startGame}><RotateCcw size={20} /> Play Again</EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>Back to Games</EgyptianButton>
+              <div className="flex items-center gap-2">
+                <Star className="text-turquoise" size={20} />
+                <span className="font-display text-gold text-lg">STREAK: {streak}</span>
               </div>
-            </motion.div>
-          )}
+            </div>
 
-          {gameOver && (
-            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12 absolute inset-0 bg-obsidian/95 rounded-lg flex flex-col items-center justify-center">
-              <div className="text-9xl mb-6">💀</div>
-              <h2 className="text-5xl font-display text-terracotta mb-4">Trapped Forever!</h2>
-              <p className="text-2xl text-foreground font-body mb-2">Final Score: {score}</p>
-              <p className="text-xl text-muted-foreground font-body mb-8">You survived {currentTrap} traps</p>
-              <div className="flex gap-4 flex-wrap justify-center">
-                <EgyptianButton variant="default" size="lg" onClick={startGame}><RotateCcw size={20} /> Try Again</EgyptianButton>
-                <EgyptianButton variant="lapis" size="lg" onClick={() => { stopAmbientMusic(); onBack(); }}>Back to Games</EgyptianButton>
-              </div>
-            </motion.div>
-          )}
+            <div className="flex flex-col items-end">
+              <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
+              <p className="text-xs text-muted-foreground font-body mt-1">Escape the traps before time runs out!</p>
+            </div>
+          </div>
+
+          <div className="relative p-12 bg-obsidian flex flex-col items-center justify-center min-h-[550px]">
+            {gameState === 'playing' && trap && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${currentLevel}-${currentTrapIndex}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="w-full max-w-3xl"
+                >
+                  <div className="text-center mb-8">
+                    <span className="text-gold/40 font-display text-xs uppercase tracking-[0.3em]">Hazard Detected</span>
+                    <div className="text-9xl my-6 drop-shadow-[0_0_30px_rgba(255,191,0,0.3)] animate-bounce-slow">
+                      {trap.emoji}
+                    </div>
+                    <EgyptianCard variant="lapis" padding="lg" className="border-gold/30 bg-gold/5">
+                      <p className="text-2xl md:text-3xl text-foreground font-body leading-relaxed">
+                        {trap.description}
+                      </p>
+                    </EgyptianCard>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {trap.options.map((option, idx) => (
+                      <EgyptianButton
+                        key={idx}
+                        variant={showResult ? (option.safe ? "turquoise" : idx === selectedOption ? "danger" : "outline") : "default"}
+                        size="xl"
+                        onClick={() => handleChoice(idx)}
+                        disabled={showResult}
+                        className={`h-auto py-6 px-8 text-left flex justify-between items-center group ${showResult && option.safe ? "ring-2 ring-turquoise shadow-turquoise-glow" : ""}`}
+                      >
+                        <span className="text-lg font-body">{option.text}</span>
+                        {!showResult && (
+                          <div className="w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center group-hover:bg-gold group-hover:text-obsidian transition-colors font-display text-sm">
+                            {String.fromCharCode(65 + idx)}
+                          </div>
+                        )}
+                        {showResult && option.safe && <Zap className="text-white animate-pulse" />}
+                      </EgyptianButton>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex justify-center">
+                    <div className={`flex items-center gap-3 px-8 py-3 rounded-full border-2 transition-all duration-300 ${timeLeft < 4 ? 'bg-terracotta border-terracotta text-white shadow-terracotta-glow scale-110' : 'bg-obsidian/80 border-gold/30 text-gold'}`}>
+                      <Timer className={timeLeft < 4 ? 'animate-spin-slow' : ''} />
+                      <span className="text-3xl font-display">{timeLeft}s</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+
+            <AnimatePresence>
+              {gameState === 'intro' && (
+                <GameOverlay
+                  type="intro"
+                  title="Temple Escape"
+                  description="The temple is collapsing! You must navigate a gauntlet of ancient traps, using your wits and reflexes to reach the exit before you're entombed forever."
+                  onAction={() => initLevel(0)}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'levelUp' && (
+                <GameOverlay
+                  type="levelup"
+                  title="Chamber Cleared!"
+                  description={`You have survived ${level.name}. The next chamber awaits.`}
+                  stats={[
+                    { label: 'Current Score', value: score },
+                    { label: 'Lives Left', value: lives }
+                  ]}
+                  actionLabel="Next Chamber"
+                  onAction={handleNextLevel}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'victory' && (
+                <GameOverlay
+                  type="victory"
+                  title="Master of the Temple"
+                  description="You have reached the sunlit world once more. The temple's traps could not hold one as swift and wise as you."
+                  score={score}
+                  stars={Math.min(5, lives + (streak > 10 ? 2 : streak > 5 ? 1 : 0))}
+                  stats={[
+                    { label: 'Lives Preserved', value: lives },
+                    { label: 'Highest Streak', value: streak }
+                  ]}
+                  actionLabel="Escape Again"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'defeat' && (
+                <GameOverlay
+                  type="defeat"
+                  title="Entombed Forever"
+                  description="The temple's shadows have claimed you. Your journey ends in the darkness of the ancient stones."
+                  score={score}
+                  stats={[
+                    { label: 'Chamber Reached', value: level.name },
+                    { label: 'Final Score', value: score }
+                  ]}
+                  actionLabel="Retry Escape"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </EgyptianCard>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Shield size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Divine Protection</h4>
+              <p className="text-xs text-muted-foreground mt-1">You have 3 lives. Choosing an incorrect path or running out of time costs one heart.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Echoes of Time</h4>
+              <p className="text-xs text-muted-foreground mt-1">Faster reactions provide significant score bonuses. The time limit shrinks as you go deeper.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Trial Mastery</h4>
+              <p className="text-xs text-muted-foreground mt-1">Escaping with all hearts intact awards a massive divine bonus to your final score.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

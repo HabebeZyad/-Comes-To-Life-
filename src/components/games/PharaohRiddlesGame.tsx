@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Brain, Crown, Star, Trophy, Timer } from 'lucide-react';
+import { ArrowLeft, Brain, Crown, Star, Trophy, Timer, HelpCircle, Sparkles } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
+import { GameOverlay } from './GameOverlay';
 import { riddleLevels, RiddleLevel, Riddle } from '@/data/riddles';
 
 interface PharaohRiddlesGameProps {
@@ -12,55 +13,53 @@ interface PharaohRiddlesGameProps {
 }
 
 export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
-  const [currentLevelIndex, setCurrentLevelIndex] = useState<number | null>(null);
-  const [currentRiddleIndex, setCurrentRiddleIndex] = useState(0);
+  const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelUp' | 'victory' | 'defeat'>('intro');
+  const [currentLevelIdx, setCurrentLevelIdx] = useState(0);
+  const [currentRiddleIdx, setCurrentRiddleIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [gameWon, setGameWon] = useState(false);
   const { playSound, stopAmbientMusic, startAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
-  const currentLevel = currentLevelIndex !== null ? riddleLevels[currentLevelIndex] : null;
-  const riddle = currentLevel ? currentLevel.riddles[currentRiddleIndex] : null;
+  const currentLevel = useMemo(() => riddleLevels[currentLevelIdx], [currentLevelIdx]);
+  const riddle = useMemo(() => currentLevel?.riddles[currentRiddleIdx], [currentLevel, currentRiddleIdx]);
 
-  const handleTimeUp = useCallback(() => {
-    setGameOver(true);
-    playSound('defeat');
-    stopAmbientMusic();
-    addScore({ playerName: 'Explorer', score, game: 'riddles', details: `Reached Level ${currentLevel?.level}` });
-  }, [currentLevel, score, addScore, playSound, stopAmbientMusic]);
-
-  useEffect(() => {
-    if (currentLevel !== null && !gameOver && !gameWon && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && currentLevel !== null && !gameOver && !gameWon) {
-      handleTimeUp();
-    }
-  }, [timeLeft, currentLevel, gameOver, gameWon, handleTimeUp]);
-
-  const selectLevel = (levelIndex: number) => {
-    setCurrentLevelIndex(levelIndex);
-    setTimeLeft(riddleLevels[levelIndex].timeLimit);
-    setCurrentRiddleIndex(0);
-    setScore(0);
-    setGameOver(false);
-    setGameWon(false);
+  const initLevel = useCallback((levelIdx: number) => {
+    setCurrentLevelIdx(levelIdx);
+    setCurrentRiddleIdx(0);
+    setTimeLeft(riddleLevels[levelIdx].timeLimit);
+    setSelectedAnswer(null);
+    setShowExplanation(false);
+    setGameState('playing');
     playSound('gameStart');
     startAmbientMusic();
-  };
+  }, [playSound, startAmbientMusic]);
+
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(t => t - 1);
+        if (timeLeft <= 5) playSound('tick');
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0 && gameState === 'playing') {
+      setGameState('defeat');
+      playSound('defeat');
+      stopAmbientMusic();
+    }
+  }, [timeLeft, gameState, playSound, stopAmbientMusic]);
 
   const handleAnswer = (answerIndex: number) => {
-    if (selectedAnswer !== null) return;
+    if (selectedAnswer !== null || gameState !== 'playing') return;
     setSelectedAnswer(answerIndex);
     const correct = answerIndex === riddle?.correctAnswer;
 
     if (correct) {
       playSound('correct');
-      setScore(score + (currentLevel?.level ?? 1) * 10 + (timeLeft > 10 ? 5 : 0));
+      const timeBonus = Math.floor(timeLeft / 2);
+      setScore(s => s + 150 + (currentLevelIdx * 50) + timeBonus);
     } else {
       playSound('wrong');
     }
@@ -72,173 +71,235 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
     setSelectedAnswer(null);
     playSound('click');
 
-    if (currentLevel && currentRiddleIndex < currentLevel.riddles.length - 1) {
-      setCurrentRiddleIndex(currentRiddleIndex + 1);
+    if (currentRiddleIdx < currentLevel.riddles.length - 1) {
+      setCurrentRiddleIdx(prev => prev + 1);
     } else {
-      levelComplete();
+      if (currentLevelIdx < riddleLevels.length - 1) {
+        setGameState('levelUp');
+        playSound('victory');
+      } else {
+        setGameState('victory');
+        playSound('victory');
+        addScore({
+          playerName: 'Wise One',
+          score: score + 500,
+          game: 'riddles',
+          details: 'Mastered all 4 Divine Riddle Trials'
+        });
+      }
     }
   };
 
-  const levelComplete = () => {
-    if (currentLevelIndex === riddleLevels.length - 1) {
-      setGameWon(true);
-      stopAmbientMusic();
-      playSound('victory');
-      addScore({ playerName: 'Wise One', score, game: 'riddles', details: 'Mastered all riddle levels!' });
-    } else {
-      const nextIdx = currentLevelIndex! + 1;
-      setCurrentLevelIndex(nextIdx);
-      setTimeLeft(riddleLevels[nextIdx].timeLimit);
-      setCurrentRiddleIndex(0);
-      playSound('levelUp');
-    }
-  }
+  const handleNextLevel = () => {
+    const nextIdx = currentLevelIdx + 1;
+    setCurrentLevelIdx(nextIdx);
+    initLevel(nextIdx);
+  };
 
   const resetGame = () => {
-    setCurrentLevelIndex(null);
-    setGameOver(false);
-    setGameWon(false);
-    stopAmbientMusic();
+    setScore(0);
+    setCurrentLevelIdx(0);
+    initLevel(0);
   };
 
-  if (currentLevelIndex === null) {
-    return (
-      <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <EgyptianButton
-              variant="nav"
-              onClick={onBack}
-              className="mb-4 -ml-4"
-            >
-              <ArrowLeft size={20} /> Back to Games
-            </EgyptianButton>
-            <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Pharaoh's Riddles</h1>
-            <p className="text-xl text-muted-foreground font-body">Choose your difficulty to face the Sphinx</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {riddleLevels.map((level, index) => (
-              <motion.div key={index} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <EgyptianButton onClick={() => selectLevel(index)} size="xl" variant="outline" className="w-full h-auto flex-col py-8">
-                  <span className="text-2xl mb-1">Level {level.level}</span>
-                  <span className="text-gold font-body mb-2">{level.title}</span>
-                  <span className="text-sm opacity-60 font-body">{level.riddles.length} Riddles • {level.timeLimit}s</span>
-                </EgyptianButton>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <button onClick={resetGame} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
-            <ArrowLeft size={20} /> Back to Difficulties
-          </button>
-          <h1 className="text-4xl md:text-5xl font-display text-gold-gradient mb-4">Pharaoh's Riddles</h1>
-          <p className="text-xl text-muted-foreground font-body">Level {currentLevel?.level}: {currentLevel?.title}</p>
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <EgyptianButton
+            variant="nav"
+            onClick={() => { stopAmbientMusic(); onBack(); }}
+            className="-ml-4"
+          >
+            <ArrowLeft size={20} className="mr-2" /> Back to Games
+          </EgyptianButton>
+          <div className="flex gap-4">
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Brain className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">TRIAL {currentLevelIdx + 1}/4</span>
+            </div>
+            <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
+              <Trophy className="text-primary w-4 h-4" />
+              <span className="text-sm font-display text-gold">SCORE: {score}</span>
+            </div>
+          </div>
         </div>
 
-        <EgyptianCard variant="gold" padding="lg" className="relative overflow-hidden">
-          <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
-            <div className="flex items-center gap-2 bg-gold-dark/30 px-4 py-2 rounded-lg border border-gold/30">
-              <Trophy className="text-primary" size={24} />
-              <span className="text-2xl text-foreground font-body">{score}</span>
+        <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden shadow-2xl border-2 border-gold/20">
+          {/* Header HUD */}
+          <div className="p-4 border-b border-gold/10 bg-gold/5 flex justify-between items-center">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Crown className="text-primary" size={20} />
+                <span className="font-display text-gold">Progress</span>
+                <div className="w-32 h-3 bg-obsidian/60 rounded-full border border-gold/20 overflow-hidden relative">
+                  <div
+                    className="h-full bg-primary shadow-gold-glow transition-all duration-500"
+                    style={{ width: `${(currentRiddleIdx / currentLevel.riddles.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Timer className={timeLeft < 10 ? "text-terracotta animate-pulse" : "text-primary"} size={20} />
+                <span className={`font-display text-lg ${timeLeft < 10 ? "text-terracotta" : "text-gold"}`}>{timeLeft}s</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-lg border border-border">
-              <Timer className={`${timeLeft < 10 ? 'text-terracotta animate-pulse' : 'text-primary'}`} size={24} />
-              <span className="text-2xl text-foreground font-body">{timeLeft}s</span>
-            </div>
-            <div className="flex items-center gap-2 bg-lapis/30 px-4 py-2 rounded-lg border border-lapis-light/30">
-              <Brain className="text-turquoise" size={24} />
-              <span className="text-xl text-foreground font-body">Riddle {currentRiddleIndex + 1}/{currentLevel?.riddles.length}</span>
+
+            <div className="flex flex-col items-end">
+              <h2 className="text-xl font-display text-gold-gradient leading-none">{currentLevel.title}</h2>
+              <p className="text-xs text-muted-foreground font-body mt-1">Difficulty: {currentLevelIdx < 2 ? 'Initiate' : 'High Priest'}</p>
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            {!gameOver && !gameWon ? (
-              <motion.div key={currentRiddleIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                <div className="text-center text-8xl mb-6">🧠</div>
-
-                <div className="p-8 bg-obsidian/40 rounded-2xl border-2 border-gold/20">
-                  <p className="text-2xl text-foreground font-body leading-relaxed text-center italic">"{riddle?.question}"</p>
-                </div>
-
-                {!showExplanation ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {riddle?.options.map((option, index) => (
-                      <motion.button
-                        key={index}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => handleAnswer(index)}
-                        className="p-6 bg-card hover:bg-muted rounded-xl text-lg text-foreground font-body border-2 border-gold/30 hover:border-gold/50 transition-all text-left flex items-center gap-4"
-                      >
-                        <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary font-display border border-primary/30">
-                          {String.fromCharCode(65 + index)}
-                        </div>
-                        <span>{option}</span>
-                      </motion.button>
-                    ))}
+          <div className="relative p-12 bg-obsidian flex flex-col items-center justify-center min-h-[500px]">
+            {gameState === 'playing' && riddle && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${currentLevelIdx}-${currentRiddleIdx}`}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="w-full max-w-3xl"
+                >
+                  <div className="text-center mb-10">
+                    <HelpCircle className="w-16 h-16 text-primary mx-auto mb-6 opacity-50" />
+                    <EgyptianCard variant="lapis" padding="xl" className="border-gold/30 bg-gold/5 relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+                      <p className="text-2xl md:text-3xl text-foreground font-body leading-relaxed italic">
+                        "{riddle.question}"
+                      </p>
+                    </EgyptianCard>
                   </div>
-                ) : (
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                    <div className={`p-6 rounded-xl border-2 ${selectedAnswer === riddle?.correctAnswer ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}`}>
-                      <div className="flex items-center gap-3 mb-2">
-                        {selectedAnswer === riddle?.correctAnswer ? (
-                          <div className="flex items-center gap-2 text-emerald-400 font-display text-2xl">
-                            <span>✨ Correct!</span>
+
+                  {!showExplanation ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {riddle.options.map((option, idx) => (
+                        <EgyptianButton
+                          key={idx}
+                          variant="default"
+                          size="xl"
+                          onClick={() => handleAnswer(idx)}
+                          className="h-auto py-6 px-8 text-left flex justify-start items-center gap-6 group hover:border-primary transition-all"
+                        >
+                          <div className="w-10 h-10 rounded-full border border-gold/30 flex items-center justify-center group-hover:bg-primary group-hover:text-obsidian transition-colors font-display text-lg">
+                            {String.fromCharCode(65 + idx)}
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-rose-400 font-display text-2xl">
-                            <span>❌ Incorrect</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-lg font-body text-foreground mb-4">{riddle?.explanation}</p>
-                      <p className="text-sm text-muted-foreground uppercase tracking-widest">Correct Answer: {riddle?.options[riddle.correctAnswer]}</p>
+                          <span className="text-lg font-body">{option}</span>
+                        </EgyptianButton>
+                      ))}
                     </div>
-                    <EgyptianButton variant="hero" size="lg" className="w-full" onClick={nextRiddle}>
-                      {currentRiddleIndex < currentLevel!.riddles.length - 1 ? 'Next Riddle' : 'Complete Level'}
-                    </EgyptianButton>
-                  </motion.div>
-                )}
-              </motion.div>
-            ) : gameOver ? (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                <div className="text-8xl mb-6">🕯️</div>
-                <h2 className="text-5xl font-display text-terracotta mb-4">Time's Up!</h2>
-                <p className="text-xl text-muted-foreground font-body mb-8 text-center max-w-md mx-auto">
-                  The Sphinx has closed the path. Your journey ends here with a score of {score}.
-                </p>
-                <div className="flex gap-4 justify-center">
-                  <EgyptianButton variant="default" size="lg" onClick={() => selectLevel(currentLevelIndex!)}>Try Again</EgyptianButton>
-                  <EgyptianButton variant="lapis" size="lg" onClick={resetGame}>Back to Menu</EgyptianButton>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                <div className="text-8xl mb-6">🏆</div>
-                <h2 className="text-5xl font-display text-gold-gradient mb-4">Supreme Wisdom!</h2>
-                <p className="text-xl text-muted-foreground font-body mb-8">
-                  You have answered all riddles and proven yourself worthy of the Pharaohs' secrets.
-                </p>
-                <div className="bg-gold/10 p-6 rounded-2xl border border-gold/30 mb-8 inline-block px-12">
-                  <p className="text-4xl font-display text-primary">{score}</p>
-                  <p className="text-muted-foreground uppercase tracking-widest text-sm">Final Score</p>
-                </div>
-                <div className="flex gap-4 justify-center">
-                  <EgyptianButton variant="hero" size="lg" onClick={resetGame}>New Game</EgyptianButton>
-                  <EgyptianButton variant="lapis" size="lg" onClick={onBack}>Back to Games</EgyptianButton>
-                </div>
-              </motion.div>
+                  ) : (
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                      <div className={`p-8 rounded-2xl border-2 backdrop-blur-md ${selectedAnswer === riddle.correctAnswer ? 'bg-primary/10 border-primary shadow-gold-glow' : 'bg-terracotta/10 border-terracotta'}`}>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className={`p-3 rounded-full ${selectedAnswer === riddle.correctAnswer ? 'bg-primary/20' : 'bg-terracotta/20'}`}>
+                            {selectedAnswer === riddle.correctAnswer ? <Sparkles className="text-primary" /> : <Star className="text-terracotta" />}
+                          </div>
+                          <h3 className={`text-2xl font-display ${selectedAnswer === riddle.correctAnswer ? 'text-primary' : 'text-terracotta'}`}>
+                            {selectedAnswer === riddle.correctAnswer ? 'Divine Insight!' : 'The Sphinx Frowns...'}
+                          </h3>
+                        </div>
+                        <p className="text-lg font-body text-foreground leading-relaxed mb-6">
+                          {riddle.explanation}
+                        </p>
+                        <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground uppercase tracking-widest">Correct Path: {riddle.options[riddle.correctAnswer]}</span>
+                          <EgyptianButton variant="hero" onClick={nextRiddle} className="px-10">
+                            Continue →
+                          </EgyptianButton>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             )}
-          </AnimatePresence>
+
+            <AnimatePresence>
+              {gameState === 'intro' && (
+                <GameOverlay
+                  type="intro"
+                  title="Pharaoh's Riddles"
+                  description="Face the legendary Sphinx and answer her cryptic questions. Only those with the wisdom of Thoth may pass through the golden gates of the Pharaoh's court."
+                  onAction={() => initLevel(0)}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'levelUp' && (
+                <GameOverlay
+                  type="levelup"
+                  title="Trial Passed!"
+                  description={`Your wisdom shines through the darkness. You have mastered the ${currentLevel.title}.`}
+                  stats={[
+                    { label: 'Score', value: score },
+                    { label: 'Trial Progress', value: `${currentLevelIdx + 1}/4` }
+                  ]}
+                  actionLabel="Next Trial"
+                  onAction={handleNextLevel}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'victory' && (
+                <GameOverlay
+                  type="victory"
+                  title="Scribe of the Divine"
+                  description="The Sphinx bows before your intellect. You have solved all her riddles and gained the eternal wisdom of the ancients."
+                  score={score}
+                  stars={5}
+                  stats={[
+                    { label: 'Final Rank', value: 'High Priest of Thoth' },
+                    { label: 'Wisdom Score', value: score }
+                  ]}
+                  actionLabel="Meditate Again"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+
+              {gameState === 'defeat' && (
+                <GameOverlay
+                  type="defeat"
+                  title="The Sphinx's Silence"
+                  description="Your wisdom was insufficient this time. The secrets of the ancients remain veiled in shadow."
+                  score={score}
+                  stats={[
+                    { label: 'Current Trial', value: currentLevel.title },
+                    { label: 'Score', value: score }
+                  ]}
+                  actionLabel="Retry Trial"
+                  onAction={resetGame}
+                  onSecondaryAction={onBack}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </EgyptianCard>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Brain size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Divine Wisdom</h4>
+              <p className="text-xs text-muted-foreground mt-1">Each correct answer grants you access to deeper mysteries and higher scores.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Temporal Trial</h4>
+              <p className="text-xs text-muted-foreground mt-1">Answering quickly provides a time bonus. If the sand runs out, the trial is failed.</p>
+            </div>
+          </div>
+          <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Sparkles size={20}/></div>
+            <div>
+              <h4 className="text-gold font-display text-sm">Mastery</h4>
+              <p className="text-xs text-muted-foreground mt-1">Completing all 4 trials with high precision marks you as a Living God of Wisdom.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
