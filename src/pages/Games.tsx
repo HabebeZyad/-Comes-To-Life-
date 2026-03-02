@@ -39,7 +39,7 @@ interface Game {
 const games: Game[] = [
   { id: 'tomb-explorer', title: 'Tomb Explorer', description: 'Navigate dark chambers, avoid traps, and recover lost treasures.', icon: Map, color: 'from-terracotta to-gold-dark', emoji: '𓊖', category: 'Action', difficulty: 'Hard', duration: '4-6 min', isNew: true },
   { id: 'hieroglyph-match', title: 'Hieroglyph Match', description: 'Match sacred symbols to their meanings in this linguistic trial.', icon: Languages, color: 'from-lapis to-turquoise', emoji: '𓇚', category: 'Wisdom', difficulty: 'Medium', duration: '3-5 min', isNew: true },
-  { id: 'riddles', title: "Pharaoh's Riddles", description: "Face the Sphinx and answer 4 levels of cryptic ancient wisdom.", icon: Star, color: 'from-scarab to-turquoise', emoji: '🦁', category: 'Wisdom', difficulty: 'Expert', duration: '5-8 min', isNew: true },
+  { id: 'riddles', title: "Pharaoh's Riddles", description: "Face the Sphinx and answer 4 levels of cryptic ancient wisdom.", icon: Star, color: 'from-scarab to-turquoise', emoji: '🦁', category: 'Wisdom', difficulty: 'Expert', duration: '5-8 min' },
   { id: 'scarab-collector', title: 'Scarab Collector', description: 'Catch sacred scarabs in a high-stakes 5-wave desert swarm trial.', icon: Bug, color: 'from-scarab to-gold-dark', emoji: '𓆣', category: 'Action', difficulty: 'Hard', duration: '3-5 min' },
   { id: 'memory', title: 'Trials of Wisdom', description: 'Master the divine archives through 5 levels of increasing complexity.', icon: Brain, color: 'from-lapis to-lapis-deep', emoji: '𓂀', category: 'Wisdom', difficulty: 'Medium', duration: '2-4 min' },
   { id: 'maze', title: 'Solar & Lunar Maze', description: 'Coordinate twin spirits through 5 perilous tomb labyrinths.', icon: Map, color: 'from-gold-dark to-primary', emoji: '🧟', category: 'Action', difficulty: 'Hard', duration: '3-5 min' },
@@ -190,7 +190,7 @@ export default function Games() {
         )}
 
         {/* Games Grid */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredGames.filter(g => filter !== 'All' || !g.isNew).map((game, index) => (
               <motion.div
@@ -200,40 +200,38 @@ export default function Games() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
-                className="group relative cursor-pointer"
-                onClick={() => handleGameSelect(game.id as GameType)}
               >
                 <EgyptianCard
                   variant="interactive"
                   padding="none"
-                  className="h-full overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors"
+                  glowOnHover
+                  className="h-full group hover:border-primary/50 transition-colors"
+                  onClick={() => handleGameSelect(game.id as GameType)}
                 >
-                  <div className="flex flex-col md:flex-row h-full">
-                    <div className={`md:w-1/3 min-h-[160px] bg-gradient-to-br ${game.color} flex items-center justify-center p-8 relative overflow-hidden`}>
-                      <div className="absolute inset-0 opacity-20 hieroglyph-pattern" />
-                      <span className="text-7xl group-hover:scale-110 transition-transform duration-500 relative z-10">{game.emoji}</span>
+                  <div className={`h-40 bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden`}>
+                    <div className="absolute inset-0 opacity-10 hieroglyph-pattern" />
+                    <span className="text-6xl group-hover:rotate-12 transition-transform duration-300 relative z-10">{game.emoji}</span>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10">
+                        {(() => {
+                          const Icon = game.icon;
+                          return <Icon className="w-3 h-3 text-primary" />;
+                        })()}
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{game.category}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-muted-foreground">{game.duration}</span>
                     </div>
-                    <div className="md:w-2/3 p-6 flex flex-col justify-between bg-obsidian/40">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-bold tracking-widest text-primary uppercase">{game.category}</span>
-                          <div className="flex items-center gap-1 text-[10px] text-turquoise font-bold uppercase">
-                            <Timer size={12} /> {game.duration}
-                          </div>
-                        </div>
-                        <h3 className="text-2xl font-display text-white mb-2 group-hover:text-primary transition-colors">{game.title}</h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">{game.description}</p>
-                      </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex gap-1">
-                          {[...Array(3)].map((_, i) => (
-                            <Star key={i} size={14} className={i < (game.difficulty === 'Hard' || game.difficulty === 'Expert' ? 3 : 2) ? "text-primary fill-primary" : "text-white/10"} />
-                          ))}
-                        </div>
-                        <div className="text-primary group-hover:translate-x-1 transition-transform flex items-center text-sm font-bold">
-                          PLAY NOW <ChevronRight size={16} />
-                        </div>
-                      </div>
+                    <h4 className="text-lg font-display text-white mb-2 group-hover:text-primary transition-colors">{game.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                      {game.description}
+                    </p>
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="text-[10px] font-bold text-muted-foreground">DIFF: <span className="text-primary">{game.difficulty}</span></div>
+                      <EgyptianButton variant="default" size="sm" className="h-8 text-[10px] px-4">
+                        PLAY NOW
+                      </EgyptianButton>
                     </div>
                   </div>
                 </EgyptianCard>
