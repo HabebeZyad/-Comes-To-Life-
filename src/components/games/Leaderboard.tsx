@@ -19,6 +19,9 @@ const GAME_NAMES: Record<string, { label: string; emoji: string }> = {
   'pyramid-trail': { label: 'The Pyramid Trail', emoji: '📍' },
   'order-builders': { label: 'Order of the Builders', emoji: '⏳' },
   'great-minds': { label: 'The Great Minds', emoji: '🧠' },
+  'scribes-journal': { label: "Scribe's Journal", emoji: '📓' },
+  'tomb-explorer': { label: 'Tomb Explorer', emoji: '𓊖' },
+  'hieroglyph-match': { label: 'Hieroglyph Match', emoji: '𓇚' },
 };
 
 export function Leaderboard() {
@@ -48,8 +51,8 @@ export function Leaderboard() {
             key={key}
             onClick={() => setFilter(key)}
             className={`px-3 py-1.5 rounded-lg text-sm font-body transition-all border ${filter === key
-                ? 'bg-primary text-primary-foreground border-gold-light/50'
-                : 'bg-card text-muted-foreground border-border hover:border-gold/30'
+              ? 'bg-primary text-primary-foreground border-gold-light/50'
+              : 'bg-card text-muted-foreground border-border hover:border-gold/30'
               }`}
           >
             {emoji} {label}
