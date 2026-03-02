@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Crown, Trophy, Timer, Star, Search, Shield, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Crown, Trophy, Timer, Star, Search, Shield, HelpCircle, Zap, Info, Clock } from 'lucide-react';
 import { pharaohs, Pharaoh } from '@/data/pharaohs';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
@@ -36,6 +36,7 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
     const [options, setOptions] = useState<string[]>([]);
     const [score, setScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
+    const [timeElapsed, setTimeElapsed] = useState(0);
     const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
     const [streak, setStreak] = useState(0);
 
@@ -43,6 +44,16 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
     const { addScore } = useHighScores();
 
     const wave = useMemo(() => waves[currentWave], [currentWave]);
+
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval>;
+        if (gameState === 'playing') {
+            interval = setInterval(() => setTimeElapsed(prev => prev + 1), 1000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [gameState]);
 
     const generateQuestion = useCallback((waveIdx: number) => {
         const pharaoh = pharaohs[Math.floor(Math.random() * pharaohs.length)];
@@ -126,9 +137,6 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                     setCurrentIdxInWave(prev => prev + 1);
                     generateQuestion(currentWave);
                 }
-            } else {
-                // Stay on same question or move on?
-                // Let's stay but penalize time above.
             }
         }, 1200);
     };
@@ -143,59 +151,113 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
         setScore(0);
         setCurrentWave(0);
         setStreak(0);
+        setTimeElapsed(0);
         initWave(0);
     };
 
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     return (
-        <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
-            <div className="max-w-5xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <EgyptianButton
-                        variant="nav"
-                        onClick={() => { stopAmbientMusic(); onBack(); }}
-                        className="-ml-4"
-                    >
-                        <ArrowLeft size={20} className="mr-2" /> Back to Games
-                    </EgyptianButton>
+        <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden relative">
+            {/* Themed background */}
+            <div className="absolute inset-0 pointer-events-none opacity-5">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
+                <Crown className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]" />
+            </div>
+
+            <div className="max-w-6xl mx-auto relative z-10">
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <EgyptianButton
+                            variant="nav"
+                            onClick={() => { stopAmbientMusic(); onBack(); }}
+                            className="-ml-4 mb-2"
+                        >
+                            <ArrowLeft size={20} className="mr-2" /> Back to Games
+                        </EgyptianButton>
+                        <h1 className="text-4xl font-display text-gold-gradient">Guess the Pharaoh</h1>
+                        <p className="text-muted-foreground font-body">Identify the divine rulers of the Nile</p>
+                    </div>
+
                     <div className="flex gap-4">
-                        <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
-                            <Crown className="text-primary w-4 h-4" />
-                            <span className="text-sm font-display text-gold">TRIAL {currentWave + 1}/5</span>
+                        <div className="bg-obsidian/60 border border-gold/20 px-4 py-2 rounded-lg text-center min-w-[100px]">
+                            <div className="text-[10px] uppercase text-muted-foreground flex items-center justify-center gap-1">
+                                <Crown size={12} className="text-primary" /> Wave
+                            </div>
+                            <div className="text-xl font-bold text-primary">{currentWave + 1}/5</div>
                         </div>
-                        <div className="px-4 py-2 bg-obsidian/60 border border-gold/30 rounded-full flex items-center gap-2">
-                            <Trophy className="text-primary w-4 h-4" />
-                            <span className="text-sm font-display text-gold">SCORE: {score}</span>
+                        <div className="bg-obsidian/60 border border-gold/20 px-4 py-2 rounded-lg text-center min-w-[100px]">
+                            <div className="text-[10px] uppercase text-muted-foreground flex items-center justify-center gap-1">
+                                <Trophy size={12} className="text-turquoise" /> Score
+                            </div>
+                            <div className="text-xl font-bold text-turquoise">{score}</div>
                         </div>
                     </div>
                 </div>
 
-                <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden shadow-2xl border-2 border-gold/20">
-                    {/* Header HUD */}
-                    <div className="p-4 border-b border-gold/10 bg-gold/5 flex justify-between items-center">
+                <EgyptianCard variant="tomb" padding="none" className="relative overflow-hidden shadow-2xl border-2 border-gold/30">
+                    {/* Professional Game HUD */}
+                    <div className="p-4 border-b border-gold/20 bg-black/60 flex flex-wrap justify-between items-center gap-4">
                         <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-2">
-                                <Search className="text-primary" size={20} />
-                                <span className="font-display text-gold">Chronicle Progress</span>
-                                <div className="w-32 h-3 bg-obsidian/60 rounded-full border border-gold/20 overflow-hidden relative">
-                                    <div
-                                        className="h-full bg-primary shadow-gold-glow transition-all duration-500"
-                                        style={{ width: `${(currentIdxInWave / wave.count) * 100}%` }}
-                                    />
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-primary/20 rounded-lg">
+                                    <Search className="text-primary" size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest leading-none mb-1">Status</div>
+                                    <div className="font-display text-gold text-sm uppercase">Researching Lineage</div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Star className="text-turquoise" size={20} />
-                                <span className="font-display text-gold text-lg">Streak: {streak}</span>
+
+                            <div className="h-10 w-px bg-gold/10 hidden sm:block" />
+
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-turquoise/20 rounded-lg">
+                                    <Star className="text-turquoise" size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest leading-none mb-1">Current Streak</div>
+                                    <div className="font-display text-turquoise text-lg leading-none">{streak}x</div>
+                                </div>
+                            </div>
+
+                             <div className="h-10 w-px bg-gold/10 hidden sm:block" />
+
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${timeLeft < 10 ? 'bg-terracotta/20' : 'bg-primary/20'}`}>
+                                    <Timer className={timeLeft < 10 ? 'text-terracotta animate-pulse' : 'text-primary'} size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest leading-none mb-1">Time Left</div>
+                                    <div className={`font-mono text-lg leading-none ${timeLeft < 10 ? 'text-terracotta' : 'text-foreground'}`}>{timeLeft}s</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col items-end">
-                            <h2 className="text-xl font-display text-gold-gradient leading-none">{wave.name}</h2>
-                            <p className="text-xs text-muted-foreground font-body mt-1">Difficulty: {wave.difficulty}</p>
+                        <div className="flex items-center gap-4">
+                             <div className="text-right hidden md:block">
+                                <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest mb-1">Current Trial</div>
+                                <div className="font-display text-gold-light text-lg leading-none">{wave.name}</div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="w-48 h-2 bg-obsidian/60 rounded-full border border-gold/20 overflow-hidden relative">
+                                    <motion.div
+                                        className="h-full bg-primary shadow-gold-glow"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${(currentIdxInWave / wave.count) * 100}%` }}
+                                        transition={{ duration: 0.5 }}
+                                    />
+                                </div>
+                                <span className="text-[10px] text-gold/60 mt-1 uppercase font-display tracking-tighter">Wave Progress</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="relative p-12 bg-obsidian flex flex-col items-center justify-center min-h-[500px]">
+                    <div className="relative p-12 bg-obsidian/40 backdrop-blur-sm flex flex-col items-center justify-center min-h-[500px]">
                         {gameState === 'playing' && currentPharaoh && (
                             <AnimatePresence mode="wait">
                                 <motion.div
@@ -229,13 +291,6 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                                                 {option}
                                             </EgyptianButton>
                                         ))}
-                                    </div>
-
-                                    <div className="mt-8 flex justify-center">
-                                        <div className={`flex items-center gap-3 px-6 py-2 rounded-full border-2 ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse text-terracotta' : 'bg-obsidian/60 border-gold/30 text-gold'} font-display`}>
-                                            <Timer size={20} />
-                                            <span className="text-xl">{timeLeft}s</span>
-                                        </div>
                                     </div>
                                 </motion.div>
                             </AnimatePresence>
@@ -276,6 +331,7 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                               stars={5}
                               stats={[
                                 { label: 'Final Score', value: score },
+                                { label: 'Total Time', value: formatTime(timeElapsed) },
                                 { label: 'Highest Streak', value: streak }
                               ]}
                               actionLabel="Identify Again"
@@ -300,6 +356,30 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                             />
                           )}
                         </AnimatePresence>
+                    </div>
+
+                    {/* Meta Info Footer */}
+                    <div className="p-4 bg-black/60 border-t border-gold/20 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="flex items-center gap-2">
+                            <Shield size={16} className="text-primary" />
+                            <span className="text-[10px] text-muted-foreground uppercase">Difficulty:</span>
+                            <span className="text-xs font-display text-gold">{wave.difficulty}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Star size={16} className="text-turquoise" />
+                            <span className="text-[10px] text-muted-foreground uppercase">Reward:</span>
+                            <span className="text-xs font-display text-turquoise">Historian Badge</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Zap size={16} className="text-gold" />
+                            <span className="text-[10px] text-muted-foreground uppercase">Accuracy:</span>
+                            <span className="text-xs font-display text-gold">High</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Info size={16} className="text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground uppercase">Goal:</span>
+                            <span className="text-xs font-display text-white">Clear All Waves</span>
+                        </div>
                     </div>
                 </EgyptianCard>
 
