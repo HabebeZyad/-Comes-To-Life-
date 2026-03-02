@@ -43,7 +43,11 @@ export interface EgyptianCardProps
   glowOnHover?: boolean;
 }
 
-const EgyptianCard = React.forwardRef<HTMLDivElement, EgyptianCardProps>(
+/**
+ * EgyptianCard Component
+ * Memoized to prevent unnecessary re-renders when parent state changes.
+ */
+const EgyptianCard = React.memo(React.forwardRef<HTMLDivElement, EgyptianCardProps>(
   ({ className, variant, padding, glowOnHover = false, children, ...props }, ref) => {
     return (
       <div
@@ -59,10 +63,10 @@ const EgyptianCard = React.forwardRef<HTMLDivElement, EgyptianCardProps>(
       </div>
     );
   }
-);
+));
 EgyptianCard.displayName = "EgyptianCard";
 
-const EgyptianCardHeader = React.forwardRef<
+const EgyptianCardHeader = React.memo(React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
@@ -71,10 +75,10 @@ const EgyptianCardHeader = React.forwardRef<
     className={cn("flex flex-col space-y-2 mb-4", className)}
     {...props}
   />
-));
+)));
 EgyptianCardHeader.displayName = "EgyptianCardHeader";
 
-const EgyptianCardTitle = React.forwardRef<
+const EgyptianCardTitle = React.memo(React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
@@ -86,10 +90,10 @@ const EgyptianCardTitle = React.forwardRef<
     )}
     {...props}
   />
-));
+)));
 EgyptianCardTitle.displayName = "EgyptianCardTitle";
 
-const EgyptianCardDescription = React.forwardRef<
+const EgyptianCardDescription = React.memo(React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
@@ -98,15 +102,15 @@ const EgyptianCardDescription = React.forwardRef<
     className={cn("text-muted-foreground font-body text-lg", className)}
     {...props}
   />
-));
+)));
 EgyptianCardDescription.displayName = "EgyptianCardDescription";
 
-const EgyptianCardContent = React.forwardRef<
+const EgyptianCardContent = React.memo(React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("font-body", className)} {...props} />
-));
+)));
 EgyptianCardContent.displayName = "EgyptianCardContent";
 
 export {

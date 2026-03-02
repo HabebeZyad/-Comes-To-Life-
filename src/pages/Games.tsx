@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
@@ -90,12 +90,18 @@ export default function Games() {
     setCurrentGame(gameId);
   };
 
+  /**
+   * Memoize the filtered games list to avoid recalculating on every render cycle.
+   * This is particularly useful when other state changes (like currentGame) cause re-renders.
+   */
+  const filteredGames = useMemo(() => {
+    return filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
+  }, [filter]);
+
   if (currentGame !== 'menu') {
     const GameComponent = gameComponents[currentGame];
     if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
   }
-
-  const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative overflow-hidden">
