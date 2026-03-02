@@ -16,10 +16,12 @@ import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
 import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
 import { GreatMindsGame } from '@/components/games/GreatMindsGame';
 import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
+import { TombExplorerGame } from '@/components/games/TombExplorerGame';
+import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match';
 
 interface Game {
   id: GameType;
@@ -48,6 +50,8 @@ const games: Game[] = [
   { id: 'order-builders', title: 'Chronicles of the Nile', description: 'Reconstruct the 3-era broken timeline of the Pharaohs through the ages.', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳', category: 'History', difficulty: 'Expert', duration: '6 min', isNew: true },
   { id: 'great-minds', title: 'Hall of Records', description: 'Investigate the deeds and wisdom of history in a 2-volume saga.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Hard', duration: '5 min', isNew: true },
   { id: 'scribes-journal', title: "Scribe's Journal", description: "Piece together historical events from fragmented journal entries.", icon: BookOpen, color: 'from-emerald-500 to-teal-700', emoji: '📓', category: 'History', difficulty: 'Medium', duration: '5 min', isNew: true },
+  { id: 'tomb-explorer', title: 'Tomb Explorer', description: 'Navigate dark chambers, avoid traps, and recover lost treasures.', icon: Map, color: 'from-terracotta to-gold-dark', emoji: '𓊖', category: 'Action', difficulty: 'Hard', duration: '4-6 min', isNew: true },
+  { id: 'hieroglyph-match', title: 'Hieroglyph Match', description: 'Match sacred symbols to their meanings in this linguistic trial.', icon: Languages, color: 'from-lapis to-turquoise', emoji: '𓇚', category: 'Wisdom', difficulty: 'Medium', duration: '3-5 min', isNew: true },
 ];
 
 const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> = {
@@ -65,6 +69,8 @@ const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> 
   'order-builders': OrderOfBuildersGame,
   'great-minds': GreatMindsGame,
   'scribes-journal': ScribesLostJournalGame,
+  'tomb-explorer': TombExplorerGame,
+  'hieroglyph-match': HieroglyphMatchGame,
 };
 
 export default function Games() {
