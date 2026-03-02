@@ -87,8 +87,8 @@ export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
-             {/* Themed background */}
-             <div className="absolute inset-0 pointer-events-none opacity-5">
+            {/* Themed background */}
+            <div className="absolute inset-0 pointer-events-none opacity-5">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
                 <Users className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]" />
             </div>
@@ -151,7 +151,7 @@ export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                             <div className="text-right hidden md:block">
+                            <div className="text-right hidden md:block">
                                 <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest mb-1">Current Volume</div>
                                 <div className="font-display text-gold-light text-lg leading-none">{stage.name}</div>
                             </div>
@@ -232,21 +232,21 @@ export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-primary/20 rounded-lg text-primary"><Users size={20}/></div>
+                        <div className="p-2 bg-primary/20 rounded-lg text-primary"><Users size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">Sacred Identities</h4>
                             <p className="text-xs text-muted-foreground mt-1">Match the great architects, pharaohs, and sages to their eternal deeds.</p>
                         </div>
                     </div>
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><ScrollText size={20}/></div>
+                        <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><ScrollText size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">Ancient Scrolls</h4>
                             <p className="text-xs text-muted-foreground mt-1">Reconstruct the scrambled records of the Old and Middle Kingdoms.</p>
                         </div>
                     </div>
                     <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-                        <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20}/></div>
+                        <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20} /></div>
                         <div>
                             <h4 className="text-gold font-display text-sm uppercase tracking-widest">Sage Rank</h4>
                             <p className="text-xs text-muted-foreground mt-1">Achieve high accuracy to be granted the title of Grand Vizier of Knowledge.</p>
@@ -256,43 +256,43 @@ export const GreatMindsGame: React.FC<GreatMindsGameProps> = ({ onBack }) => {
             </div>
 
             <AnimatePresence>
-              {gameState === 'levelUp' && (
-                <GameOverlay
-                  type="levelup"
-                  title="Records Restored!"
-                  description={stage.victoryDesc}
-                  stats={[
-                    { label: 'Volume Score', value: currentScore },
-                    { label: 'Time', value: formatTime(timeElapsed) }
-                  ]}
-                  actionLabel="Next Volume"
-                  onAction={nextStage}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'levelUp' && (
+                    <GameOverlay
+                        type="levelup"
+                        title="Records Restored!"
+                        description={stage.victoryDesc}
+                        stats={[
+                            { label: 'Volume Score', value: currentScore },
+                            { label: 'Time', value: formatTime(timeElapsed) }
+                        ]}
+                        actionLabel="Next Volume"
+                        onAction={nextStage}
+                        onSecondaryAction={onBack}
+                    />
+                )}
 
-              {gameState === 'victory' && (
-                <GameOverlay
-                  type="victory"
-                  title="High Sage of History"
-                  description="The deeds of the great minds are no longer forgotten. The Hall of Records stands complete in your honor."
-                  score={totalScore}
-                  stars={5}
-                  stats={[
-                    { label: 'Final Score', value: totalScore },
-                    { label: 'Total Time', value: formatTime(timeElapsed) },
-                    { label: 'Rank', value: 'Grand Vizier of Knowledge' }
-                  ]}
-                  actionLabel="Scribe Again"
-                  onAction={() => {
-                    setCurrentStage(0);
-                    setTotalScore(0);
-                    setTimeElapsed(0);
-                    setGameState('intro');
-                  }}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'victory' && (
+                    <GameOverlay
+                        type="victory"
+                        title="High Sage of History"
+                        description="The deeds of the great minds are no longer forgotten. The Hall of Records stands complete in your honor."
+                        score={totalScore}
+                        stars={5}
+                        stats={[
+                            { label: 'Final Score', value: totalScore },
+                            { label: 'Total Time', value: formatTime(timeElapsed) },
+                            { label: 'Rank', value: 'Grand Vizier of Knowledge' }
+                        ]}
+                        actionLabel="Scribe Again"
+                        onAction={() => {
+                            setCurrentStage(0);
+                            setTotalScore(0);
+                            setTimeElapsed(0);
+                            setGameState('intro');
+                        }}
+                        onSecondaryAction={onBack}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

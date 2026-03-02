@@ -126,11 +126,11 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                     } else {
                         setGameState('victory');
                         playSound('victory');
-                        addScore({
-                            playerName: 'Historian',
-                            score: score + 500,
-                            game: 'guess-the-pharaoh',
-                            details: 'Grand Chronicler of the Divine Rulers'
+                        addScore({ 
+                            playerName: 'Historian', 
+                            score: score + 500, 
+                            game: 'guess-the-pharaoh', 
+                            details: 'Grand Chronicler of the Divine Rulers' 
                         });
                     }
                 } else {
@@ -212,55 +212,22 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
                                     <div className="font-display text-gold text-sm uppercase">Researching Lineage</div>
                                 </div>
                             </div>
-
-                            <div className="h-10 w-px bg-gold/10 hidden sm:block" />
-
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-turquoise/20 rounded-lg">
-                                    <Star className="text-turquoise" size={20} />
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest leading-none mb-1">Current Streak</div>
-                                    <div className="font-display text-turquoise text-lg leading-none">{streak}x</div>
-                                </div>
-                            </div>
-
-                             <div className="h-10 w-px bg-gold/10 hidden sm:block" />
-
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${timeLeft < 10 ? 'bg-terracotta/20' : 'bg-primary/20'}`}>
-                                    <Timer className={timeLeft < 10 ? 'text-terracotta animate-pulse' : 'text-primary'} size={20} />
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest leading-none mb-1">Time Left</div>
-                                    <div className={`font-mono text-lg leading-none ${timeLeft < 10 ? 'text-terracotta' : 'text-foreground'}`}>{timeLeft}s</div>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <Star className="text-turquoise" size={20} />
+                                <span className="font-display text-gold text-lg">Streak: {streak}</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                             <div className="text-right hidden md:block">
-                                <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest mb-1">Current Trial</div>
-                                <div className="font-display text-gold-light text-lg leading-none">{wave.name}</div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <div className="w-48 h-2 bg-obsidian/60 rounded-full border border-gold/20 overflow-hidden relative">
-                                    <motion.div
-                                        className="h-full bg-primary shadow-gold-glow"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${(currentIdxInWave / wave.count) * 100}%` }}
-                                        transition={{ duration: 0.5 }}
-                                    />
-                                </div>
-                                <span className="text-[10px] text-gold/60 mt-1 uppercase font-display tracking-tighter">Wave Progress</span>
-                            </div>
+                        <div className="flex flex-col items-end">
+                            <h2 className="text-xl font-display text-gold-gradient leading-none">{wave.name}</h2>
+                            <p className="text-xs text-muted-foreground font-body mt-1">Difficulty: {wave.difficulty}</p>
                         </div>
                     </div>
 
                     <div className="relative p-12 bg-obsidian/40 backdrop-blur-sm flex flex-col items-center justify-center min-h-[500px]">
                         {gameState === 'playing' && currentPharaoh && (
                             <AnimatePresence mode="wait">
-                                <motion.div
+                                <motion.div 
                                     key={`${currentWave}-${currentIdxInWave}`}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}

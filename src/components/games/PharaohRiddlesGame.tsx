@@ -144,7 +144,6 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
                 <span className={`font-display text-lg ${timeLeft < 10 ? "text-terracotta" : "text-gold"}`}>{timeLeft}s</span>
               </div>
             </div>
-
             <div className="flex flex-col items-end">
               <h2 className="text-xl font-display text-gold-gradient leading-none">{currentLevel.title}</h2>
               <p className="text-xs text-muted-foreground font-body mt-1">Difficulty: {currentLevelIdx < 2 ? 'Initiate' : 'High Priest'}</p>
@@ -279,21 +278,21 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Brain size={20}/></div>
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Brain size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Divine Wisdom</h4>
               <p className="text-xs text-muted-foreground mt-1">Each correct answer grants you access to deeper mysteries and higher scores.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20}/></div>
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Temporal Trial</h4>
               <p className="text-xs text-muted-foreground mt-1">Answering quickly provides a time bonus. If the sand runs out, the trial is failed.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Sparkles size={20}/></div>
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Sparkles size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Mastery</h4>
               <p className="text-xs text-muted-foreground mt-1">Completing all 4 trials with high precision marks you as a Living God of Wisdom.</p>

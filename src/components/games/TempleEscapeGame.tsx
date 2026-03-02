@@ -57,7 +57,6 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
   const [showResult, setShowResult] = useState(false);
   const [shuffledTraps, setShuffledTraps] = useState<Trap[]>([]);
   const [streak, setStreak] = useState(0);
-
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
@@ -91,11 +90,8 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
 
   const handleChoice = (index: number) => {
     if (showResult || gameState !== 'playing') return;
-
     setSelectedOption(index);
-    setShowResult(true);
-
-    const trap = shuffledTraps[currentTrapIndex];
+    setShowResult(true); const trap = shuffledTraps[currentTrapIndex];
     const isSafe = index !== -1 && trap.options[index].safe;
 
     if (isSafe) {
@@ -106,9 +102,7 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
     } else {
       playSound('wrong');
       setLives(l => l - 1);
-      setStreak(0);
-
-      if (lives <= 1) {
+      setStreak(0); if (lives <= 1) {
         setTimeout(() => {
           setGameState('defeat');
           stopAmbientMusic();
@@ -203,7 +197,6 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
                 <span className="font-display text-gold text-lg">STREAK: {streak}</span>
               </div>
             </div>
-
             <div className="flex flex-col items-end">
               <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
               <p className="text-xs text-muted-foreground font-body mt-1">Escape the traps before time runs out!</p>
@@ -327,21 +320,21 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Shield size={20}/></div>
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Shield size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Divine Protection</h4>
               <p className="text-xs text-muted-foreground mt-1">You have 3 lives. Choosing an incorrect path or running out of time costs one heart.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20}/></div>
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Timer size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Echoes of Time</h4>
               <p className="text-xs text-muted-foreground mt-1">Faster reactions provide significant score bonuses. The time limit shrinks as you go deeper.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20}/></div>
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Trial Mastery</h4>
               <p className="text-xs text-muted-foreground mt-1">Escaping with all hearts intact awards a massive divine bonus to your final score.</p>

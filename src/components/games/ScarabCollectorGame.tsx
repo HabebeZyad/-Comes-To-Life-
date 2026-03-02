@@ -42,7 +42,6 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelup' | 'victory' | 'defeat'>('intro');
-
   const lastClickRef = useRef(Date.now());
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
@@ -184,11 +183,8 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
       const newCombo = timeSinceLast < 1200 ? combo + 1 : 1;
       setCombo(newCombo);
       setCollected(prev => prev + 1);
-
       const comboBonus = Math.floor(newCombo / 3) * 50;
-      setScore(prev => prev + scarab.points + comboBonus);
-
-      if (newCombo >= 3 && newCombo % 3 === 0) {
+      setScore(prev => prev + scarab.points + comboBonus); if (newCombo >= 3 && newCombo % 3 === 0) {
         playSound('streak');
       }
     }
@@ -284,7 +280,7 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleScarabClick(scarab)}
-                    className={`absolute text-4xl select-none z-10
+                    className={`absolute text-4xl select-none z-10 
                       ${scarab.type === 'sacred' ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]' : ''}
                       ${scarab.type === 'bonus' ? 'drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-bounce' : ''}
                       ${scarab.type === 'cursed' ? 'drop-shadow-[0_0_8px_rgba(255,0,0,0.5)]' : ''}

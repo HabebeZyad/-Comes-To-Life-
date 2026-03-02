@@ -71,7 +71,6 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [shuffledPuzzles, setShuffledPuzzles] = useState<HieroglyphPuzzle[]>([]);
-
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
@@ -84,7 +83,6 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
       if (w.difficulty === 'medium') return true;
       return p.difficulty === 'medium' || p.difficulty === 'hard';
     });
-
     const shuffled = [...filtered].sort(() => Math.random() - 0.5).slice(0, w.puzzleCount);
     setShuffledPuzzles(shuffled);
     setCurrentPuzzleInWave(0);
@@ -134,7 +132,6 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
       setFeedback(null);
       setShowHint(false);
       setUserInput('');
-
       if (isCorrect) {
         if (currentPuzzleInWave >= shuffledPuzzles.length - 1) {
           if (currentWave < waves.length - 1) {
@@ -220,7 +217,6 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
                 <span className="font-display text-gold text-lg">Streak: {streak}</span>
               </div>
             </div>
-
             <div className="flex flex-col items-end">
               <h2 className="text-xl font-display text-gold-gradient leading-none">{wave.name}</h2>
               <p className="text-xs text-muted-foreground font-body mt-1">Difficulty: {wave.difficulty.toUpperCase()}</p>
@@ -379,21 +375,21 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg text-primary"><ScrollText size={20}/></div>
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><ScrollText size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Sacred Script</h4>
               <p className="text-xs text-muted-foreground mt-1">Symbols represent gods, pharaohs, and elements of nature.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Lightbulb size={20}/></div>
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Lightbulb size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Divine Aid</h4>
               <p className="text-xs text-muted-foreground mt-1">Using hints reveals a clue but reduces the potential score for that puzzle.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20}/></div>
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Trophy size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Streak Bonus</h4>
               <p className="text-xs text-muted-foreground mt-1">Consecutive correct decodings exponentially increase your score.</p>

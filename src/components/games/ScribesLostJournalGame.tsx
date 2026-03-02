@@ -54,8 +54,8 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
 
     return (
         <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
-             {/* Themed background */}
-             <div className="absolute inset-0 pointer-events-none opacity-5">
+            {/* Themed background */}
+            <div className="absolute inset-0 pointer-events-none opacity-5">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
                 <BookOpen className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]" />
             </div>
@@ -118,7 +118,7 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
                         </div>
 
                         <div className="flex items-center gap-4">
-                             <div className="text-right hidden md:block">
+                            <div className="text-right hidden md:block">
                                 <div className="text-[10px] text-muted-foreground uppercase font-display tracking-widest mb-1">Journal Origin</div>
                                 <div className="font-display text-gold-light text-lg leading-none">Temple of Thoth</div>
                             </div>
@@ -175,37 +175,37 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
             </div>
 
             <AnimatePresence>
-              {gameState === 'intro' && (
-                <GameOverlay
-                  type="intro"
-                  title="The Scribe's Trial"
-                  description="A sacred journal has been shattered by time. Use the discovered clues to piece together the logical sequence of events from this ancient expedition."
-                  onAction={startGame}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'intro' && (
+                    <GameOverlay
+                        type="intro"
+                        title="The Scribe's Trial"
+                        description="A sacred journal has been shattered by time. Use the discovered clues to piece together the logical sequence of events from this ancient expedition."
+                        onAction={startGame}
+                        onSecondaryAction={onBack}
+                    />
+                )}
 
-              {gameState === 'victory' && (
-                <GameOverlay
-                  type="victory"
-                  title="Historian's Insight"
-                  description="The journal is complete once more. Your logical deduction has preserved a vital piece of Egyptian history."
-                  score={score}
-                  stars={5}
-                  stats={[
-                    { label: 'Final Score', value: score },
-                    { label: 'Time Taken', value: formatTime(timeElapsed) },
-                    { label: 'Rank', value: 'Keeper of Records' }
-                  ]}
-                  actionLabel="Restore Again"
-                  onAction={() => {
-                      setScore(0);
-                      setTimeElapsed(0);
-                      setGameState('intro');
-                  }}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'victory' && (
+                    <GameOverlay
+                        type="victory"
+                        title="Historian's Insight"
+                        description="The journal is complete once more. Your logical deduction has preserved a vital piece of Egyptian history."
+                        score={score}
+                        stars={5}
+                        stats={[
+                            { label: 'Final Score', value: score },
+                            { label: 'Time Taken', value: formatTime(timeElapsed) },
+                            { label: 'Rank', value: 'Keeper of Records' }
+                        ]}
+                        actionLabel="Restore Again"
+                        onAction={() => {
+                            setScore(0);
+                            setTimeElapsed(0);
+                            setGameState('intro');
+                        }}
+                        onSecondaryAction={onBack}
+                    />
+                )}
             </AnimatePresence>
         </div>
     );

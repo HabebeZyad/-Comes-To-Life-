@@ -59,9 +59,8 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [scarabsCollected, setScarabsCollected] = useState(0);
   const [showCollectEffect, setShowCollectEffect] = useState(false);
-
-  const frameRef = useRef<number>(0);
   const lastSpawnRef = useRef(0);
+  const frameRef = useRef<number | null>(null);
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
@@ -122,12 +121,9 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
       // Spawn obstacles and collectibles
       lastSpawnRef.current++;
       const spawnRate = Math.max(15, 40 - currentLevel * 5);
-
       if (lastSpawnRef.current >= spawnRate) {
         lastSpawnRef.current = 0;
-        const rand = Math.random();
-
-        if (rand < 0.65) {
+        const rand = Math.random(); if (rand < 0.65) {
           const types = [
             { type: 'rock' as const, emoji: '🪨', width: 45 },
             { type: 'croc' as const, emoji: '🐊', width: 60 },
@@ -172,7 +168,9 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
     };
 
     frameRef.current = requestAnimationFrame(gameLoop);
-    return () => cancelAnimationFrame(frameRef.current);
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
   }, [gameState, level, currentLevel, scarabsCollected, playSound, score, addScore]);
 
   // Collision detection
@@ -189,7 +187,7 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
     // Check obstacle collisions
     for (const obs of obstacles) {
       if (obs.y + 10 < boatHitbox.bottom && obs.y + obs.width - 10 > boatHitbox.top &&
-          obs.x + 10 < boatHitbox.right && obs.x + obs.width - 10 > boatHitbox.left) {
+        obs.x + 10 < boatHitbox.right && obs.x + obs.width - 10 > boatHitbox.left) {
         setGameState('defeat');
         playSound('defeat');
         return;
@@ -199,7 +197,7 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
     // Check collectible collisions
     setCollectibles(cols => cols.map(c => {
       if (!c.collected && c.y + 10 < boatHitbox.bottom && c.y + 40 > boatHitbox.top &&
-          c.x + 10 < boatHitbox.right && c.x + 40 > boatHitbox.left) {
+        c.x + 10 < boatHitbox.right && c.x + 40 > boatHitbox.left) {
         playSound('collect');
         setScore(s => s + c.points);
         if (c.type === 'scarab') setScarabsCollected(prev => prev + 1);
@@ -265,7 +263,6 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
                 <span className="font-display text-gold text-lg">{scarabsCollected} / {level.scarabs}</span>
               </div>
             </div>
-
             <div className="flex flex-col items-end">
               <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
               <p className="text-xs text-muted-foreground font-body mt-1">Steer with ARROWS or A/D</p>
@@ -426,21 +423,21 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 font-body">
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Anchor size={20}/></div>
+            <div className="p-2 bg-primary/20 rounded-lg text-primary"><Anchor size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Navigation</h4>
               <p className="text-xs text-muted-foreground mt-1">Distance goal must be met while carrying enough sacred scarabs.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Waves size={20}/></div>
+            <div className="p-2 bg-turquoise/20 rounded-lg text-turquoise"><Waves size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Hazards</h4>
               <p className="text-xs text-muted-foreground mt-1">Rocks, crocodiles, and whirlpools will sink your vessel instantly.</p>
             </div>
           </div>
           <div className="p-4 bg-obsidian/40 border border-gold/10 rounded-xl flex items-start gap-3">
-            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20}/></div>
+            <div className="p-2 bg-gold/20 rounded-lg text-gold"><Zap size={20} /></div>
             <div>
               <h4 className="text-gold font-display text-sm">Treasures</h4>
               <p className="text-xs text-muted-foreground mt-1">Sacred scarabs are required to pass. Gold and papyrus boost your score.</p>

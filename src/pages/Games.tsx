@@ -103,10 +103,10 @@ export default function Games() {
           </div>
           <h1 className="text-5xl md:text-7xl font-display text-gold-gradient mb-6">Ancient Games</h1>
           <p className="text-xl text-muted-foreground font-body max-w-3xl mx-auto mb-10 leading-relaxed">
-            Test your prowess in the courts of the Pharaohs. From mental puzzles to swift action,
+            Test your prowess in the courts of the Pharaohs. From mental puzzles to swift action, 
             prove your worth and etch your name into the Hall of Records.
           </p>
-
+          
           <div className="flex flex-wrap items-center justify-center gap-4">
             <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)}>
               <Trophy size={20} className="mr-2" /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
@@ -196,10 +196,10 @@ export default function Games() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <EgyptianCard
-                  variant="interactive"
-                  padding="none"
-                  glowOnHover
+                <EgyptianCard 
+                  variant="interactive" 
+                  padding="none" 
+                  glowOnHover 
                   className="h-full group hover:border-primary/50 transition-colors"
                   onClick={() => handleGameSelect(game.id as GameType)}
                 >
