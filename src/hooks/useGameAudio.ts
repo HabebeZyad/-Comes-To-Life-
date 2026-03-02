@@ -18,7 +18,12 @@ type SoundType =
   | 'tick'
   | 'levelUp'
   | 'streak'
-  | 'gameStart';
+  | 'gameStart'
+  | 'jump'
+  | 'coin'
+  | 'hurt'
+  | 'pickup'
+  | 'unlock';
 
 // Synthesized sound definitions using Web Audio API
 const soundConfigs: Record<SoundType, (ctx: AudioContext) => void> = {
@@ -271,6 +276,78 @@ const soundConfigs: Record<SoundType, (ctx: AudioContext) => void> = {
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.3);
       osc.start(ctx.currentTime + i * 0.12);
       osc.stop(ctx.currentTime + i * 0.12 + 0.3);
+    });
+  },
+
+  jump: (ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  },
+
+  coin: (ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(988, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1319, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  },
+
+  hurt: (ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  },
+
+  pickup: (ctx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  },
+
+  unlock: (ctx) => {
+    const melody = [440, 554, 659, 880];
+    melody.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
+      osc.start(ctx.currentTime + i * 0.1);
+      osc.stop(ctx.currentTime + i * 0.1 + 0.3);
     });
   },
 };
