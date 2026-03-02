@@ -1,43 +1,45 @@
 import asyncio
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, expect
 
-async def run():
-    print("Starting Playwright...")
+async def verify():
     async with async_playwright() as p:
-        browser = await p.chromium.launch()
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(viewport={'width': 1280, 'height': 800})
         page = await context.new_page()
 
-        url = "http://localhost:8080/-Comes-To-Life-/games"
-        print(f"Navigating to {url}...")
-        await page.goto(url, timeout=60000)
-        await page.wait_for_load_state("networkidle")
+        # Base URL with custom path
+        base_url = "http://localhost:8080/-Comes-To-Life-/"
 
-        # Click History tab
-        print("Clicking History tab...")
-        await page.click("button:has-text('History')")
+        print("Navigating to Games Hub...")
+        await page.goto(base_url + "games")
+        await page.wait_for_timeout(3000)
+
+        # Verify Hub
+        await page.screenshot(path="final_games_hub_professional.png")
+
+        # Verify Pyramid Trail (History)
+        print("Testing Pyramid Trail...")
+        await page.get_by_role("heading", name="The Pyramid Trail").first.click()
         await page.wait_for_timeout(2000)
+        await page.screenshot(path="final_professional_trail.png")
 
-        # Hall of Records
-        print("Checking Hall of Records...")
-        minds_card = page.get_by_role("heading", name="Hall of Records")
-        if await minds_card.is_visible():
-            print("Found Hall of Records heading.")
-            await minds_card.click()
-            await page.wait_for_timeout(2000)
-            begin_btn = page.locator("button:has-text('Begin Entry')")
-            if await begin_btn.is_visible():
-                print("Found Begin Entry button.")
-                await begin_btn.click()
-                await page.wait_for_timeout(2000)
-                await page.screenshot(path="final_professional_minds.png")
-                print("Captured Professional Minds gameplay.")
-            else:
-                print("Begin Entry button NOT visible.")
-        else:
-            print("Hall of Records card NOT visible.")
+        # Verify Great Minds (History)
+        print("Testing Great Minds...")
+        await page.get_by_role("button", name="Back to Games").click()
+        await page.wait_for_timeout(1500)
+        await page.get_by_role("heading", name="Hall of Records").first.click()
+        await page.wait_for_timeout(2000)
+        await page.screenshot(path="final_professional_minds.png")
+
+        # Verify Order of Builders (History)
+        print("Testing Order of Builders...")
+        await page.get_by_role("button", name="Back to Games").click()
+        await page.wait_for_timeout(1500)
+        await page.get_by_role("heading", name="Chronicles of the Nile").first.click()
+        await page.wait_for_timeout(2000)
+        await page.screenshot(path="final_professional_builders.png")
 
         await browser.close()
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    asyncio.run(verify())
