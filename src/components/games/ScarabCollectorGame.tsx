@@ -79,38 +79,40 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     } else {
       playSound('levelUp');
     }
-  }, [level, score, collected, startAmbientMusic, playSound, addScore]);
+  }, [level, score, collected, startAmbientMusic, stopAmbientMusic, playSound, addScore]);
 
-  // Timer logic
+  // Timer logic - stable interval to avoid churn
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        if (score >= currentWave.target) {
-          setGameState('levelup');
-          setIsPlaying(false);
-          playSound('victory');
-        } else {
-          setGameState('defeat');
-          setIsPlaying(false);
-          stopAmbientMusic();
-          playSound('defeat');
-        }
-      }
-      return;
-    }
+    if (gameState !== 'playing') return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           clearInterval(timer);
           return 0;
         }
-        if (prev <= 6) playSound('tick');
+        if (prev <= 6 && prev > 1) playSound('tick');
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [gameState, playSound]);
+
+  // Handle game state transitions when timer reaches zero
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft === 0) {
+      if (score >= currentWave.target) {
+        setGameState('levelup');
+        setIsPlaying(false);
+        playSound('victory');
+      } else {
+        setGameState('defeat');
+        setIsPlaying(false);
+        stopAmbientMusic();
+        playSound('defeat');
+      }
+    }
   }, [gameState, timeLeft, score, currentWave.target, playSound, stopAmbientMusic]);
 
   // Spawning logic
@@ -151,14 +153,21 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     return () => clearInterval(spawnInterval);
   }, [gameState, level, currentWave.spawnRate]);
 
-  // Expiry logic
+  // Expiry logic - optimized to avoid redundant re-renders
   useEffect(() => {
+    if (gameState !== 'playing') return;
+
     const interval = setInterval(() => {
       const now = Date.now();
-      setScarabs(prev => prev.filter(s => s.expiresAt > now));
+      setScarabs(prev => {
+        const stillActive = prev.filter(s => s.expiresAt > now);
+        // Only update state if something actually expired to prevent unnecessary re-renders (every 100ms)
+        if (stillActive.length === prev.length) return prev;
+        return stillActive;
+      });
     }, 100);
     return () => clearInterval(interval);
-  }, []);
+  }, [gameState]);
 
   const handleScarabClick = (scarab: Scarab) => {
     if (gameState !== 'playing') return;
