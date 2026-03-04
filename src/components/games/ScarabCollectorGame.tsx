@@ -79,38 +79,38 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     } else {
       playSound('levelUp');
     }
-  }, [level, score, collected, startAmbientMusic, playSound, addScore]);
+  }, [level, score, collected, startAmbientMusic, stopAmbientMusic, playSound, addScore]);
 
-  // Timer logic
+  // Timer logic - stable interval to prevent churn
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        if (score >= currentWave.target) {
-          setGameState('levelup');
-          setIsPlaying(false);
-          playSound('victory');
-        } else {
-          setGameState('defeat');
-          setIsPlaying(false);
-          stopAmbientMusic();
-          playSound('defeat');
-        }
-      }
-      return;
-    }
+    if (gameState !== 'playing') return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        if (prev <= 6) playSound('tick');
-        return prev - 1;
+        if (prev <= 0) return 0;
+        const next = prev - 1;
+        if (next <= 5 && next > 0) playSound('tick');
+        return next;
       });
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [gameState, playSound]);
+
+  // Wave completion logic - separated from timer to avoid interval resets on score changes
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft === 0) {
+      if (score >= currentWave.target) {
+        setGameState('levelup');
+        setIsPlaying(false);
+        playSound('victory');
+      } else {
+        setGameState('defeat');
+        setIsPlaying(false);
+        stopAmbientMusic();
+        playSound('defeat');
+      }
+    }
   }, [gameState, timeLeft, score, currentWave.target, playSound, stopAmbientMusic]);
 
   // Spawning logic
@@ -151,11 +151,15 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     return () => clearInterval(spawnInterval);
   }, [gameState, level, currentWave.spawnRate]);
 
-  // Expiry logic
+  // Expiry logic - gated state update to reduce redundant re-renders
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setScarabs(prev => prev.filter(s => s.expiresAt > now));
+      setScarabs(prev => {
+        const hasExpired = prev.some(s => s.expiresAt <= now);
+        if (!hasExpired) return prev; // Avoid re-render if nothing changed
+        return prev.filter(s => s.expiresAt > now);
+      });
     }, 100);
     return () => clearInterval(interval);
   }, []);
