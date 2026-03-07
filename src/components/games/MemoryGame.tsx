@@ -79,30 +79,31 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     }
   }, [startAmbientMusic, playSound]);
 
-  // Timer
+  // Optimized Timer: Separate interval from state side-effects to prevent 'interval churn'
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        setGameState('defeat');
-        stopAmbientMusic();
-        playSound('defeat');
-      }
-      return;
-    }
+    if (gameState !== 'playing') return;
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        if (prev <= 6) playSound('tick');
-        return prev - 1;
-      });
+      setTimeLeft(prev => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState, timeLeft, playSound, stopAmbientMusic]);
+  }, [gameState]);
+
+  // Handle side effects of time changes
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    if (timeLeft > 0 && timeLeft <= 6) {
+      playSound('tick');
+    }
+
+    if (timeLeft === 0) {
+      setGameState('defeat');
+      stopAmbientMusic();
+      playSound('defeat');
+    }
+  }, [timeLeft, gameState, playSound, stopAmbientMusic]);
 
   // Win condition check
   useEffect(() => {
