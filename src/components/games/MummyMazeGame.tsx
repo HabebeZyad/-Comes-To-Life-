@@ -163,19 +163,24 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     startAmbientMusic();
   }, [playSound, startAmbientMusic]);
 
+  // Optimized Timer: Separate interval from state-dependent logic to prevent 'interval churn'
   useEffect(() => {
-    if (gameState === 'playing') {
-      if (timeLeft > 0) {
-        const timer = setInterval(() => {
-          setTimeLeft(t => t - 1);
-          setTotalTimeSpent(t => t + 1);
-        }, 1000);
-        return () => clearInterval(timer);
-      } else {
-        setGameState('defeat');
-        playSound('defeat');
-        stopAmbientMusic();
-      }
+    if (gameState !== 'playing') return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(t => Math.max(0, t - 1));
+      setTotalTimeSpent(t => t + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState]);
+
+  // Handle game over logic when time runs out
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft === 0) {
+      setGameState('defeat');
+      playSound('defeat');
+      stopAmbientMusic();
     }
   }, [gameState, timeLeft, playSound, stopAmbientMusic]);
 
