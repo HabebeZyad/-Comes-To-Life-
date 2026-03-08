@@ -381,8 +381,25 @@ export function useGameAudio() {
     }
   }, [audioEnabled, getAudioContext]);
 
+  const stopAmbientMusic = useCallback(() => {
+    if (ambientNodesRef.current) {
+      ambientNodesRef.current.oscillators.forEach(osc => {
+        try { osc.stop(); } catch (e) { /* already stopped */ }
+      });
+      ambientNodesRef.current = null;
+    }
+    if (ambientIntervalRef.current) {
+      clearInterval(ambientIntervalRef.current);
+      ambientIntervalRef.current = null;
+    }
+  }, []);
+
   const startAmbientMusic = useCallback(() => {
     if (!audioEnabled) return;
+
+    // Stop any existing ambient music before starting new nodes to prevent resource leaks
+    stopAmbientMusic();
+
     try {
       const ctx = getAudioContext();
 
@@ -429,20 +446,7 @@ export function useGameAudio() {
     } catch (e) {
       // Silently fail
     }
-  }, [audioEnabled, getAudioContext]);
-
-  const stopAmbientMusic = useCallback(() => {
-    if (ambientNodesRef.current) {
-      ambientNodesRef.current.oscillators.forEach(osc => {
-        try { osc.stop(); } catch (e) { /* already stopped */ }
-      });
-      ambientNodesRef.current = null;
-    }
-    if (ambientIntervalRef.current) {
-      clearInterval(ambientIntervalRef.current);
-      ambientIntervalRef.current = null;
-    }
-  }, []);
+  }, [audioEnabled, getAudioContext, stopAmbientMusic]);
 
   // Cleanup on unmount
   useEffect(() => {

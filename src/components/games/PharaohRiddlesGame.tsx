@@ -37,17 +37,27 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
     startAmbientMusic();
   }, [playSound, startAmbientMusic]);
 
+  // Optimized timer to eliminate interval churn and separate side effects
   useEffect(() => {
-    if (gameState === 'playing' && timeLeft > 0) {
-      const timer = setTimeout(() => {
-        setTimeLeft(t => t - 1);
-        if (timeLeft <= 5) playSound('tick');
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && gameState === 'playing') {
+    if (gameState !== 'playing') return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(t => (t > 0 ? t - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState]);
+
+  // Separate effect for side effects based on timeLeft to avoid recreating the interval
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    if (timeLeft === 0) {
       setGameState('defeat');
       playSound('defeat');
       stopAmbientMusic();
+    } else if (timeLeft <= 5) {
+      playSound('tick');
     }
   }, [timeLeft, gameState, playSound, stopAmbientMusic]);
 
