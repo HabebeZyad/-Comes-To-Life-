@@ -381,8 +381,44 @@ export function useGameAudio() {
     }
   }, [audioEnabled, getAudioContext]);
 
+  /**
+   * Optimized stopAmbientMusic
+   * Ensures all nodes are stopped AND disconnected to release resources
+   */
+  const stopAmbientMusic = useCallback(() => {
+    if (ambientNodesRef.current) {
+      const { oscillators, gains } = ambientNodesRef.current;
+
+      oscillators.forEach(osc => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch (e) { /* already stopped or disconnected */ }
+      });
+
+      gains.forEach(gain => {
+        try { gain.disconnect(); } catch (e) { /* already disconnected */ }
+      });
+
+      ambientNodesRef.current = null;
+    }
+
+    if (ambientIntervalRef.current) {
+      clearInterval(ambientIntervalRef.current);
+      ambientIntervalRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Optimized startAmbientMusic
+   * Now calls stopAmbientMusic first to prevent resource leaks/overlap
+   */
   const startAmbientMusic = useCallback(() => {
     if (!audioEnabled) return;
+
+    // Always stop existing music first to prevent overlapping sessions
+    stopAmbientMusic();
+
     try {
       const ctx = getAudioContext();
 
@@ -417,32 +453,28 @@ export function useGameAudio() {
         const noteFreq = PENTATONIC_SCALE[Math.floor(Math.random() * PENTATONIC_SCALE.length)];
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
+
         osc.type = 'sine';
         osc.frequency.setValueAtTime(noteFreq, ctx.currentTime);
         gain.gain.setValueAtTime(0.06, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+
         osc.connect(gain);
         gain.connect(ctx.destination);
+
+        // Add cleanup handler for short-lived notes
+        osc.onended = () => {
+          osc.disconnect();
+          gain.disconnect();
+        };
+
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 2);
       }, 2500 + Math.random() * 2000);
     } catch (e) {
       // Silently fail
     }
-  }, [audioEnabled, getAudioContext]);
-
-  const stopAmbientMusic = useCallback(() => {
-    if (ambientNodesRef.current) {
-      ambientNodesRef.current.oscillators.forEach(osc => {
-        try { osc.stop(); } catch (e) { /* already stopped */ }
-      });
-      ambientNodesRef.current = null;
-    }
-    if (ambientIntervalRef.current) {
-      clearInterval(ambientIntervalRef.current);
-      ambientIntervalRef.current = null;
-    }
-  }, []);
+  }, [audioEnabled, getAudioContext, stopAmbientMusic]);
 
   // Cleanup on unmount
   useEffect(() => {
