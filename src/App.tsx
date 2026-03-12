@@ -2,23 +2,40 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GameProvider } from "@/contexts/GameContext";
 import { Navigation } from "@/components/layout/Navigation";
 import ScrollToTop from "@/components/layout/ScrollToTop";
-import Index from "./pages/Index";
-import StorytellingHomePage from "./pages/StorytellingHomePage";
-import StorytellingEpisode3 from "./pages/StorytellingEpisode3";
-import StorytellingEpisode4 from "./pages/StorytellingEpisode4";
-import StorytellingEpisode5 from "./pages/StorytellingEpisode5";
-import HieroglyphsPage from "./pages/HieroglyphicsPage";
-import Profile from "./pages/Profile";
-import Stories from "./pages/Stories";
-import StoryReader from "./pages/StoryReader";
-import NotFound from "./pages/NotFound";
-import Games from "./pages/Games";
+
+// Lazy-loaded page components for route-level code splitting
+const Index = lazy(() => import("./pages/Index"));
+const StorytellingHomePage = lazy(() => import("./pages/StorytellingHomePage"));
+const StorytellingEpisode3 = lazy(() => import("./pages/StorytellingEpisode3"));
+const StorytellingEpisode4 = lazy(() => import("./pages/StorytellingEpisode4"));
+const StorytellingEpisode5 = lazy(() => import("./pages/StorytellingEpisode5"));
+const HieroglyphsPage = lazy(() => import("./pages/HieroglyphicsPage"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Stories = lazy(() => import("./pages/Stories"));
+const StoryReader = lazy(() => import("./pages/StoryReader"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Games = lazy(() => import("./pages/Games"));
 
 const queryClient = new QueryClient();
+
+/**
+ * LoadingFallback Component
+ * Standardized loading state for lazy-loaded routes.
+ */
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
+    <div className="absolute inset-0 opacity-10 hieroglyph-pattern pointer-events-none" />
+    <div className="relative flex flex-col items-center gap-6">
+      <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <span className="text-gold font-display text-xl tracking-widest animate-pulse">INITIATING TRIAL...</span>
+    </div>
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,19 +46,21 @@ const App = () => (
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <ScrollToTop />
           <Navigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/storytelling" element={<StorytellingHomePage />} />
-            <Route path="/storytelling/episode-3" element={<StorytellingEpisode3 />} />
-            <Route path="/storytelling/episode-4" element={<StorytellingEpisode4 />} />
-            <Route path="/storytelling/episode-5" element={<StorytellingEpisode5 />} />
-            <Route path="/hieroglyphs" element={<HieroglyphsPage />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/stories" element={<Stories />} />
-            <Route path="/stories/:storyId" element={<StoryReader />} />
-            <Route path="/games" element={<Games />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/storytelling" element={<StorytellingHomePage />} />
+              <Route path="/storytelling/episode-3" element={<StorytellingEpisode3 />} />
+              <Route path="/storytelling/episode-4" element={<StorytellingEpisode4 />} />
+              <Route path="/storytelling/episode-5" element={<StorytellingEpisode5 />} />
+              <Route path="/hieroglyphs" element={<HieroglyphsPage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/stories" element={<Stories />} />
+              <Route path="/stories/:storyId" element={<StoryReader />} />
+              <Route path="/games" element={<Games />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </GameProvider>
