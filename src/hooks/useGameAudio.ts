@@ -381,9 +381,34 @@ export function useGameAudio() {
     }
   }, [audioEnabled, getAudioContext]);
 
+  const stopAmbientMusic = useCallback(() => {
+    if (ambientNodesRef.current) {
+      // Explicitly disconnect nodes to release resources in the Web Audio graph
+      ambientNodesRef.current.oscillators.forEach(osc => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch (e) { /* already stopped */ }
+      });
+      ambientNodesRef.current.gains.forEach(gain => {
+        try {
+          gain.disconnect();
+        } catch (e) { /* already disconnected */ }
+      });
+      ambientNodesRef.current = null;
+    }
+    if (ambientIntervalRef.current) {
+      clearInterval(ambientIntervalRef.current);
+      ambientIntervalRef.current = null;
+    }
+  }, []);
+
   const startAmbientMusic = useCallback(() => {
     if (!audioEnabled) return;
     try {
+      // Prevent overlapping ambient tracks by stopping existing music first
+      stopAmbientMusic();
+
       const ctx = getAudioContext();
 
       // Drone bass note
@@ -429,20 +454,7 @@ export function useGameAudio() {
     } catch (e) {
       // Silently fail
     }
-  }, [audioEnabled, getAudioContext]);
-
-  const stopAmbientMusic = useCallback(() => {
-    if (ambientNodesRef.current) {
-      ambientNodesRef.current.oscillators.forEach(osc => {
-        try { osc.stop(); } catch (e) { /* already stopped */ }
-      });
-      ambientNodesRef.current = null;
-    }
-    if (ambientIntervalRef.current) {
-      clearInterval(ambientIntervalRef.current);
-      ambientIntervalRef.current = null;
-    }
-  }, []);
+  }, [audioEnabled, getAudioContext, stopAmbientMusic]);
 
   // Cleanup on unmount
   useEffect(() => {
