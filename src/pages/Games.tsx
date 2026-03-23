@@ -1,25 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen } from 'lucide-react';
-import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
+import { Brain, Map, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, BookOpen, Building } from 'lucide-react';
+import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { MemoryGame } from '@/components/games/MemoryGame';
-import { MummyMazeGame } from '@/components/games/MummyMazeGame';
-import { PharaohRiddlesGame } from '@/components/games/PharaohRiddlesGame';
-import { PyramidBuilderGame } from '@/components/games/PyramidBuilderGame';
-import { HieroglyphDecoderGame } from '@/components/games/HieroglyphDecoderGame';
-import { TempleEscapeGame } from '@/components/games/TempleEscapeGame';
-import { NileNavigatorGame } from '@/components/games/NileNavigatorGame';
-import { ScarabCollectorGame } from '@/components/games/ScarabCollectorGame';
-import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
-import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
-import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
-import { GreatMindsGame } from '@/components/games/GreatMindsGame';
-import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
-import { TombExplorerGame } from '@/components/games/TombExplorerGame';
-import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
+import Loader from '@/components/layout/Loader';
 
 type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match';
 
@@ -54,23 +40,24 @@ const games: Game[] = [
   { id: 'scribes-journal', title: "Scribe's Journal", description: "Piece together historical events from fragmented journal entries.", icon: BookOpen, color: 'from-emerald-500 to-teal-700', emoji: '📓', category: 'History', difficulty: 'Medium', duration: '5 min' },
 ];
 
-const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> = {
+// Lazy-loaded game components to significantly reduce initial bundle size
+const gameComponents: Record<GameType, React.LazyExoticComponent<React.FC<{ onBack: () => void }>> | null> = {
   menu: null,
-  memory: MemoryGame,
-  maze: MummyMazeGame,
-  riddles: PharaohRiddlesGame,
-  pyramid: PyramidBuilderGame,
-  decoder: HieroglyphDecoderGame,
-  'temple-escape': TempleEscapeGame,
-  'nile-navigator': NileNavigatorGame,
-  'scarab-collector': ScarabCollectorGame,
-  'guess-the-pharaoh': GuessThePharaohGame,
-  'pyramid-trail': PyramidTrailGame,
-  'order-builders': OrderOfBuildersGame,
-  'great-minds': GreatMindsGame,
-  'scribes-journal': ScribesLostJournalGame,
-  'tomb-explorer': TombExplorerGame,
-  'hieroglyph-match': HieroglyphMatchGame,
+  memory: lazy(() => import('@/components/games/MemoryGame').then(m => ({ default: m.MemoryGame }))),
+  maze: lazy(() => import('@/components/games/MummyMazeGame').then(m => ({ default: m.MummyMazeGame }))),
+  riddles: lazy(() => import('@/components/games/PharaohRiddlesGame').then(m => ({ default: m.PharaohRiddlesGame }))),
+  pyramid: lazy(() => import('@/components/games/PyramidBuilderGame').then(m => ({ default: m.PyramidBuilderGame }))),
+  decoder: lazy(() => import('@/components/games/HieroglyphDecoderGame').then(m => ({ default: m.HieroglyphDecoderGame }))),
+  'temple-escape': lazy(() => import('@/components/games/TempleEscapeGame').then(m => ({ default: m.TempleEscapeGame }))),
+  'nile-navigator': lazy(() => import('@/components/games/NileNavigatorGame').then(m => ({ default: m.NileNavigatorGame }))),
+  'scarab-collector': lazy(() => import('@/components/games/ScarabCollectorGame').then(m => ({ default: m.ScarabCollectorGame }))),
+  'guess-the-pharaoh': lazy(() => import('@/components/games/GuessThePharaohGame')),
+  'pyramid-trail': lazy(() => import('@/components/games/PyramidTrailGame').then(m => ({ default: m.PyramidTrailGame }))),
+  'order-builders': lazy(() => import('@/components/games/OrderOfBuildersGame').then(m => ({ default: m.OrderOfBuildersGame }))),
+  'great-minds': lazy(() => import('@/components/games/GreatMindsGame').then(m => ({ default: m.GreatMindsGame }))),
+  'scribes-journal': lazy(() => import('@/components/games/ScribesLostJournalGame').then(m => ({ default: m.ScribesLostJournalGame }))),
+  'tomb-explorer': lazy(() => import('@/components/games/TombExplorerGame').then(m => ({ default: m.TombExplorerGame }))),
+  'hieroglyph-match': lazy(() => import('@/components/games/HieroglyphMatchGame').then(m => ({ default: m.HieroglyphMatchGame }))),
 };
 
 export default function Games() {
@@ -92,7 +79,13 @@ export default function Games() {
 
   if (currentGame !== 'menu') {
     const GameComponent = gameComponents[currentGame];
-    if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
+    if (GameComponent) {
+      return (
+        <Suspense fallback={<Loader />}>
+          <GameComponent onBack={handleBackToMenu} />
+        </Suspense>
+      );
+    }
   }
 
   const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
@@ -139,7 +132,6 @@ export default function Games() {
           </motion.div>
         )}
 
-        {/* Featured Section */}
         {/* Games Grid */}
         <div className="grid md:grid-cols-2 gap-8">
           <AnimatePresence mode="popLayout">
@@ -169,7 +161,7 @@ export default function Games() {
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[10px] font-bold tracking-widest text-primary uppercase">{game.category}</span>
                           <div className="flex items-center gap-1 text-[10px] text-turquoise font-bold uppercase">
-                            <Timer size={12} /> {game.duration}
+                            <span className="flex items-center gap-1"><Timer size={12} /> {game.duration}</span>
                           </div>
                         </div>
                         <h3 className="text-2xl font-display text-white mb-2 group-hover:text-primary transition-colors">{game.title}</h3>
