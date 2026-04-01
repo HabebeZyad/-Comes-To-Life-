@@ -1,25 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { MemoryGame } from '@/components/games/MemoryGame';
-import { MummyMazeGame } from '@/components/games/MummyMazeGame';
-import { PharaohRiddlesGame } from '@/components/games/PharaohRiddlesGame';
-import { PyramidBuilderGame } from '@/components/games/PyramidBuilderGame';
-import { HieroglyphDecoderGame } from '@/components/games/HieroglyphDecoderGame';
-import { TempleEscapeGame } from '@/components/games/TempleEscapeGame';
-import { NileNavigatorGame } from '@/components/games/NileNavigatorGame';
-import { ScarabCollectorGame } from '@/components/games/ScarabCollectorGame';
-import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
-import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
-import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
-import { GreatMindsGame } from '@/components/games/GreatMindsGame';
-import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
-import { TombExplorerGame } from '@/components/games/TombExplorerGame';
-import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
+import Loader from '@/components/layout/Loader';
+
+// Component-level code splitting for games to reduce the "Games" route bundle size
+const MemoryGame = lazy(() => import('@/components/games/MemoryGame').then(m => ({ default: m.MemoryGame })));
+const MummyMazeGame = lazy(() => import('@/components/games/MummyMazeGame').then(m => ({ default: m.MummyMazeGame })));
+const PharaohRiddlesGame = lazy(() => import('@/components/games/PharaohRiddlesGame').then(m => ({ default: m.PharaohRiddlesGame })));
+const PyramidBuilderGame = lazy(() => import('@/components/games/PyramidBuilderGame').then(m => ({ default: m.PyramidBuilderGame })));
+const HieroglyphDecoderGame = lazy(() => import('@/components/games/HieroglyphDecoderGame').then(m => ({ default: m.HieroglyphDecoderGame })));
+const TempleEscapeGame = lazy(() => import('@/components/games/TempleEscapeGame').then(m => ({ default: m.TempleEscapeGame })));
+const NileNavigatorGame = lazy(() => import('@/components/games/NileNavigatorGame').then(m => ({ default: m.NileNavigatorGame })));
+const ScarabCollectorGame = lazy(() => import('@/components/games/ScarabCollectorGame').then(m => ({ default: m.ScarabCollectorGame })));
+const GuessThePharaohGame = lazy(() => import('@/components/games/GuessThePharaohGame'));
+const PyramidTrailGame = lazy(() => import('@/components/games/PyramidTrailGame'));
+const OrderOfBuildersGame = lazy(() => import('@/components/games/OrderOfBuildersGame'));
+const GreatMindsGame = lazy(() => import('@/components/games/GreatMindsGame'));
+const ScribesLostJournalGame = lazy(() => import('@/components/games/ScribesLostJournalGame'));
+const TombExplorerGame = lazy(() => import('@/components/games/TombExplorerGame').then(m => ({ default: m.TombExplorerGame })));
+const HieroglyphMatchGame = lazy(() => import('@/components/games/HieroglyphMatchGame').then(m => ({ default: m.HieroglyphMatchGame })));
 
 type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match';
 
@@ -54,7 +57,7 @@ const games: Game[] = [
   { id: 'scribes-journal', title: "Scribe's Journal", description: "Piece together historical events from fragmented journal entries.", icon: BookOpen, color: 'from-emerald-500 to-teal-700', emoji: '📓', category: 'History', difficulty: 'Medium', duration: '5 min' },
 ];
 
-const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> = {
+const gameComponents: Record<GameType, React.ComponentType<{ onBack: () => void }> | null> = {
   menu: null,
   memory: MemoryGame,
   maze: MummyMazeGame,
@@ -92,7 +95,11 @@ export default function Games() {
 
   if (currentGame !== 'menu') {
     const GameComponent = gameComponents[currentGame];
-    if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
+    if (GameComponent) return (
+      <Suspense fallback={<Loader />}>
+        <GameComponent onBack={handleBackToMenu} />
+      </Suspense>
+    );
   }
 
   const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
