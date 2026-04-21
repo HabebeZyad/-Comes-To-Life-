@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Trophy, Book, Clock, RotateCcw, Edit2, Check,
   Flame, Star, Zap, Shield, Scroll, Eye, Sparkles,
-  ChevronRight, TrendingUp, Award, Target
+  ChevronRight, TrendingUp, Award, Target, Upload, X
 } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
 import { useGame } from '@/contexts/GameContext';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+
+const isImageAvatar = (avatar: string) => avatar.startsWith('data:image');
 
 const avatarOptions = ['🏺', '𓂀', '𓃭', '𓆣', '𓋹', '𓊖', '𓅃', '𓃠', '𓆙', '𓃗'];
 
@@ -153,11 +156,47 @@ type TabId = 'overview' | 'achievements' | 'history';
 
 export default function Profile() {
   const { profile, setProfile, resetProgress } = useGame();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile?.name || 'Explorer');
   const [editAvatar, setEditAvatar] = useState(profile?.avatar || '🏺');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Invalid file', description: 'Please choose an image file.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please use an image under 2MB.', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const ratio = Math.max(size / img.width, size / img.height);
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        setEditAvatar(dataUrl);
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const playerStats = useMemo(() => {
     if (!profile) return null;
@@ -235,30 +274,68 @@ export default function Profile() {
                       />
                     </svg>
                     <motion.div
-                      className="absolute inset-2 rounded-full bg-lapis-deep flex items-center justify-center text-5xl border-2 border-gold/30"
+                      className="absolute inset-2 rounded-full bg-lapis-deep flex items-center justify-center text-5xl border-2 border-gold/30 overflow-hidden shadow-inner-gold"
                       whileHover={{ scale: 1.08 }}
                     >
-                      {isEditing ? editAvatar : profile.avatar}
+                      {(() => {
+                        const av = isEditing ? editAvatar : profile.avatar;
+                        return isImageAvatar(av) ? (
+                          <img src={av} alt="Profile photo" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{av}</span>
+                        );
+                      })()}
                     </motion.div>
                     {/* Level badge */}
-                    <div className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-primary flex items-center justify-center border-2 border-background">
+                    <div className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-gold-glow">
                       <span className="font-display text-sm font-bold text-primary-foreground">{playerStats.level}</span>
                     </div>
                   </div>
                   {isEditing && (
-                    <div className="flex gap-1 mt-3 flex-wrap justify-center max-w-[180px]">
-                      {avatarOptions.map(av => (
+                    <div className="mt-3 flex flex-col items-center gap-2 max-w-[220px]">
+                      <div className="flex items-center gap-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          aria-label="Upload profile photo"
+                        />
                         <button
-                          key={av}
-                          onClick={() => setEditAvatar(av)}
-                          className={cn(
-                            "w-8 h-8 rounded-lg text-lg flex items-center justify-center transition-all",
-                            editAvatar === av ? "bg-primary/20 ring-2 ring-primary scale-110" : "hover:bg-muted"
-                          )}
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/15 border border-primary/30 text-primary text-xs font-display hover:bg-primary/25 transition-all"
                         >
-                          {av}
+                          <Upload className="w-3.5 h-3.5" />
+                          Upload Photo
                         </button>
-                      ))}
+                        {isImageAvatar(editAvatar) && (
+                          <button
+                            type="button"
+                            onClick={() => setEditAvatar(avatarOptions[0])}
+                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-muted/60 border border-border text-muted-foreground text-xs font-display hover:bg-muted transition-all"
+                            aria-label="Remove photo"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-display">or pick a glyph</div>
+                      <div className="flex gap-1 flex-wrap justify-center">
+                        {avatarOptions.map(av => (
+                          <button
+                            key={av}
+                            onClick={() => setEditAvatar(av)}
+                            className={cn(
+                              "w-8 h-8 rounded-lg text-lg flex items-center justify-center transition-all",
+                              editAvatar === av ? "bg-primary/20 ring-2 ring-primary scale-110" : "hover:bg-muted"
+                            )}
+                          >
+                            {av}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

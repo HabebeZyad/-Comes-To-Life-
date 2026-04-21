@@ -24,7 +24,18 @@ export default function StoryReader() {
   const [totalScore, setTotalScore] = useState(0);
 
   const story = storyId ? getStoryById(storyId) : undefined;
+  const [showIntro, setShowIntro] = useState(!!story?.coverImage);
   const storyPuzzles = storyId ? getStoryPuzzlesByStory(storyId) : [];
+
+  const getAssetUrl = (path?: string) => {
+    if (!path) return '';
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const base = import.meta.env.BASE_URL || '/';
+    if (path.startsWith('/')) {
+      return `${base}${path.slice(1)}`.replace(/\/\//g, '/');
+    }
+    return path;
+  };
 
   // Determine which puzzles should appear at which panel index
   const getPuzzleForPanel = (panelIndex: number): StoryPuzzle | null => {
@@ -74,6 +85,13 @@ export default function StoryReader() {
     }
   }, [isAutoPlaying, currentPanelIndex, story, goToNextPanel]);
 
+  useEffect(() => {
+    // Play paper transition sound
+    const audio = new Audio('/sounds/paper-transition.mp3');
+    audio.volume = 0.3;
+    audio.play().catch(() => { });
+  }, [currentPanelIndex]);
+
   if (!story) {
     return null;
   }
@@ -112,6 +130,36 @@ export default function StoryReader() {
     setCurrentPanelIndex(index);
     setShowHistoricalNote(false);
   };
+
+  if (showIntro && story?.coverImage) {
+    return (
+      <div
+        className="fixed inset-0 z-[100] bg-black cursor-pointer overflow-hidden perspective-[2000px] flex items-center justify-center"
+        onClick={() => { setShowIntro(false); new Audio('/sounds/paper-transition.mp3').play().catch(() => { }); }}
+      >
+        <DustParticles count={20} />
+        {/* Floating Image */}
+        <motion.div
+          className="relative group w-[85vw] max-w-5xl rounded-2xl shadow-[0_0_50px_rgba(212,175,55,0.2)]"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1, y: [-15, 15, -15], rotateY: [-5, 5, -5], rotateX: [2, -2, 2] }}
+          transition={{ opacity: { duration: 2 }, scale: { duration: 2 }, default: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
+        >
+          <img src={getAssetUrl(story.coverImage)} alt="Story Intro" className="w-full h-auto max-h-[80vh] object-cover rounded-2xl transition-all duration-700 group-hover:brightness-50 group-hover:blur-[2px]" />
+
+          {/* Hover Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none p-6">
+            <h2 className="font-display text-5xl md:text-7xl font-bold text-gold-gradient drop-shadow-[0_5px_15px_rgba(0,0,0,1)] mb-4 text-center">
+              Make it Comes To Life
+            </h2>
+            <p className="font-display text-2xl text-gold animate-[pulse_3s_ease-in-out_Infinity] tracking-widest drop-shadow-[0_2px_5px_rgba(0,0,0,1)]">
+              Press to See
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,158 +230,182 @@ export default function StoryReader() {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPanel.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
+              initial={{ opacity: 0, rotateY: -90, transformOrigin: "left center" }}
+              animate={{ opacity: 1, rotateY: 0 }}
+              exit={{ opacity: 0, rotateY: 90, transformOrigin: "right center" }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="mb-8 perspective-[2000px]"
             >
               {/* Immersive Story Scene */}
-              <EgyptianCard variant="gold" className="overflow-hidden mb-6 relative">
-                <div className="aspect-[16/9] bg-gradient-to-br from-lapis-deep via-sandstone to-terracotta relative overflow-hidden">
-                  {/* Dynamic Background Pattern */}
-                  <div className="absolute inset-0 opacity-20">
-                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                      <defs>
-                        <pattern id="storyBg" patternUnits="userSpaceOnUse" width="20" height="20">
-                          <circle cx="10" cy="10" r="1" fill="hsl(var(--gold))" opacity="0.3" />
-                          <circle cx="5" cy="15" r="0.5" fill="hsl(var(--turquoise))" opacity="0.2" />
-                          <path d="M15,5 Q17,8 15,11" stroke="hsl(var(--gold))" strokeWidth="0.3" fill="none" opacity="0.4" />
-                        </pattern>
-                      </defs>
-                      <rect width="100" height="100" fill="url(#storyBg)" />
-                    </svg>
+              {currentPanel.image ? (
+                <EgyptianCard variant="gold" className="overflow-hidden mb-6 relative group min-h-[60vh] flex flex-col justify-center">
+                  <motion.div
+                    className="absolute inset-4 z-0 rounded-xl overflow-hidden shadow-2xl"
+                    animate={{ y: [-10, 10, -10] }}
+                    transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                  >
+                    <img src={getAssetUrl(currentPanel.image)} alt="Story scene" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  </motion.div>
+
+                  <div className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none flex flex-col items-center justify-center p-8 text-center h-full">
+                    <h2 className="font-display text-4xl md:text-5xl font-bold text-gold-gradient mb-6 drop-shadow-md">
+                      Scene {currentPanelIndex + 1}: {story.title}
+                    </h2>
+                    <p className="font-body text-xl md:text-2xl text-white/90 leading-relaxed max-w-3xl drop-shadow-md">
+                      {currentPanel.narration}
+                    </p>
                   </div>
+                </EgyptianCard>
+              ) : (
+                <>
+                  <EgyptianCard variant="gold" className="overflow-hidden mb-6 relative">
+                    <div className="aspect-[16/9] bg-gradient-to-br from-lapis-deep via-sandstone to-terracotta relative overflow-hidden">
+                      {/* Dynamic Background Pattern */}
+                      <div className="absolute inset-0 opacity-20">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                          <defs>
+                            <pattern id="storyBg" patternUnits="userSpaceOnUse" width="20" height="20">
+                              <circle cx="10" cy="10" r="1" fill="hsl(var(--gold))" opacity="0.3" />
+                              <circle cx="5" cy="15" r="0.5" fill="hsl(var(--turquoise))" opacity="0.2" />
+                              <path d="M15,5 Q17,8 15,11" stroke="hsl(var(--gold))" strokeWidth="0.3" fill="none" opacity="0.4" />
+                            </pattern>
+                          </defs>
+                          <rect width="100" height="100" fill="url(#storyBg)" />
+                        </svg>
+                      </div>
 
-                  {/* Central Egyptian Motif */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.div
-                      className="text-center relative z-10"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 1, delay: 0.2 }}
-                    >
-                      {/* Animated Hieroglyphs */}
-                      <motion.span
-                        className="text-8xl block mb-6 text-gold-gradient animate-pulse"
-                        animate={{
-                          textShadow: [
-                            "0 0 20px hsl(var(--gold))",
-                            "0 0 40px hsl(var(--gold))",
-                            "0 0 20px hsl(var(--gold))"
-                          ]
-                        }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        {currentPanelIndex === 0 ? '𓅃' :
-                          currentPanelIndex === story.panels.length - 1 ? '𓂀' :
-                            '𓏏'}
-                      </motion.span>
+                      {/* Central Egyptian Motif */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <motion.div
+                          className="text-center relative z-10"
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 1, delay: 0.2 }}
+                        >
+                          {/* Animated Hieroglyphs */}
+                          <motion.span
+                            className="text-8xl block mb-6 text-gold-gradient animate-pulse"
+                            animate={{
+                              textShadow: [
+                                "0 0 20px hsl(var(--gold))",
+                                "0 0 40px hsl(var(--gold))",
+                                "0 0 20px hsl(var(--gold))"
+                              ]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            {currentPanelIndex === 0 ? '𓅃' :
+                              currentPanelIndex === story.panels.length - 1 ? '𓂀' :
+                                '𓏏'}
+                          </motion.span>
 
-                      {/* Story Scene Title */}
-                      <motion.h2
-                        className="font-display text-2xl md:text-3xl font-bold text-gold-gradient mb-4"
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        Scene {currentPanelIndex + 1}: {story.title}
-                      </motion.h2>
+                          {/* Story Scene Title */}
+                          <motion.h2
+                            className="font-display text-2xl md:text-3xl font-bold text-gold-gradient mb-4"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            Scene {currentPanelIndex + 1}: {story.title}
+                          </motion.h2>
 
-                      {/* Atmospheric Description */}
+                          {/* Atmospheric Description */}
+                          <motion.div
+                            className="max-w-2xl mx-auto px-6"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.7 }}
+                          >
+                            <p className="text-sm text-muted-foreground italic leading-relaxed mb-4">
+                              {currentPanel.imagePrompt.split('.')[0]}...
+                            </p>
+
+                            {/* Interactive Elements */}
+                            <div className="flex justify-center gap-4 mt-6">
+                              <motion.div
+                                className="flex items-center gap-2 text-xs text-gold"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <span className="w-2 h-2 bg-gold rounded-full animate-pulse"></span>
+                                Ancient Egypt • {story.period}
+                              </motion.div>
+                              <motion.div
+                                className="flex items-center gap-2 text-xs text-turquoise"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                <span className="w-2 h-2 bg-turquoise rounded-full animate-pulse"></span>
+                                Interactive Story
+                              </motion.div>
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      </div>
+
+                      {/* Animated Border Elements */}
                       <motion.div
-                        className="max-w-2xl mx-auto px-6"
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.7 }}
+                        className="absolute top-4 left-4 w-16 h-16 border-2 border-gold/30 rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                       >
-                        <p className="text-sm text-muted-foreground italic leading-relaxed mb-4">
-                          {currentPanel.imagePrompt.split('.')[0]}...
-                        </p>
-
-                        {/* Interactive Elements */}
-                        <div className="flex justify-center gap-4 mt-6">
-                          <motion.div
-                            className="flex items-center gap-2 text-xs text-gold"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            <span className="w-2 h-2 bg-gold rounded-full animate-pulse"></span>
-                            Ancient Egypt • {story.period}
-                          </motion.div>
-                          <motion.div
-                            className="flex items-center gap-2 text-xs text-turquoise"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            <span className="w-2 h-2 bg-turquoise rounded-full animate-pulse"></span>
-                            Interactive Story
-                          </motion.div>
-                        </div>
+                        <div className="absolute top-1 left-1 w-3 h-3 bg-gold rounded-full"></div>
                       </motion.div>
-                    </motion.div>
-                  </div>
 
-                  {/* Animated Border Elements */}
-                  <motion.div
-                    className="absolute top-4 left-4 w-16 h-16 border-2 border-gold/30 rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  >
-                    <div className="absolute top-1 left-1 w-3 h-3 bg-gold rounded-full"></div>
-                  </motion.div>
+                      <motion.div
+                        className="absolute bottom-4 right-4 w-12 h-12 border border-turquoise/30 rounded"
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                      >
+                        <div className="absolute bottom-1 right-1 w-2 h-2 bg-turquoise rounded-full"></div>
+                      </motion.div>
 
-                  <motion.div
-                    className="absolute bottom-4 right-4 w-12 h-12 border border-turquoise/30 rounded"
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                  >
-                    <div className="absolute bottom-1 right-1 w-2 h-2 bg-turquoise rounded-full"></div>
-                  </motion.div>
+                      {/* Subtle Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/20 to-transparent" />
+                    </div>
+                  </EgyptianCard>
 
-                  {/* Subtle Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/20 to-transparent" />
-                </div>
-              </EgyptianCard>
+                  {/* Immersive Narration */}
+                  <EgyptianCard variant="lapis" className="mb-4 relative overflow-hidden">
+                    {/* Decorative Border */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-turquoise to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
 
-              {/* Immersive Narration */}
-              <EgyptianCard variant="lapis" className="mb-4 relative overflow-hidden">
-                {/* Decorative Border */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-turquoise to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+                    <EgyptianCardContent className="p-8 relative">
+                      {/* Story Scroll Icon */}
+                      <div className="absolute top-4 right-4 opacity-20">
+                        <motion.span
+                          className="text-2xl"
+                          animate={{ rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 4, repeat: Infinity }}
+                        >
+                          📜
+                        </motion.span>
+                      </div>
 
-                <EgyptianCardContent className="p-8 relative">
-                  {/* Story Scroll Icon */}
-                  <div className="absolute top-4 right-4 opacity-20">
-                    <motion.span
-                      className="text-2xl"
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                    >
-                      📜
-                    </motion.span>
-                  </div>
+                      {/* Narration Text */}
+                      <motion.p
+                        className="font-body text-lg md:text-xl text-foreground/90 leading-relaxed relative z-10"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.8 }}
+                      >
+                        {currentPanel.narration}
+                      </motion.p>
 
-                  {/* Narration Text */}
-                  <motion.p
-                    className="font-body text-lg md:text-xl text-foreground/90 leading-relaxed relative z-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
-                  >
-                    {currentPanel.narration}
-                  </motion.p>
-
-                  {/* Subtle Background Pattern */}
-                  <div className="absolute inset-0 opacity-5">
-                    <svg className="w-full h-full" viewBox="0 0 100 100">
-                      <pattern id="narrationBg" patternUnits="userSpaceOnUse" width="10" height="10">
-                        <circle cx="5" cy="5" r="0.3" fill="currentColor" />
-                      </pattern>
-                      <rect width="100" height="100" fill="url(#narrationBg)" />
-                    </svg>
-                  </div>
-                </EgyptianCardContent>
-              </EgyptianCard>
+                      {/* Subtle Background Pattern */}
+                      <div className="absolute inset-0 opacity-5">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <pattern id="narrationBg" patternUnits="userSpaceOnUse" width="10" height="10">
+                            <circle cx="5" cy="5" r="0.3" fill="currentColor" />
+                          </pattern>
+                          <rect width="100" height="100" fill="url(#narrationBg)" />
+                        </svg>
+                      </div>
+                    </EgyptianCardContent>
+                  </EgyptianCard>
+                </>
+              )}
 
               {/* Dramatic Dialogue */}
               {currentPanel.dialogue && currentPanel.dialogue.length > 0 && (

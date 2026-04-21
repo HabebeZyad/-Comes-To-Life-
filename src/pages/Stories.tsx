@@ -8,8 +8,6 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
-import { AIStoryGenerator } from '@/components/ai/AIStoryGenerator';
-import { WhatIfHistory } from '@/components/ai/WhatIfHistory';
 import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
 import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn } from '@/lib/utils';
@@ -137,9 +135,7 @@ export default function Stories() {
               </h2>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <WhatIfHistory />
                 <HieroglyphScanner />
-                <AIStoryGenerator />
                 <SceneGenerator />
               </div>
 
@@ -155,9 +151,8 @@ export default function Stories() {
                       <h5 className="font-semibold text-primary mb-1">Machine Learning Components</h5>
                       <ul className="space-y-1 text-muted-foreground">
                         <li>• <strong>Vision AI</strong> for hieroglyph recognition from images</li>
-                        <li>• <strong>Gemini LLM</strong> for story generation</li>
                         <li>• <strong>Timeline Analysis</strong> for historical patterns</li>
-                        <li>• <strong>What-If Engine</strong> for alternative history</li>
+                        <li>• <strong>Scene Generation</strong> for AI-generated images</li>
                       </ul>
                     </div>
                     <div>
