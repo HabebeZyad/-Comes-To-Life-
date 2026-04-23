@@ -50,7 +50,11 @@ export interface EgyptianButtonProps
   shimmer?: boolean;
 }
 
-const EgyptianButton = React.forwardRef<HTMLButtonElement, EgyptianButtonProps>(
+/**
+ * EgyptianButton Component
+ * Memoized to prevent unnecessary re-renders when parent state changes.
+ */
+const EgyptianButton = React.memo(React.forwardRef<HTMLButtonElement, EgyptianButtonProps>(
   ({ className, variant, size, shimmer = false, children, ...props }, ref) => {
     return (
       <button
@@ -65,7 +69,7 @@ const EgyptianButton = React.forwardRef<HTMLButtonElement, EgyptianButtonProps>(
       </button>
     );
   }
-);
+));
 EgyptianButton.displayName = "EgyptianButton";
 
 export { EgyptianButton, egyptianButtonVariants };
