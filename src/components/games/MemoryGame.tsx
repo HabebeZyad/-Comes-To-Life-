@@ -79,30 +79,30 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
     }
   }, [startAmbientMusic, playSound]);
 
-  // Timer
+  // Timer Interval: Manages the clock decrementing.
+  // Dependencies are minimized to prevent "interval churn" (restarting the timer unnecessarily).
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        setGameState('defeat');
-        stopAmbientMusic();
-        playSound('defeat');
-      }
-      return;
-    }
+    if (gameState !== 'playing') return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        if (prev <= 6) playSound('tick');
-        return prev - 1;
+        const next = prev - 1;
+        if (next <= 5 && next > 0) playSound('tick');
+        return Math.max(0, next);
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState, timeLeft, playSound, stopAmbientMusic]);
+  }, [gameState, playSound]);
+
+  // Game Status Monitor: Handles defeat condition based on time.
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft === 0) {
+      setGameState('defeat');
+      stopAmbientMusic();
+      playSound('defeat');
+    }
+  }, [timeLeft, gameState, playSound, stopAmbientMusic]);
 
   // Win condition check
   useEffect(() => {
