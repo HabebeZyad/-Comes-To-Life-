@@ -81,36 +81,40 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     }
   }, [level, score, collected, startAmbientMusic, playSound, addScore]);
 
-  // Timer logic
+  // Timer: Dedicated interval that doesn't restart when timeLeft changes (prevents interval churn)
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        if (score >= currentWave.target) {
-          setGameState('levelup');
-          setIsPlaying(false);
-          playSound('victory');
-        } else {
-          setGameState('defeat');
-          setIsPlaying(false);
-          stopAmbientMusic();
-          playSound('defeat');
-        }
-      }
-      return;
-    }
+    if (gameState !== 'playing') return;
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        if (prev <= 6) playSound('tick');
-        return prev - 1;
-      });
+    const timer: ReturnType<typeof setInterval> = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [gameState]);
+
+  // Handle Ticks: Separated from other logic to avoid triggering on score changes
+  useEffect(() => {
+    if (gameState === 'playing' && timeLeft > 0 && timeLeft <= 6) {
+      playSound('tick');
+    }
+  }, [timeLeft, gameState, playSound]);
+
+  // Handle Game End: Logic for victory/defeat state
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    if (timeLeft === 0) {
+      if (score >= currentWave.target) {
+        setGameState('levelup');
+        setIsPlaying(false);
+        playSound('victory');
+      } else {
+        setGameState('defeat');
+        setIsPlaying(false);
+        stopAmbientMusic();
+        playSound('defeat');
+      }
+    }
   }, [gameState, timeLeft, score, currentWave.target, playSound, stopAmbientMusic]);
 
   // Spawning logic

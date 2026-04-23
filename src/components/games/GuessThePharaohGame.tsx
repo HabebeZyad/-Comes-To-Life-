@@ -85,17 +85,27 @@ export default function GuessThePharaohGame({ onBack }: GuessThePharaohGameProps
         startAmbientMusic();
     }, [generateQuestion, playSound, startAmbientMusic]);
 
+    // Timer: Dedicated interval that doesn't restart when timeLeft changes (prevents interval churn)
     useEffect(() => {
-        if (gameState === 'playing' && timeLeft > 0) {
-            const timer = setTimeout(() => {
-                setTimeLeft(t => t - 1);
-                if (timeLeft <= 10) playSound('tick');
-            }, 1000);
-            return () => clearTimeout(timer);
-        } else if (gameState === 'playing' && timeLeft === 0) {
+        if (gameState !== 'playing') return;
+
+        const timer: ReturnType<typeof setInterval> = setInterval(() => {
+            setTimeLeft(t => (t > 0 ? t - 1 : 0));
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [gameState]);
+
+    // Handle Timer Side Effects: Logic for ticks and defeat state
+    useEffect(() => {
+        if (gameState !== 'playing') return;
+
+        if (timeLeft === 0) {
             setGameState('defeat');
             playSound('defeat');
             stopAmbientMusic();
+        } else if (timeLeft <= 10) {
+            playSound('tick');
         }
     }, [timeLeft, gameState, playSound, stopAmbientMusic]);
 
