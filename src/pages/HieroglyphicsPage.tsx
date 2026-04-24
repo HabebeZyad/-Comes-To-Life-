@@ -246,6 +246,67 @@ function HieroglyphDetail({
   onClose: () => void;
   isModal?: boolean;
 }) {
+  const [isPronouncing, setIsPronouncing] = useState(false);
+
+  const handlePronounce = () => {
+    if ('speechSynthesis' in window) {
+      // Safari/Chrome Windows bug: sometimes cancel breaks the speech queue if done synchronously
+      window.speechSynthesis.cancel();
+
+      let text = glyph.phonetic || glyph.pronunciation;
+      if (!text) return;
+
+      // Egyptological vocalization normally inserts an 'e' between adjacent consonants
+      const isConsonant = (c: string) => /[bcdfghjklmnpqrstvwxyzḥḫẖšṯḏ]/.test(c.toLowerCase());
+
+      let withVowels = '';
+      for (let i = 0; i < text.length; i++) {
+        withVowels += text[i];
+        if (i < text.length - 1 && isConsonant(text[i]) && isConsonant(text[i + 1])) {
+          withVowels += 'e';
+        }
+      }
+
+      // Approximate the transliteration signs to English phonetic equivalents for the TTS engine
+      const spokenText = withVowels.toLowerCase()
+        .replace(/ꜣ/g, 'ah')
+        .replace(/ˁ/g, 'ah')
+        .replace(/ḥ/g, 'h')
+        .replace(/ḫ/g, 'k')  // 'kh' often confuses English TTS into a weird sound
+        .replace(/ẖ/g, 'hy')
+        .replace(/š/g, 'sh')
+        .replace(/ṯ/g, 'ch')
+        .replace(/ḏ/g, 'j')
+        .replace(/w/g, 'oo')
+        .replace(/y/g, 'ee');
+
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(spokenText);
+        // Do NOT force lang='en-GB' as it will silently fail if not installed on Windows
+        // Let the system use default voice which is much safer
+        utterance.rate = 0.85;
+        utterance.pitch = 0.9;
+
+        utterance.onstart = () => setIsPronouncing(true);
+        utterance.onend = () => {
+          setIsPronouncing(false);
+          // @ts-ignore
+          delete window._speechUtterance;
+        };
+        utterance.onerror = (e) => {
+          console.error("Speech synthesis error", e);
+          setIsPronouncing(false);
+        };
+
+        // Complete hack to prevent garbage collection bugs in Safari/Chrome
+        // @ts-ignore
+        window._speechUtterance = utterance;
+
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: isModal ? 0.9 : 1 }}
@@ -330,9 +391,14 @@ function HieroglyphDetail({
                 <Book className="w-4 h-4" />
                 {showLore ? 'Hide Lore' : 'Show Lore'}
               </EgyptianButton>
-              <EgyptianButton variant="ghost" size="sm">
-                <Volume2 className="w-4 h-4" />
-                Pronounce
+              <EgyptianButton
+                variant="ghost"
+                size="sm"
+                onClick={handlePronounce}
+                className={isPronouncing ? "text-gold animate-pulse" : ""}
+              >
+                <Volume2 className={`w-4 h-4 ${isPronouncing ? "text-gold" : ""}`} />
+                {isPronouncing ? 'Speaking...' : 'Pronounce'}
               </EgyptianButton>
               <EgyptianButton variant="ghost" size="sm" onClick={onClose}>
                 <Sparkles className="w-4 h-4" />

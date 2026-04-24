@@ -5,6 +5,7 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getByGardinerCode, searchHieroglyphs } from '@/data/hieroglyphDatabase';
 
 interface RecognitionResult {
   symbols?: {
@@ -79,6 +80,28 @@ export function HieroglyphScanner() {
           throw new Error(data.error);
         }
         return;
+      }
+
+      if (data.symbols && Array.isArray(data.symbols)) {
+        data.symbols = data.symbols.map((s: any) => {
+          let dictEntry = s.gardinerCode ? getByGardinerCode(s.gardinerCode) : null;
+          if (!dictEntry && s.symbol) {
+            const matches = searchHieroglyphs(s.symbol);
+            if (matches.length > 0) dictEntry = matches[0];
+          }
+
+          if (dictEntry) {
+            return {
+              ...s,
+              symbol: dictEntry.symbol || s.symbol,
+              gardinerCode: dictEntry.gardinerCode || s.gardinerCode,
+              name: dictEntry.name,
+              meaning: dictEntry.meaning,
+              phonetic: dictEntry.phonetic || s.phonetic,
+            };
+          }
+          return s;
+        });
       }
 
       setResult(data);

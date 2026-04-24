@@ -7,26 +7,23 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
-import episode3Cover from '@/assets/hero-tomb.jpg';
-import episode4Cover from '@/assets/hero-tomb.jpg'; // Placeholder
-import episode5Cover from '@/assets/hero-tomb.jpg'; // Placeholder
 
 const episodes = [
   {
-    id: 3,
-    title: 'The Scribe Who Lied',
-    tagline: 'Truth is a weapon. Choose your words wisely.',
-    description: 'In the great library of Alexandria, a young scribe uncovers a conspiracy that could shatter the foundations of the Ptolemaic dynasty. Your choices will determine whether history is written by the victors or by those who dare to speak the truth.',
-    coverImage: episode3Cover,
-    path: '/storytelling/episode-3',
+    id: 'shipwrecked-sailor',
+    title: 'The Shipwrecked Sailor',
+    tagline: 'A Tale of Survival and the Serpent King',
+    description: 'A miraculous tale of a sailor whose ship is destroyed by a colossal wave. Washed ashore on a mystical island, he encounters a giant, golden serpent—the Lord of Punt—who teaches him courage, resilience, and the true meaning of home.',
+    coverImage: '/shipwrecked-sailor.jpeg',
+    path: '/stories/shipwrecked-sailor',
     status: 'Available Now',
   },
   {
     id: 4,
     title: 'The Tomb of the Golden Scarab',
     tagline: 'Some secrets are best left buried.',
-    description: 'A famed explorer vanishes in the Valley of the Kings, leaving behind only a cryptic map. Follow in their footsteps to uncover a tomb said to be protected by a powerful curse, where a legendary treasure awaits.',
-    coverImage: episode4Cover,
+    description: 'An upcoming animated feature following a famed explorer who vanishes in the Valley of the Kings, leaving behind only a cryptic map. Watch as they uncover a tomb protected by a powerful curse.',
+    coverImage: '/tomb-scarab.jpg',
     path: '/storytelling/episode-4',
     status: 'Coming Soon',
   },
@@ -34,8 +31,8 @@ const episodes = [
     id: 5,
     title: 'The Heretic Pharaoh',
     tagline: 'One god. One vision. One rebellion.',
-    description: 'Akhenaten’s revolution has thrown Egypt into chaos. As a loyal guard, you are caught between the old gods and the new. Will you enforce the pharaoh’s will or join the growing resistance that seeks to restore the ancient ways?',
-    coverImage: episode5Cover,
+    description: 'A breathtaking cinematic journey exploring Akhenaten’s revolution which threw Egypt into chaos. Witness the conflict between the old gods and the new through the eyes of a loyal guard.',
+    coverImage: '/heretic-pharaoh.jpg',
     path: '/storytelling/episode-5',
     status: 'Coming Soon',
   },
@@ -43,6 +40,16 @@ const episodes = [
 
 const latestEpisode = episodes.find(e => e.status === 'Available Now');
 const upcomingEpisodes = episodes.filter(e => e.status !== 'Available Now');
+
+const getAssetUrl = (path?: string) => {
+  if (!path) return '';
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const base = import.meta.env.BASE_URL || '/';
+  if (path.startsWith('/')) {
+    return `${base}${path.slice(1)}`.replace(/\/\//g, '/');
+  }
+  return path;
+};
 
 export default function StorytellingHomePage() {
   return (
@@ -60,10 +67,10 @@ export default function StorytellingHomePage() {
         >
           <BookOpen className="w-16 h-16 text-gold mx-auto mb-4 animate-glow-pulse" />
           <h1 className="font-display text-6xl md:text-7xl font-bold text-gold-gradient mb-3">
-            The King's Papyrus
+            Animated Legends of Egypt
           </h1>
           <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-            An anthology of interactive stories where your choices forge the destiny of Ancient Egypt.
+            Experience the myths and history of Ancient Egypt brought to life through breathtaking animated storytelling.
           </p>
         </motion.header>
 
@@ -77,7 +84,7 @@ export default function StorytellingHomePage() {
               className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center"
             >
               <div className="lg:col-span-3 relative rounded-2xl overflow-hidden border-2 border-gold/30 shadow-deep">
-                <img src={latestEpisode.coverImage} alt={latestEpisode.title} className="w-full h-auto max-h-[60vh] object-cover" loading="lazy" />
+                <img src={getAssetUrl(latestEpisode.coverImage)} alt={latestEpisode.title} className="w-full h-auto max-h-[60vh] object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 p-8">
                   <span className="px-4 py-2 text-sm font-display rounded-full bg-turquoise text-black mb-3 inline-block">{latestEpisode.status}</span>
@@ -91,7 +98,7 @@ export default function StorytellingHomePage() {
                 <Link to={latestEpisode.path}>
                   <EgyptianButton variant="hero" size="xl" shimmer className="w-full">
                     <Play className="w-6 h-6" />
-                    Begin the Story
+                    Watch the Tale
                   </EgyptianButton>
                 </Link>
               </div>
@@ -106,7 +113,7 @@ export default function StorytellingHomePage() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             className="font-display text-4xl text-center text-gold-gradient mb-12">
-            More from the Archives
+            Upcoming Animated Features
           </motion.h2>
           <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
             {upcomingEpisodes.map((episode, index) => (
@@ -120,7 +127,7 @@ export default function StorytellingHomePage() {
                 <EgyptianCard variant="papyrus" className="h-full group bg-card/50 backdrop-blur-sm">
                   <EgyptianCardHeader className="p-0">
                     <div className="relative overflow-hidden rounded-t-xl">
-                      <img src={episode.coverImage} alt={episode.title} className="w-full h-56 object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                      <img src={getAssetUrl(episode.coverImage)} alt={episode.title} className="w-full h-56 object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-300" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
                     </div>
                   </EgyptianCardHeader>

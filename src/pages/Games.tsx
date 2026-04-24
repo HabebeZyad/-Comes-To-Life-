@@ -98,40 +98,47 @@ export default function Games() {
   const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative overflow-hidden">
-      <DustParticles />
+    <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative">
+      <div className="absolute inset-x-0 top-0 h-full overflow-hidden pointer-events-none">
+        <DustParticles />
+      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Hero Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 md:mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs md:text-sm font-bold mb-4 md:mb-6">
             <Trophy size={14} /> NEW PROFESSIONAL TRIALS AVAILABLE
           </div>
-          <h1 className="text-5xl md:text-7xl font-display text-gold-gradient mb-6">Ancient Games</h1>
-          <p className="text-xl text-muted-foreground font-body max-w-3xl mx-auto mb-10 leading-relaxed">
+          <h1 className="text-4xl md:text-7xl font-display text-gold-gradient mb-4 md:mb-6">Ancient Games</h1>
+          <p className="text-base md:text-xl text-muted-foreground font-body max-w-3xl mx-auto mb-8 md:mb-10 leading-relaxed px-4">
             Test your prowess in the courts of the Pharaohs. From mental puzzles to swift action,
             prove your worth and etch your name into the Hall of Records.
           </p>
+        </motion.div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)}>
+        {/* Sticky Filters Container */}
+        <div className="sticky top-[70px] z-40 bg-hero-gradient md:bg-transparent pb-4 pt-2 -mx-4 px-4 md:mx-0 md:px-0 mb-8 border-b border-white/5 md:border-none shadow-xl shadow-black/20 md:shadow-none">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)} className="w-full sm:w-auto">
               <Trophy size={20} className="mr-2" /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
             </EgyptianButton>
             <div className="h-10 w-[1px] bg-white/10 hidden md:block" />
-            <div className="flex bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10">
-              {['All', 'Wisdom', 'Action', 'History'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setFilter(cat as 'All' | 'Wisdom' | 'Action' | 'History')}
-                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${filter === cat ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-white'
-                    }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="w-full md:w-auto overflow-x-auto scrollbar-none snap-x snap-mandatory">
+              <div className="flex bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10 w-max mx-auto md:mx-0">
+                {['All', 'Wisdom', 'Action', 'History'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setFilter(cat as 'All' | 'Wisdom' | 'Action' | 'History')}
+                    className={`px-5 py-2 rounded-lg text-sm font-bold transition-all snap-center whitespace-nowrap ${filter === cat ? 'bg-primary text-primary-foreground shadow-lg' : 'text-muted-foreground hover:text-white'
+                      }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {showLeaderboard && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-12">
@@ -157,32 +164,37 @@ export default function Games() {
                 <EgyptianCard
                   variant="interactive"
                   padding="none"
-                  className="h-full overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors"
+                  className="h-full overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors flex"
                 >
-                  <div className="flex flex-col md:flex-row h-full">
-                    <div className={`md:w-1/3 min-h-[160px] bg-gradient-to-br ${game.color} flex items-center justify-center p-8 relative overflow-hidden`}>
+                  <div className="flex flex-row h-full w-full">
+                    <div className={`w-1/3 sm:w-1/4 md:w-1/3 shrink-0 min-w-[100px] bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden group-hover:opacity-90 transition-opacity`}>
                       <div className="absolute inset-0 opacity-20 hieroglyph-pattern" />
-                      <span className="text-7xl group-hover:scale-110 transition-transform duration-500 relative z-10">{game.emoji}</span>
+                      <span className="text-5xl sm:text-7xl group-hover:scale-110 transition-transform duration-500 relative z-10">{game.emoji}</span>
                     </div>
-                    <div className="md:w-2/3 p-6 flex flex-col justify-between bg-obsidian/40">
+                    <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between bg-obsidian/40 min-w-0">
                       <div>
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
                           <span className="text-[10px] font-bold tracking-widest text-primary uppercase">{game.category}</span>
                           <div className="flex items-center gap-1 text-[10px] text-turquoise font-bold uppercase">
                             <Timer size={12} /> {game.duration}
                           </div>
                         </div>
-                        <h3 className="text-2xl font-display text-white mb-2 group-hover:text-primary transition-colors">{game.title}</h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">{game.description}</p>
+                        <h3 className="text-xl sm:text-2xl font-display text-white mb-2 group-hover:text-primary transition-colors truncate sm:whitespace-normal">{game.title}</h3>
+                        <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-4 line-clamp-2">{game.description}</p>
                       </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex gap-1">
+                      <div className="flex items-center justify-between mt-auto">
+                        <div className="flex gap-1 hidden sm:flex">
                           {[...Array(3)].map((_, i) => (
                             <Star key={i} size={14} className={i < (game.difficulty === 'Hard' || game.difficulty === 'Expert' ? 3 : 2) ? "text-primary fill-primary" : "text-white/10"} />
                           ))}
                         </div>
-                        <div className="text-primary group-hover:translate-x-1 transition-transform flex items-center text-sm font-bold">
-                          PLAY NOW <ChevronRight size={16} />
+                        <div className="flex gap-1 sm:hidden">
+                          {[...Array(3)].map((_, i) => (
+                            <Star key={i} size={10} className={i < (game.difficulty === 'Hard' || game.difficulty === 'Expert' ? 3 : 2) ? "text-primary fill-primary" : "text-white/10"} />
+                          ))}
+                        </div>
+                        <div className="text-primary group-hover:translate-x-1 transition-transform flex items-center text-xs sm:text-sm font-bold ml-auto">
+                          PLAY NOW <ChevronRight size={14} className="sm:w-4 sm:h-4" />
                         </div>
                       </div>
                     </div>

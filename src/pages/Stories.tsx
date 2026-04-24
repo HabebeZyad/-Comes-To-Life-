@@ -22,6 +22,7 @@ export default function Stories() {
 
   const filteredStories = useMemo(() => {
     return egyptianStories.filter(story => {
+      if (story.id === 'shipwrecked-sailor') return false;
       if (typeFilter !== 'all' && story.type !== typeFilter) return false;
       if (periodFilter !== 'all' && story.periodId !== periodFilter) return false;
       return true;
@@ -215,7 +216,6 @@ export default function Stories() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              { title: 'The Shipwrecked Sailor', period: 'Middle Kingdom', type: 'literary' },
               { title: 'The Hyksos Invasion', period: 'Second Intermediate', type: 'historical' },
               { title: 'Khufu\'s Secret', period: 'Old Kingdom', type: 'historical' },
               { title: 'The Two Kingdoms War', period: 'First Intermediate', type: 'historical' },
