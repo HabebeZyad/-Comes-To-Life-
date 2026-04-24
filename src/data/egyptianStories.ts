@@ -35,9 +35,46 @@ export interface Story {
   puzzleIds: string[];
   estimatedReadTime: number; // minutes
   coverImage?: string;
+  videoUrl?: string;
+  subtitlesUrl?: string;
 }
 
 export const egyptianStories: Story[] = [
+  // STORYTELLING FEATURE (Hidden from Stories Page)
+  {
+    id: 'shipwrecked-sailor',
+    title: 'The Shipwrecked Sailor',
+    subtitle: 'A Tale of Survival and the Serpent King',
+    period: 'Middle Kingdom',
+    periodId: 'middle-kingdom',
+    type: 'mythological',
+    source: 'Papyrus Hermitage 1115',
+    description: 'A miraculous tale of a sailor whose ship is destroyed by a colossal wave. Washed ashore on a mystical island, he encounters a giant, golden serpent—the Lord of Punt—who teaches him courage, resilience, and the true meaning of home.',
+    themes: ['Survival', 'Magic', 'Return', 'Courage'],
+    relatedLocations: ['punt', 'red-sea'],
+    puzzleIds: [],
+    estimatedReadTime: 15,
+    coverImage: '/shipwrecked-papyrus.jpeg',
+    videoUrl: '/videos/shipwrecked-sailor.mp4',
+    subtitlesUrl: '/videos/shipwrecked-sailor.vtt',
+    characters: [
+      {
+        id: 'sailor',
+        name: 'The Sailor',
+        role: 'Explorer',
+        description: 'A brave Egyptian sailor who survives a devastating shipwreck, only to find himself on the enchanted Island of the Ka.',
+        traits: ['Resilient', 'Fearful', 'Faithful']
+      },
+      {
+        id: 'serpent-king',
+        name: 'The Serpent King',
+        role: 'Lord of Punt',
+        description: 'A colossal serpent covered in gold and lapis lazuli. The ruler of the mystical island who tests the sailor\'s courage.',
+        traits: ['Majestic', 'Wise', 'Powerful']
+      }
+    ],
+    panels: [] // transitions directly to video playback
+  },
   // OLD KINGDOM STORIES
   {
     id: 'westcar-papyrus',

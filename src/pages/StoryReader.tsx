@@ -87,7 +87,7 @@ export default function StoryReader() {
 
   useEffect(() => {
     // Play paper transition sound
-    const audio = new Audio('/sounds/paper-transition.mp3');
+    const audio = new Audio(getAssetUrl('/sounds/paper-transition.mp3'));
     audio.volume = 0.3;
     audio.play().catch(() => { });
   }, [currentPanelIndex]);
@@ -135,7 +135,7 @@ export default function StoryReader() {
     return (
       <div
         className="fixed inset-0 z-[100] bg-black cursor-pointer overflow-hidden perspective-[2000px] flex items-center justify-center"
-        onClick={() => { setShowIntro(false); new Audio('/sounds/paper-transition.mp3').play().catch(() => { }); }}
+        onClick={() => { setShowIntro(false); new Audio(getAssetUrl('/sounds/paper-transition.mp3')).play().catch(() => { }); }}
       >
         <DustParticles count={20} />
         {/* Floating Image */}
@@ -157,6 +157,47 @@ export default function StoryReader() {
             </p>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (story.videoUrl) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <DustParticles count={10} />
+
+        {/* Minimal Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link to="/stories">
+                  <EgyptianButton variant="ghost" size="sm">
+                    <ChevronLeft className="w-4 h-4" />
+                    Stories
+                  </EgyptianButton>
+                </Link>
+                <div className="hidden sm:block">
+                  <h1 className="font-display text-sm font-semibold text-foreground">
+                    {story.title}
+                  </h1>
+                  <p className="text-xs text-muted-foreground">{story.subtitle}</p>
+                </div>
+              </div>
+              <Link to="/">
+                <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-all" title="Go to home">
+                  <Home className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center p-4 pt-24 pb-8 perspective-[1000px]">
+          <div className="w-full max-w-5xl">
+            <CinematicVideoPlayer story={story} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -938,5 +979,42 @@ export default function StoryReader() {
         onClose={handlePuzzleClose}
       />
     </div>
+  );
+}
+
+function CinematicVideoPlayer({ story }: { story: Story }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+      className="relative w-full aspect-video rounded-xl overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.15)] border-2 border-gold/30 bg-black group"
+    >
+      <video
+        className="w-full h-full object-cover"
+        controls
+        autoPlay
+        crossOrigin="anonymous"
+      >
+        <source src={story.videoUrl} type="video/mp4" />
+        {story.subtitlesUrl && (
+          <track
+            label="English"
+            kind="subtitles"
+            srcLang="en"
+            src={story.subtitlesUrl}
+            default
+          />
+        )}
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Gold Theme Overlay Details */}
+      <div className="absolute inset-0 border-4 border-gold/10 rounded-xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-gold rounded-tl-xl pointer-events-none opacity-50" />
+      <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-gold rounded-tr-xl pointer-events-none opacity-50" />
+      <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-gold rounded-bl-xl pointer-events-none opacity-50" />
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-gold rounded-br-xl pointer-events-none opacity-50" />
+    </motion.div>
   );
 }
