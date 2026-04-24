@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Star, RotateCcw, Sun, Moon, Zap } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
@@ -254,7 +254,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button onClick={() => { stopAmbientMusic(); onBack(); }} className="flex items-center gap-2 text-primary hover:text-gold-light transition-colors mb-4 font-body text-lg">
@@ -283,13 +283,13 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                 <Star className="text-gold" size={20} />
                 <span className="font-display text-xl">Level {currentLevel + 1}</span>
               </div>
-              <div className="font-display text-xl">ظ│ {time}s</div>
+              <div className="font-display text-xl">�?? {time}s</div>
             </div>
           </div>
 
           {!isPlaying && !levelWon && !gameOver ? (
             <div className="text-center py-12">
-              <div className="text-8xl mb-6">≡ادا</div>
+              <div className="text-8xl mb-6">?���</div>
               <h2 className="text-4xl font-display text-gold-gradient mb-6">Escape the Labyrinth!</h2>
               <p className="text-xl text-muted-foreground font-body mb-8">
                 Switch between Ra and Thoth to navigate hazards. <br/>
@@ -333,8 +333,8 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                     {type === 'blue-button' && <div className={`w-4 h-4 rounded-full bg-turquoise ${blueGateOpen ? 'scale-75 opacity-50' : 'scale-110 shadow-lg'}`} />}
                     {type === 'ra-exit' && <Sun className="w-6 h-6 text-primary opacity-30" />}
                     {type === 'thoth-exit' && <Moon className="w-6 h-6 text-turquoise opacity-30" />}
-                    {type === 'lava' && <span className="text-xs">≡ا¤ح</span>}
-                    {type === 'water' && <span className="text-xs">≡اْد</span>}
+                    {type === 'lava' && <span className="text-xs">?Ǥ�</span>}
+                    {type === 'water' && <span className="text-xs">?���</span>}
                   </div>
                 );
               }))}
@@ -377,7 +377,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
 
           {gameOver && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-terracotta/20 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-8 rounded-lg text-center">
-              <div className="text-8xl mb-4">≡اْ</div>
+              <div className="text-8xl mb-4">?��?</div>
               <h2 className="text-4xl font-display text-terracotta mb-2">A Spirit has Fallen!</h2>
               <p className="text-xl text-foreground mb-6 font-body">The ancient elements were too strong.</p>
               <EgyptianButton variant="default" size="lg" onClick={() => initLevel(currentLevel)}>

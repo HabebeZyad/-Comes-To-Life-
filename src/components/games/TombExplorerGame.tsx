@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Map as MapIcon, Key, Gem, Skull, Flame, Timer, Ghost, Star, Compass, ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { LandscapePrompt } from '@/components/ui/LandscapePrompt';
+import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
@@ -767,8 +769,9 @@ export function TombExplorerGame({ onBack }: TombExplorerGameProps) {
     }, [g]);
 
     return (
-        <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden flex flex-col items-center">
-            <div className="max-w-5xl w-full">
+        <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden flex flex-col items-center relative">
+            <LandscapePrompt />
+            <div className="max-w-5xl w-full relative z-10">
                 <div className="flex justify-between items-center mb-6">
                     <EgyptianButton variant="nav" onClick={() => { stopAmbientMusic(); onBack(); }} className="-ml-4">
                         <ArrowLeft size={20} className="mr-2" /> Back to Games
@@ -803,56 +806,58 @@ export function TombExplorerGame({ onBack }: TombExplorerGameProps) {
                         </div>
                     </div>
 
-                    <div className="relative p-2 bg-black flex items-center justify-center">
-                        <canvas ref={canvasRef} width={W} height={H} className="rounded-lg shadow-2xl" />
-                        <AnimatePresence>
-                            {gameState === 'intro' && (
-                                <GameOverlay
-                                    type="intro"
-                                    title="Tomb Explorer"
-                                    description="Navigate the treacherous chambers of the Pharaohs. Avoid hazards, solve mechanical puzzles, and find the golden path to the exit."
-                                    onAction={() => { setGameState('playing'); initLevel(0); startAmbientMusic(); }}
-                                    onSecondaryAction={onBack}
-                                />
-                            )}
-                            {gameState === 'levelUp' && (
-                                <GameOverlay
-                                    type="levelup"
-                                    title="Chamber Cleared!"
-                                    description={`Moving to ${LEVELS[currentLevelIdx + 1]?.name || 'the next trial'}`}
-                                    stats={[
-                                        { label: 'Time Bonus', value: Math.max(0, 2000 - Math.floor(g.levelTime) * 50) },
-                                        { label: 'Level Score', value: score }
-                                    ]}
-                                    actionLabel="Next Chamber"
-                                    onAction={() => {
-                                        const next = currentLevelIdx + 1;
-                                        setCurrentLevelIdx(next);
-                                        initLevel(next);
-                                        setGameState('playing');
-                                    }}
-                                    onSecondaryAction={onBack}
-                                />
-                            )}
-                            {gameState === 'victory' && (
-                                <GameOverlay
-                                    type="victory"
-                                    title="Master Explorer"
-                                    description="You have conquered every chamber of the Great Necropolis. Your name is etched in gold."
-                                    score={score}
-                                    stars={5}
-                                    stats={[
-                                        { label: 'Total Score', value: score },
-                                        { label: 'Chambers', value: '10/10' },
-                                        { label: 'Rank', value: 'Royal Archeologist' }
-                                    ]}
-                                    actionLabel="Explore Again"
-                                    onAction={() => { setCurrentLevelIdx(0); setScore(0); setDeaths(0); initLevel(0); setGameState('playing'); }}
-                                    onSecondaryAction={onBack}
-                                />
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    <GameBoardScaler originalWidth={W} originalHeight={H}>
+                        <div className="relative p-2 bg-black flex items-center justify-center w-full h-full">
+                            <canvas ref={canvasRef} width={W} height={H} className="rounded-lg shadow-2xl" />
+                            <AnimatePresence>
+                                {gameState === 'intro' && (
+                                    <GameOverlay
+                                        type="intro"
+                                        title="Tomb Explorer"
+                                        description="Navigate the treacherous chambers of the Pharaohs. Avoid hazards, solve mechanical puzzles, and find the golden path to the exit."
+                                        onAction={() => { setGameState('playing'); initLevel(0); startAmbientMusic(); }}
+                                        onSecondaryAction={onBack}
+                                    />
+                                )}
+                                {gameState === 'levelUp' && (
+                                    <GameOverlay
+                                        type="levelup"
+                                        title="Chamber Cleared!"
+                                        description={`Moving to ${LEVELS[currentLevelIdx + 1]?.name || 'the next trial'}`}
+                                        stats={[
+                                            { label: 'Time Bonus', value: Math.max(0, 2000 - Math.floor(g.levelTime) * 50) },
+                                            { label: 'Level Score', value: score }
+                                        ]}
+                                        actionLabel="Next Chamber"
+                                        onAction={() => {
+                                            const next = currentLevelIdx + 1;
+                                            setCurrentLevelIdx(next);
+                                            initLevel(next);
+                                            setGameState('playing');
+                                        }}
+                                        onSecondaryAction={onBack}
+                                    />
+                                )}
+                                {gameState === 'victory' && (
+                                    <GameOverlay
+                                        type="victory"
+                                        title="Master Explorer"
+                                        description="You have conquered every chamber of the Great Necropolis. Your name is etched in gold."
+                                        score={score}
+                                        stars={5}
+                                        stats={[
+                                            { label: 'Total Score', value: score },
+                                            { label: 'Chambers', value: '10/10' },
+                                            { label: 'Rank', value: 'Royal Archeologist' }
+                                        ]}
+                                        actionLabel="Explore Again"
+                                        onAction={() => { setCurrentLevelIdx(0); setScore(0); setDeaths(0); initLevel(0); setGameState('playing'); }}
+                                        onSecondaryAction={onBack}
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </GameBoardScaler>
 
                     {/* Mobile Controls */}
                     <div className="w-full p-6 bg-black/80 border-t border-gold/20 flex justify-between items-center md:hidden select-none">

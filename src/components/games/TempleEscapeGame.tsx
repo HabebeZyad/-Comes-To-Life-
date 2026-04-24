@@ -373,7 +373,7 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
   // Render Character Selection
   if (gameState === 'charSelect') {
     return (
-      <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden relative">
+      <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden relative">
         <div className="absolute inset-0 opacity-10 hieroglyph-pattern pointer-events-none" />
         <div className="max-w-4xl mx-auto relative z-10">
           <EgyptianButton variant="nav" onClick={onBack} className="-ml-4 mb-8">
@@ -409,7 +409,7 @@ export function TempleEscapeGame({ onBack }: TempleEscapeGameProps) {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <EgyptianButton variant="nav" onClick={() => { stopAmbientMusic(); onBack(); }} className="-ml-4">

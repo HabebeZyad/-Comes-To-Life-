@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, RotateCcw, Construction, Ruler, Hammer } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
@@ -170,7 +171,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <EgyptianButton
@@ -219,79 +220,80 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
           </div>
 
           <div className="relative p-8 bg-[url('https://www.transparenttextures.com/patterns/sandpaper.png')] bg-obsidian min-h-[550px] flex flex-col items-center justify-center">
-            <div
-              className="relative bg-gradient-to-b from-obsidian/40 to-obsidian/90 rounded-xl border-4 border-gold/20 overflow-hidden shadow-inner cursor-pointer"
-              style={{ width: containerWidth, height: 420 }}
-              onClick={dropBlock}
-            >
-              {/* Central Alignment Guide */}
-              <div className="absolute inset-y-0 w-0.5 bg-primary/10 left-1/2 -translate-x-1/2" />
-              {/* Base Line */}
-              <div className="absolute bottom-0 left-0 right-0 h-2 bg-gold/20" />
+            <GameBoardScaler originalWidth={containerWidth} originalHeight={420}>
+              <div
+                className="relative bg-gradient-to-b from-obsidian/40 to-obsidian/90 rounded-xl border-4 border-gold/20 overflow-hidden shadow-inner cursor-pointer w-full h-full"
+                onClick={dropBlock}
+              >
+                {/* Central Alignment Guide */}
+                <div className="absolute inset-y-0 w-0.5 bg-primary/10 left-1/2 -translate-x-1/2" />
+                {/* Base Line */}
+                <div className="absolute bottom-0 left-0 right-0 h-2 bg-gold/20" />
 
-              {/* Placed Blocks */}
-              <AnimatePresence>
-                {blocks.map((block, index) => (
-                  block.placed && (
-                    <motion.div
-                      key={block.id}
-                      initial={{ y: -200, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ type: "spring", damping: 15, stiffness: 200 }}
-                      className="absolute bg-gradient-to-br from-gold-dark via-primary to-gold-dark border-2 border-gold-light/40 rounded flex items-center justify-center shadow-lg"
-                      style={{
-                        width: block.width,
-                        height: blockHeight - 2,
-                        left: block.position.x,
-                        bottom: index * blockHeight + 2
-                      }}
-                    >
-                      <div className="w-full h-full opacity-30 bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')] mix-blend-overlay" />
-                    </motion.div>
-                  )
-                ))}
-              </AnimatePresence>              {/* Current Moving Block */}
-              {gameState === 'playing' && currentBlockIndex < blocks.length && (
-                <motion.div
-                  className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-white shadow-turquoise-glow rounded z-20"
-                  style={{
-                    width: blocks[currentBlockIndex].width,
-                    height: blockHeight - 2,
-                    left: movingX,
-                    top: 40
-                  }}
-                >
-                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
-                    <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
-                  </div>
-                </motion.div>
-              )}
-
-              {/* HUD Elements */}
-              <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
-                <div className={`px-4 py-1 rounded-full border-2 ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse text-terracotta' : 'bg-obsidian/60 border-gold/30 text-gold'} font-display flex items-center gap-2`}>
-                  <Timer size={16} />
-                  <span>{timeLeft}s</span>
-                </div>
-                <div className="px-4 py-1 rounded-full bg-obsidian/60 border border-gold/30 text-gold font-display text-xs uppercase tracking-widest">
-                  Block {currentBlockIndex + 1} / {blocks.length}
-                </div>
-              </div>
-
-              {/* Visual Feedback Effects */}
-              <AnimatePresence>
-                {showSparkle && (
+                {/* Placed Blocks */}
+                <AnimatePresence>
+                  {blocks.map((block, index) => (
+                    block.placed && (
+                      <motion.div
+                        key={block.id}
+                        initial={{ y: -200, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ type: "spring", damping: 15, stiffness: 200 }}
+                        className="absolute bg-gradient-to-br from-gold-dark via-primary to-gold-dark border-2 border-gold-light/40 rounded flex items-center justify-center shadow-lg"
+                        style={{
+                          width: block.width,
+                          height: blockHeight - 2,
+                          left: block.position.x,
+                          bottom: index * blockHeight + 2
+                        }}
+                      >
+                        <div className="w-full h-full opacity-30 bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')] mix-blend-overlay" />
+                      </motion.div>
+                    )
+                  ))}
+                </AnimatePresence>              {/* Current Moving Block */}
+                {gameState === 'playing' && currentBlockIndex < blocks.length && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.5, y: 0 }}
-                    animate={{ opacity: 1, scale: 2, y: -50 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 pointer-events-none flex items-center justify-center z-50"
+                    className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-white shadow-turquoise-glow rounded z-20"
+                    style={{
+                      width: blocks[currentBlockIndex].width,
+                      height: blockHeight - 2,
+                      left: movingX,
+                      top: 40
+                    }}
                   >
-                    <div className="text-gold font-display text-4xl drop-shadow-gold-glow">PERFECT ALIGNMENT! ✨</div>
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+                      <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+                    </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
+
+                {/* HUD Elements */}
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+                  <div className={`px-4 py-1 rounded-full border-2 ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse text-terracotta' : 'bg-obsidian/60 border-gold/30 text-gold'} font-display flex items-center gap-2`}>
+                    <Timer size={16} />
+                    <span>{timeLeft}s</span>
+                  </div>
+                  <div className="px-4 py-1 rounded-full bg-obsidian/60 border border-gold/30 text-gold font-display text-xs uppercase tracking-widest">
+                    Block {currentBlockIndex + 1} / {blocks.length}
+                  </div>
+                </div>
+
+                {/* Visual Feedback Effects */}
+                <AnimatePresence>
+                  {showSparkle && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5, y: 0 }}
+                      animate={{ opacity: 1, scale: 2, y: -50 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 pointer-events-none flex items-center justify-center z-50"
+                    >
+                      <div className="text-gold font-display text-4xl drop-shadow-gold-glow">PERFECT ALIGNMENT! ✨</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </GameBoardScaler>
 
             <AnimatePresence>
               {gameState === 'intro' && (

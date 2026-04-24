@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Star, Sun, Moon, Zap, ChevronsLeft, ChevronsRight, ChevronsUp, ChevronsDown, Users, Compass, Timer } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { LandscapePrompt } from '@/components/ui/LandscapePrompt';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useMobile } from '@/hooks/use-mobile';
@@ -270,8 +271,9 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden relative">
+      <LandscapePrompt />
+      <div className="max-w-5xl mx-auto relative z-10">
         <div className="flex justify-between items-center mb-6">
           <EgyptianButton
             variant="nav"
