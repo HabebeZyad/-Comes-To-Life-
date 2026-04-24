@@ -1,4 +1,4 @@
-Ôªøimport { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Brain, Crown, Star, Trophy } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
@@ -106,7 +106,7 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
   const riddle = riddles[currentRiddle];
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
@@ -155,7 +155,7 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
                     </div>
                   </div>
 
-                  <div className="text-center text-8xl mb-6">‚â°ÿßÿÆ¬Å</div>
+                  <div className="text-center text-8xl mb-6">?«Œ?</div>
 
                   <EgyptianCard variant="tomb" padding="lg">
                     <p className="text-2xl text-foreground font-body leading-relaxed text-center">"{riddle.question}"</p>
@@ -187,7 +187,7 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                       <div className={`p-6 rounded-xl ${selectedAnswer === riddle.correctAnswer ? 'bg-scarab/50 border border-turquoise/30' : 'bg-terracotta/50 border border-terracotta/30'} text-foreground`}>
                         <p className="text-2xl mb-2 flex items-center gap-2 font-display">
-                          {selectedAnswer === riddle.correctAnswer ? <>ÿ∏¬£ÿ∞ Correct! Well done, wise one!</> : <>ÿ∏ÿ•√Æ Incorrect. The answer was: {riddle.options[riddle.correctAnswer]}</>}
+                          {selectedAnswer === riddle.correctAnswer ? <>Ÿ£– Correct! Well done, wise one!</> : <>Ÿ≈Ó Incorrect. The answer was: {riddle.options[riddle.correctAnswer]}</>}
                         </p>
                         <p className="text-lg opacity-90 font-body">{riddle.explanation}</p>
                       </div>
@@ -200,7 +200,7 @@ export function PharaohRiddlesGame({ onBack }: PharaohRiddlesGameProps) {
               </AnimatePresence>
             ) : (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                <div className="text-8xl mb-6">{wisdom >= 10 ? '‚â°ÿßŸëŸë' : wisdom >= 5 ? 'ÿ∏ÿµ¬ê' : '‚â°ÿß√¥¬£'}</div>
+                <div className="text-8xl mb-6">{wisdom >= 10 ? '?«¯¯' : wisdom >= 5 ? 'Ÿ’?' : '?«Ù£'}</div>
                 <h2 className="text-5xl font-display text-gold-gradient mb-4">
                   {wisdom >= 10 ? 'Supreme Wisdom!' : wisdom >= 5 ? 'Well Done!' : 'Keep Learning!'}
                 </h2>

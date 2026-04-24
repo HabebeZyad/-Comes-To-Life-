@@ -138,6 +138,36 @@ export function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Sticky Bottom Mobile Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-gold/20 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around h-16 px-2 sm:px-4">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="flex-1 flex justify-center py-2"
+              >
+                <motion.div
+                  className={cn(
+                    "flex flex-col items-center justify-center p-2 rounded-xl transition-all",
+                    isActive
+                      ? "text-primary shadow-[0_0_15px_rgba(255,191,0,0.15)] bg-gold/10 scale-110"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Icon className="w-6 h-6" />
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </>
   );
 }

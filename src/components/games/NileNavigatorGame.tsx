@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, RotateCcw, Zap, Compass, Waves, Anchor } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
@@ -222,7 +223,7 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <EgyptianButton
@@ -269,140 +270,141 @@ export function NileNavigatorGame({ onBack }: NileNavigatorGameProps) {
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
-            <div
-              className="relative bg-gradient-to-b from-lapis-deep via-lapis to-lapis-deep rounded-xl border-4 border-gold/40 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)]"
-              style={{ width: RIVER_WIDTH, height: RIVER_HEIGHT }}
-            >
-              {/* Animated Water Lines */}
-              {[...Array(10)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-1 bg-turquoise/15 rounded-full"
-                  style={{ left: 20 + i * 42, height: 60 }}
-                  animate={{ y: [-100, RIVER_HEIGHT + 100] }}
-                  transition={{ duration: 4 / level.speed, repeat: Infinity, ease: 'linear', delay: i * 0.4 }}
-                />
-              ))}
-
-              {/* Obstacles */}
-              {obstacles.map(obs => (
-                <div
-                  key={obs.id}
-                  className="absolute text-5xl flex items-center justify-center drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]"
-                  style={{ left: obs.x, top: obs.y, width: obs.width, height: obs.width }}
-                >
-                  <span className={obs.type === 'whirlpool' ? 'animate-spin-slow opacity-60' : ''}>
-                    {obs.emoji}
-                  </span>
-                </div>
-              ))}
-
-              {/* Collectibles */}
-              {collectibles.map(col => (
-                <motion.div
-                  key={col.id}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    y: [col.y - 2, col.y + 2, col.y - 2]
-                  }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  className="absolute text-4xl drop-shadow-gold-glow flex items-center justify-center"
-                  style={{ left: col.x, top: col.y, width: 40, height: 40 }}
-                >
-                  {col.emoji}
-                </motion.div>
-              ))}
-
-              {/* Boat */}
-              <motion.div
-                animate={{ x: boatX }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="absolute flex items-center justify-center"
-                style={{ top: RIVER_HEIGHT - 120, width: BOAT_SIZE, height: BOAT_SIZE }}
+          <div className="relative flex items-center justify-center p-4 sm:p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
+            <GameBoardScaler originalWidth={RIVER_WIDTH} originalHeight={RIVER_HEIGHT}>
+              <div
+                className="relative bg-gradient-to-b from-lapis-deep via-lapis to-lapis-deep rounded-xl border-4 border-gold/40 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)] w-full h-full"
               >
-                <div className="text-6xl drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform -rotate-1">
-                  ⛵
+                {/* Animated Water Lines */}
+                {[...Array(10)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 bg-turquoise/15 rounded-full"
+                    style={{ left: 20 + i * 42, height: 60 }}
+                    animate={{ y: [-100, RIVER_HEIGHT + 100] }}
+                    transition={{ duration: 4 / level.speed, repeat: Infinity, ease: 'linear', delay: i * 0.4 }}
+                  />
+                ))}
+
+                {/* Obstacles */}
+                {obstacles.map(obs => (
+                  <div
+                    key={obs.id}
+                    className="absolute text-5xl flex items-center justify-center drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]"
+                    style={{ left: obs.x, top: obs.y, width: obs.width, height: obs.width }}
+                  >
+                    <span className={obs.type === 'whirlpool' ? 'animate-spin-slow opacity-60' : ''}>
+                      {obs.emoji}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Collectibles */}
+                {collectibles.map(col => (
+                  <motion.div
+                    key={col.id}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      y: [col.y - 2, col.y + 2, col.y - 2]
+                    }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                    className="absolute text-4xl drop-shadow-gold-glow flex items-center justify-center"
+                    style={{ left: col.x, top: col.y, width: 40, height: 40 }}
+                  >
+                    {col.emoji}
+                  </motion.div>
+                ))}
+
+                {/* Boat */}
+                <motion.div
+                  animate={{ x: boatX }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  className="absolute flex items-center justify-center"
+                  style={{ top: RIVER_HEIGHT - 120, width: BOAT_SIZE, height: BOAT_SIZE }}
+                >
+                  <div className="text-6xl drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform -rotate-1">
+                    ⛵
+                  </div>
+                  <AnimatePresence>
+                    {showCollectEffect && (
+                      <motion.div
+                        initial={{ opacity: 1, y: 0, scale: 0.5 }}
+                        animate={{ opacity: 0, y: -60, scale: 2.5 }}
+                        className="absolute -top-10 text-primary font-display text-2xl drop-shadow-gold-glow pointer-events-none"
+                      >
+                        +✨
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Distance HUD Overlay */}
+                <div className="absolute bottom-4 left-4 right-4 flex justify-between text-[10px] font-display text-gold/60 uppercase tracking-widest">
+                  <span>Start Point</span>
+                  <span>{level.name} End</span>
                 </div>
-                <AnimatePresence>
-                  {showCollectEffect && (
-                    <motion.div
-                      initial={{ opacity: 1, y: 0, scale: 0.5 }}
-                      animate={{ opacity: 0, y: -60, scale: 2.5 }}
-                      className="absolute -top-10 text-primary font-display text-2xl drop-shadow-gold-glow pointer-events-none"
-                    >
-                      +✨
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* Distance HUD Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between text-[10px] font-display text-gold/60 uppercase tracking-widest">
-                <span>Start Point</span>
-                <span>{level.name} End</span>
               </div>
-            </div>
 
-            <AnimatePresence>
-              {gameState === 'intro' && (
-                <GameOverlay
-                  type="intro"
-                  title="Nile Navigator"
-                  description="Master the sacred river. Steer your vessel through hazardous reaches, collect ancient treasures, and prove your worth as a divine navigator."
-                  onAction={() => startLevel(0)}
-                  onSecondaryAction={onBack}
-                />
-              )}
+              <AnimatePresence>
+                {gameState === 'intro' && (
+                  <GameOverlay
+                    type="intro"
+                    title="Nile Navigator"
+                    description="Master the sacred river. Steer your vessel through hazardous reaches, collect ancient treasures, and prove your worth as a divine navigator."
+                    onAction={() => startLevel(0)}
+                    onSecondaryAction={onBack}
+                  />
+                )}
 
-              {gameState === 'levelUp' && (
-                <GameOverlay
-                  type="levelup"
-                  title="Reach Mastered!"
-                  description={`You have successfully navigated ${level.name}. The river flows faster ahead.`}
-                  stats={[
-                    { label: 'Scarabs Caught', value: scarabsCollected },
-                    { label: 'Total Score', value: score }
-                  ]}
-                  actionLabel="Next Reach"
-                  onAction={handleNextLevel}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'levelUp' && (
+                  <GameOverlay
+                    type="levelup"
+                    title="Reach Mastered!"
+                    description={`You have successfully navigated ${level.name}. The river flows faster ahead.`}
+                    stats={[
+                      { label: 'Scarabs Caught', value: scarabsCollected },
+                      { label: 'Total Score', value: score }
+                    ]}
+                    actionLabel="Next Reach"
+                    onAction={handleNextLevel}
+                    onSecondaryAction={onBack}
+                  />
+                )}
 
-              {gameState === 'victory' && (
-                <GameOverlay
-                  type="victory"
-                  title="Grand Navigator"
-                  description="The entire length of the Nile has been conquered. You are truly a master of the currents and the wind."
-                  score={score}
-                  stars={5}
-                  stats={[
-                    { label: 'Final Score', value: score },
-                    { label: 'Scarabs Found', value: scarabsCollected }
-                  ]}
-                  actionLabel="Sail Again"
-                  onAction={resetGame}
-                  onSecondaryAction={onBack}
-                />
-              )}
+                {gameState === 'victory' && (
+                  <GameOverlay
+                    type="victory"
+                    title="Grand Navigator"
+                    description="The entire length of the Nile has been conquered. You are truly a master of the currents and the wind."
+                    score={score}
+                    stars={5}
+                    stats={[
+                      { label: 'Final Score', value: score },
+                      { label: 'Scarabs Found', value: scarabsCollected }
+                    ]}
+                    actionLabel="Sail Again"
+                    onAction={resetGame}
+                    onSecondaryAction={onBack}
+                  />
+                )}
 
-              {gameState === 'defeat' && (
-                <GameOverlay
-                  type="defeat"
-                  title="Wrecked on the Nile"
-                  description="The river's hazards have claimed your vessel. The sands of Egypt keep no record of the sunken."
-                  score={score}
-                  stats={[
-                    { label: 'Current Reach', value: level.name },
-                    { label: 'Score', value: score }
-                  ]}
-                  actionLabel="Retry Reach"
-                  onAction={resetGame}
-                  onSecondaryAction={onBack}
-                />
-              )}
-            </AnimatePresence>
+                {gameState === 'defeat' && (
+                  <GameOverlay
+                    type="defeat"
+                    title="Wrecked on the Nile"
+                    description="The river's hazards have claimed your vessel. The sands of Egypt keep no record of the sunken."
+                    score={score}
+                    stats={[
+                      { label: 'Current Reach', value: level.name },
+                      { label: 'Score', value: score }
+                    ]}
+                    actionLabel="Retry Reach"
+                    onAction={resetGame}
+                    onSecondaryAction={onBack}
+                  />
+                )}
+              </AnimatePresence>
+            </GameBoardScaler>
           </div>
 
           {gameState === 'playing' && (

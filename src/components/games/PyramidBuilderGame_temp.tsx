@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, RotateCcw } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
@@ -152,7 +152,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
   }, [isPlaying, dropBlock]);
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button
@@ -184,7 +184,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
 
           {!isPlaying && !gameWon && !gameLost ? (
             <div className="text-center py-12">
-              <div className="text-8xl mb-6">â‰¡Ø§ÂØ¤ÙŠâ••Â</div>
+              <div className="text-8xl mb-6">?Ç?Äí??</div>
               <h2 className="text-4xl font-display text-gold-gradient mb-6">Build Your Pyramid</h2>
               <p className="text-xl text-muted-foreground font-body mb-4 max-w-2xl mx-auto">
                 Press SPACE or tap to drop blocks. Align them perfectly to build the pyramid!
@@ -193,23 +193,23 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
               <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <EgyptianButton variant="turquoise" size="xl" onClick={() => initializeGame('easy')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">â‰¡Ø§ÂØ²</div>
+                    <div className="text-4xl mb-2">?Ç?Ò</div>
                     <span className="text-xl">Easy</span>
-                    <span className="text-sm opacity-80">Slow blocks Ø¸Â€Øª 90s</span>
+                    <span className="text-sm opacity-80">Slow blocks Ù?Ê 90s</span>
                   </EgyptianButton>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <EgyptianButton variant="default" size="xl" onClick={() => initializeGame('medium')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">â‰¡Ø§Ââ•‘</div>
+                    <div className="text-4xl mb-2">?Ç??</div>
                     <span className="text-xl">Medium</span>
-                    <span className="text-sm opacity-80">Normal speed Ø¸Â€Øª 60s</span>
+                    <span className="text-sm opacity-80">Normal speed Ù?Ê 60s</span>
                   </EgyptianButton>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <EgyptianButton variant="danger" size="xl" onClick={() => initializeGame('hard')} className="w-full h-auto flex-col py-8">
-                    <div className="text-4xl mb-2">Ø¸Ø£Ø©</div>
+                    <div className="text-4xl mb-2">ÙÃÉ</div>
                     <span className="text-xl">Hard</span>
-                    <span className="text-sm opacity-80">Fast blocks Ø¸Â€Øª 45s</span>
+                    <span className="text-sm opacity-80">Fast blocks Ù?Ê 45s</span>
                   </EgyptianButton>
                 </motion.div>
               </div>
@@ -228,7 +228,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                       className="absolute bg-gradient-to-r from-gold-dark via-primary to-gold-dark border-2 border-gold-light/50 rounded"
                       style={{ width: block.width, height: blockHeight - 4, left: block.position.x, bottom: index * blockHeight }}
                     >
-                      <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian/70">â‰¡Ã´Ã¨Ø²</div>
+                      <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian/70">?ôèÒ</div>
                     </motion.div>
                   )
                 ))}
@@ -237,7 +237,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                     className="absolute bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise border-2 border-turquoise-glow/50 rounded shadow-lg"
                     style={{ width: blocks[currentBlockIndex].width, height: blockHeight - 4, left: movingX, top: 20 }}
                   >
-                    <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian">â‰¡Ã´Ã¨Ø²</div>
+                    <div className="w-full h-full flex items-center justify-center text-sm font-display text-obsidian">?ôèÒ</div>
                   </motion.div>
                 )}
                 {isPlaying && (
@@ -254,7 +254,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
                       className="absolute inset-0 pointer-events-none flex items-center justify-center"
                     >
                       <div className="w-full h-full bg-primary/20 animate-pulse rounded-full" />
-                      <div className="absolute text-4xl">Ø¸Â£Ø°</div>
+                      <div className="absolute text-4xl">Ù£Ğ</div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -270,7 +270,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               className="text-center py-12 absolute inset-0 bg-scarab/95 rounded-lg flex flex-col items-center justify-center"
             >
-              <div className="text-9xl mb-6">â‰¡Ø§ÂØ¤ÙŠâ••Â</div>
+              <div className="text-9xl mb-6">?Ç?Äí??</div>
               <h2 className="text-5xl font-display text-gold-gradient mb-4">Pyramid Complete!</h2>
               <div className="space-y-2 mb-8">
                 <p className="text-2xl text-foreground font-body">Final Score: {score}</p>
@@ -294,7 +294,7 @@ export function PyramidBuilderGame({ onBack }: PyramidBuilderGameProps) {
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               className="text-center py-12 absolute inset-0 bg-obsidian/95 rounded-lg flex flex-col items-center justify-center"
             >
-              <div className="text-9xl mb-6">â‰¡Ø§Ù’Ø­</div>
+              <div className="text-9xl mb-6">?ÇúÍ</div>
               <h2 className="text-5xl font-display text-terracotta mb-4">{timeLeft === 0 ? "Time's Up!" : "Block Misaligned!"}</h2>
               <div className="space-y-2 mb-8">
                 <p className="text-2xl text-foreground font-body">Score: {score}</p>

@@ -176,7 +176,7 @@ export function HieroglyphDecoderGame({ onBack }: HieroglyphDecoderGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background overflow-hidden">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <EgyptianButton

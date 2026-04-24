@@ -98,7 +98,7 @@ export default function Games() {
   const filteredGames = filter === 'All' ? games : games.filter(g => g.category === (filter as 'Wisdom' | 'Action' | 'History'));
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-hero-gradient relative">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-hero-gradient relative">
       <div className="absolute inset-x-0 top-0 h-full overflow-hidden pointer-events-none">
         <DustParticles />
       </div>

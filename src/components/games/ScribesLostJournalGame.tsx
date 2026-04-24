@@ -7,6 +7,7 @@ import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { ArrowLeft, BookOpen, ScrollText, Trophy, Star, Clock, Shield, Zap, Info, Search } from 'lucide-react';
 import { GameOverlay } from './GameOverlay';
 import { useHighScores } from '@/hooks/useHighScores';
+import { useGameAudio } from '@/hooks/useGameAudio';
 
 interface ScribesLostJournalGameProps {
     onBack: () => void;
@@ -18,6 +19,7 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
     const [timeElapsed, setTimeElapsed] = useState(0);
     const puzzle = getPuzzleById('scribes-journal-1') as StoryPuzzle;
     const { addScore } = useHighScores();
+    const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -33,6 +35,8 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
 
     const handleSolve = (points: number) => {
         setScore(points);
+        playSound('victory');
+        stopAmbientMusic();
         addScore({
             playerName: 'Researcher',
             score: points,
@@ -44,6 +48,8 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
 
     const startGame = () => {
         setGameState('playing');
+        playSound('gameStart');
+        startAmbientMusic();
     };
 
     const formatTime = (seconds: number) => {
@@ -53,7 +59,7 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
+        <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background relative overflow-hidden">
             {/* Themed background */}
             <div className="absolute inset-0 pointer-events-none opacity-5">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
@@ -65,7 +71,7 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
                     <div>
                         <EgyptianButton
                             variant="nav"
-                            onClick={onBack}
+                            onClick={() => { stopAmbientMusic(); onBack(); }}
                             className="-ml-4 mb-2"
                         >
                             <ArrowLeft size={20} className="mr-2" /> Back to Games
@@ -136,16 +142,39 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
                         </div>
                     </div>
 
-                    <div className="p-8 bg-obsidian/40 backdrop-blur-sm min-h-[500px]">
-                        <LogicFragmentsPuzzle
-                            puzzle={{
-                                ...puzzle,
-                                data: puzzle.data as LogicFragmentsData
-                            }}
-                            onSolve={handleSolve}
-                            onClose={onBack}
-                            isEmbed={true}
-                        />
+                    <div className="p-8 bg-obsidian/40 backdrop-blur-sm min-h-[500px] flex flex-col items-center justify-center">
+                        {gameState === 'playing' ? (
+                            <div className="w-full">
+                                <LogicFragmentsPuzzle
+                                    puzzle={{
+                                        ...puzzle,
+                                        data: puzzle.data as LogicFragmentsData
+                                    }}
+                                    onSolve={handleSolve}
+                                    onClose={() => { stopAmbientMusic(); onBack(); }}
+                                    isEmbed={true}
+                                />
+                            </div>
+                        ) : (
+                            <div className="text-center space-y-6">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-12 border border-gold/20 rounded-2xl bg-black/40 max-w-2xl mx-auto"
+                                >
+                                    <ScrollText className="w-16 h-16 text-primary mx-auto mb-6 animate-pulse" />
+                                    <h2 className="text-3xl font-display text-gold mb-4">The Scribe's Trial</h2>
+                                    <p className="text-muted-foreground mb-8 text-lg font-body leading-relaxed">
+                                        A sacred journal has been shattered by time. Use the discovered clues to piece together the logical sequence of events from this ancient expedition.
+                                    </p>
+                                    <div className="flex justify-center gap-4">
+                                        <EgyptianButton variant="hero" onClick={startGame}>
+                                            Begin Restoration
+                                        </EgyptianButton>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Meta Info Footer */}
@@ -175,15 +204,6 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
             </div>
 
             <AnimatePresence>
-                {gameState === 'intro' && (
-                    <GameOverlay
-                        type="intro"
-                        title="The Scribe's Trial"
-                        description="A sacred journal has been shattered by time. Use the discovered clues to piece together the logical sequence of events from this ancient expedition."
-                        onAction={startGame}
-                        onSecondaryAction={onBack}
-                    />
-                )}
 
                 {gameState === 'victory' && (
                     <GameOverlay
@@ -203,7 +223,7 @@ export const ScribesLostJournalGame: React.FC<ScribesLostJournalGameProps> = ({ 
                             setTimeElapsed(0);
                             setGameState('intro');
                         }}
-                        onSecondaryAction={onBack}
+                        onSecondaryAction={() => { stopAmbientMusic(); onBack(); }}
                     />
                 )}
             </AnimatePresence>

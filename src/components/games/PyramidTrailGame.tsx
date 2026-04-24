@@ -93,7 +93,7 @@ export const PyramidTrailGame: React.FC<PyramidTrailGameProps> = ({ onBack }) =>
     };
 
     return (
-        <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
+        <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background relative overflow-hidden">
             {/* Themed background */}
             <div className="absolute inset-0 pointer-events-none opacity-5">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />

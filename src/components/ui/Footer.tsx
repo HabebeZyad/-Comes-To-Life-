@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer = () => {
     return (
-        <footer className="bg-background pt-24 pb-12 border-t border-gold/20 relative overflow-hidden">
+        <footer className="bg-background pt-24 pb-28 md:pb-12 border-t border-gold/20 relative overflow-hidden">
             {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
             <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gold/5 blur-[100px] rounded-full" />

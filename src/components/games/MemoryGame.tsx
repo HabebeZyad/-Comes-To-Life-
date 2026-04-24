@@ -177,7 +177,7 @@ export function MemoryGame({ onBack }: MemoryGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full hieroglyph-pattern" />

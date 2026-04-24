@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, Timer, Star, Bug, Zap, Shield, Sparkles, Clock } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
@@ -191,7 +192,7 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 bg-background relative overflow-hidden">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-background relative overflow-hidden">
       {/* Decorative Background */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full hieroglyph-pattern" />
@@ -258,118 +259,119 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
           </div>
 
           {/* Game Field */}
-          <div
-            className="relative mx-auto bg-gradient-to-b from-sandstone/10 to-obsidian/30 cursor-crosshair overflow-hidden"
-            style={{ width: '100%', height: FIELD_HEIGHT, maxWidth: FIELD_WIDTH }}
-          >
-            {/* Field background patterns */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none grid grid-cols-6 grid-rows-4">
-              {[...Array(24)].map((_, i) => (
-                <div key={i} className="border-[0.5px] border-gold/10 flex items-center justify-center text-xs">𓆣</div>
-              ))}
-            </div>
+          <GameBoardScaler originalWidth={FIELD_WIDTH} originalHeight={FIELD_HEIGHT} className="overflow-hidden">
+            <div
+              className="relative w-full h-full bg-gradient-to-b from-sandstone/10 to-obsidian/30 cursor-crosshair overflow-hidden"
+            >
+              {/* Field background patterns */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none grid grid-cols-6 grid-rows-4">
+                {[...Array(24)].map((_, i) => (
+                  <div key={i} className="border-[0.5px] border-gold/10 flex items-center justify-center text-xs">𓆣</div>
+                ))}
+              </div>
 
-            {gameState === 'playing' && (
-              <AnimatePresence>
-                {scarabs.map(scarab => (
-                  <motion.button
-                    key={scarab.id}
-                    initial={{ scale: 0, rotate: -45 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.8 }}
-                    onClick={() => handleScarabClick(scarab)}
-                    className={`absolute text-4xl select-none z-10 
+              {gameState === 'playing' && (
+                <AnimatePresence>
+                  {scarabs.map(scarab => (
+                    <motion.button
+                      key={scarab.id}
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
+                      onClick={() => handleScarabClick(scarab)}
+                      className={`absolute text-4xl select-none z-10 
                       ${scarab.type === 'sacred' ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]' : ''}
                       ${scarab.type === 'bonus' ? 'drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-bounce' : ''}
                       ${scarab.type === 'cursed' ? 'drop-shadow-[0_0_8px_rgba(255,0,0,0.5)]' : ''}
                       ${scarab.type === 'time' ? 'drop-shadow-[0_0_8px_rgba(50,255,50,0.8)]' : ''}
                     `}
-                    style={{
-                      left: scarab.x,
-                      top: scarab.y,
-                      filter: scarab.type === 'sacred' ? 'hue-rotate(45deg)' : 'none'
+                      style={{
+                        left: scarab.x,
+                        top: scarab.y,
+                        filter: scarab.type === 'sacred' ? 'hue-rotate(45deg)' : 'none'
+                      }}
+                    >
+                      {scarab.emoji}
+                      {scarab.type === 'time' && (
+                        <div className="absolute -top-2 -right-2 bg-scarab text-[10px] p-0.5 rounded-full text-white">+5s</div>
+                      )}
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
+              )}
+
+              {/* Overlays */}
+              <AnimatePresence>
+                {gameState === 'intro' && (
+                  <GameOverlay
+                    type="intro"
+                    title="Scarab Collector"
+                    description="Ancient scarabs are emerging from the sands! Catch the golden and sacred ones while avoiding the cursed scorpions. Maintain speed to build your score combo."
+                    actionLabel="Enter Trial"
+                    onAction={() => startNextLevel()}
+                    onSecondaryAction={onBack}
+                  />
+                )}
+
+                {gameState === 'levelup' && (
+                  <GameOverlay
+                    type="levelup"
+                    title="Wave Complete!"
+                    description={`Excellent work. You have mastered the ${currentWave.name}.`}
+                    stats={[
+                      { label: 'Wave Score', value: score },
+                      { label: 'Collected', value: collected },
+                      { label: 'Cursed Hits', value: cursedHits }
+                    ]}
+                    actionLabel={`Start Wave ${level + 1}`}
+                    onAction={() => startNextLevel()}
+                    onSecondaryAction={onBack}
+                  />
+                )}
+
+                {gameState === 'victory' && (
+                  <GameOverlay
+                    type="victory"
+                    title="Divine Master"
+                    description="You have cleared all trials and collected the sacred swarm of the Pharaohs!"
+                    score={score}
+                    stars={5}
+                    stats={[
+                      { label: 'Total Caught', value: collected },
+                      { label: 'Accuracy', value: `${Math.round((collected / (collected + cursedHits)) * 100)}%` }
+                    ]}
+                    actionLabel="Play Again"
+                    onAction={() => {
+                      setLevel(0);
+                      setGameState('intro');
                     }}
-                  >
-                    {scarab.emoji}
-                    {scarab.type === 'time' && (
-                      <div className="absolute -top-2 -right-2 bg-scarab text-[10px] p-0.5 rounded-full text-white">+5s</div>
-                    )}
-                  </motion.button>
-                ))}
+                    onSecondaryAction={onBack}
+                  />
+                )}
+
+                {gameState === 'defeat' && (
+                  <GameOverlay
+                    type="defeat"
+                    title="Trial Failed"
+                    description={`The sands were too swift. You needed ${currentWave.target} points to pass this wave.`}
+                    score={score}
+                    stats={[
+                      { label: 'Required', value: currentWave.target },
+                      { label: 'Current', value: score }
+                    ]}
+                    actionLabel="Retry Wave"
+                    onAction={() => {
+                      setLevel(level - 1);
+                      startNextLevel();
+                    }}
+                    onSecondaryAction={onBack}
+                  />
+                )}
               </AnimatePresence>
-            )}
-
-            {/* Overlays */}
-            <AnimatePresence>
-              {gameState === 'intro' && (
-                <GameOverlay
-                  type="intro"
-                  title="Scarab Collector"
-                  description="Ancient scarabs are emerging from the sands! Catch the golden and sacred ones while avoiding the cursed scorpions. Maintain speed to build your score combo."
-                  actionLabel="Enter Trial"
-                  onAction={() => startNextLevel()}
-                  onSecondaryAction={onBack}
-                />
-              )}
-
-              {gameState === 'levelup' && (
-                <GameOverlay
-                  type="levelup"
-                  title="Wave Complete!"
-                  description={`Excellent work. You have mastered the ${currentWave.name}.`}
-                  stats={[
-                    { label: 'Wave Score', value: score },
-                    { label: 'Collected', value: collected },
-                    { label: 'Cursed Hits', value: cursedHits }
-                  ]}
-                  actionLabel={`Start Wave ${level + 1}`}
-                  onAction={() => startNextLevel()}
-                  onSecondaryAction={onBack}
-                />
-              )}
-
-              {gameState === 'victory' && (
-                <GameOverlay
-                  type="victory"
-                  title="Divine Master"
-                  description="You have cleared all trials and collected the sacred swarm of the Pharaohs!"
-                  score={score}
-                  stars={5}
-                  stats={[
-                    { label: 'Total Caught', value: collected },
-                    { label: 'Accuracy', value: `${Math.round((collected / (collected + cursedHits)) * 100)}%` }
-                  ]}
-                  actionLabel="Play Again"
-                  onAction={() => {
-                    setLevel(0);
-                    setGameState('intro');
-                  }}
-                  onSecondaryAction={onBack}
-                />
-              )}
-
-              {gameState === 'defeat' && (
-                <GameOverlay
-                  type="defeat"
-                  title="Trial Failed"
-                  description={`The sands were too swift. You needed ${currentWave.target} points to pass this wave.`}
-                  score={score}
-                  stats={[
-                    { label: 'Required', value: currentWave.target },
-                    { label: 'Current', value: score }
-                  ]}
-                  actionLabel="Retry Wave"
-                  onAction={() => {
-                    setLevel(level - 1);
-                    startNextLevel();
-                  }}
-                  onSecondaryAction={onBack}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+            </div>
+          </GameBoardScaler>
 
           <div className="bg-obsidian/40 p-4 grid grid-cols-3 gap-4 border-t border-gold/20">
             <div className="text-center">

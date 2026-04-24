@@ -49,7 +49,7 @@ export default function HieroglyphicsPage() {
 
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-12">
+    <div className="min-h-screen bg-background pt-24 pb-28 md:pb-12">
       <DustParticles count={15} />
 
       <div className="container mx-auto px-4 max-w-6xl">
