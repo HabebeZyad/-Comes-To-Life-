@@ -207,6 +207,8 @@ export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
                             <button
                                 onClick={() => setIsPanoOpen(false)}
                                 className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-gold/20 text-gold rounded-full border border-gold/30 transition-colors"
+                                aria-label="Close viewer"
+                                title="Close"
                             >
                                 <X className="w-6 h-6" />
                             </button>
