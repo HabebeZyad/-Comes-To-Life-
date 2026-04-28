@@ -38,9 +38,9 @@ export const riddleLevels: RiddleLevel[] = [
     title: 'Royal Vizier',
     timeLimit: 60,
     riddles: [
-        { question: "I was the female pharaoh who dressed as a man and built great monuments. Who am I?", options: ["Cleopatra", "Nefertiti", "Hatshepsut", "Nefertari"], correctAnswer: 2, explanation: "Hatshepsut was one of the most successful female pharaohs, known for her building projects." },
-        { question: "I am the falcon-headed god of the sky and kingship. Who am I?", options: ["Set", "Horus", "Thoth", "Sobek"], correctAnswer: 1, explanation: "Horus, the falcon god, was associated with pharaohs and his eye became a symbol of protection." },
-        { question: "I am the last pharaoh of Egypt, known for my relationships with Caesar and Marc Antony. Who am I?", options: ["Cleopatra VII", "Nefertiti", "Hatshepsut", "Ankhesenamun"], correctAnswer: 0, explanation: "Cleopatra VII was the last active pharaoh of Egypt before it became a Roman province." },
+      { question: "I was the female pharaoh who dressed as a man and built great monuments. Who am I?", options: ["Cleopatra", "Nefertiti", "Hatshepsut", "Nefertari"], correctAnswer: 2, explanation: "Hatshepsut was one of the most successful female pharaohs, known for her building projects." },
+      { question: "I am the falcon-headed god of the sky and kingship. Who am I?", options: ["Set", "Horus", "Thoth", "Sobek"], correctAnswer: 1, explanation: "Horus, the falcon god, was associated with pharaohs and his eye became a symbol of protection." },
+      { question: "I am the last pharaoh of Egypt, known for my relationships with Caesar and Marc Antony. Who am I?", options: ["Cleopatra VII", "Nefertiti", "Hatshepsut", "Ankhesenamun"], correctAnswer: 0, explanation: "Cleopatra VII was the last active pharaoh of Egypt before it became a Roman province." },
     ]
   },
   {

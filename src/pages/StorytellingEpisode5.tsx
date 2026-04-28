@@ -11,11 +11,11 @@ import { DustParticles } from '@/components/effects/DustParticles';
 
 // Import storytelling panel images (using placeholders)
 import panelCover from '@/assets/hero-tomb.jpg';
-import panel1 from '@/assets/storytelling/ep3-panel1.jpg';
-import panel2 from '@/assets/storytelling/ep3-panel2.jpg';
-import panel3 from '@/assets/storytelling/ep3-panel3.jpg';
-import panel4 from '@/assets/storytelling/ep3-panel4.jpg';
-import panel5 from '@/assets/storytelling/ep3-panel5.jpg';
+const panel1 = '/placeholder.svg';
+const panel2 = '/placeholder.svg';
+const panel3 = '/placeholder.svg';
+const panel4 = '/placeholder.svg';
+const panel5 = '/placeholder.svg';
 
 const panelImages: Record<string, string> = {
   'ep5-panel-1': panel1,

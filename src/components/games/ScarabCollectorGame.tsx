@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Trophy, Timer, Star, Bug, Zap, Shield, Sparkles, Clock } from 'lucide-react';
+import { ArrowLeft, Trophy, Timer, Zap, Shield, Sparkles, Clock } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
@@ -8,19 +8,15 @@ import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
 
-interface ScarabCollectorGameProps {
-  onBack: () => void;
-}
+// Game Engine Core
+import { GameLoop } from '@/core/GameLoop';
+import { GameState } from '@/core/GameState';
+import { InputManager } from '@/core/InputManager';
 
-interface Scarab {
-  id: number;
-  x: number;
-  y: number;
-  type: 'gold' | 'silver' | 'cursed' | 'sacred' | 'time' | 'bonus';
-  emoji: string;
-  points: number;
-  expiresAt: number;
-}
+// Systems & Entities
+import { RenderSystem } from '@/systems/RenderSystem';
+import { JuiceSystem } from '@/systems/JuiceSystem';
+import { ScarabEntity, ScarabType } from '@/entities/ScarabEntity';
 
 const FIELD_WIDTH = 600;
 const FIELD_HEIGHT = 450;
@@ -33,44 +29,79 @@ const WAVES = [
   { id: 5, name: 'Divine Trial', target: 4500, spawnRate: 600, duration: 45, description: 'The final test of the gods. Only the swiftest will survive.' }
 ];
 
-export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
-  const [scarabs, setScarabs] = useState<Scarab[]>([]);
+class CollectorGameState extends GameState {
+  public collected: number = 0;
+  public cursedHits: number = 0;
+  public combo: number = 0;
+  public lastHitTime: number = 0;
+}
+
+export function ScarabCollectorGame({ onBack }: { onBack: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const [level, setLevel] = useState(0); // 0 = not started
   const [score, setScore] = useState(0);
   const [collected, setCollected] = useState(0);
   const [cursedHits, setCursedHits] = useState(0);
   const [combo, setCombo] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelup' | 'victory' | 'defeat'>('intro');
-  const lastClickRef = useRef(Date.now());
+  const [gameState, setUIState] = useState<'intro' | 'playing' | 'levelup' | 'victory' | 'defeat'>('intro');
+
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
 
   const currentWave = WAVES[level - 1] || WAVES[0];
 
+  // Engine refs to prevent state-stale closures
+  const engineRef = useRef({
+    loop: null as GameLoop | null,
+    input: null as InputManager | null,
+    juice: new JuiceSystem(),
+    render: null as RenderSystem | null,
+    state: new CollectorGameState(),
+    entities: [] as ScarabEntity[],
+    wave: currentWave,
+    level: 0,
+    uiState: 'intro',
+    timeElapsed: 0,
+    spawnTimer: 0
+  });
+
   const startNextLevel = useCallback(() => {
     const nextLevel = level + 1;
     if (nextLevel > WAVES.length) {
-      setGameState('victory');
+      setUIState('victory');
+      engineRef.current.uiState = 'victory';
       stopAmbientMusic();
       playSound('victory');
       addScore({
         playerName: 'Explorer',
-        score,
+        score: engineRef.current.state.score,
         game: 'scarab-collector',
         difficulty: 'hard',
-        details: `Completed all 5 waves! ${collected} caught.`
+        details: `Completed all 5 waves! ${engineRef.current.state.collected} caught.`
       });
       return;
     }
 
     setLevel(nextLevel);
     const wave = WAVES[nextLevel - 1];
+
+    // Sync into engine
+    const e = engineRef.current;
+    e.wave = wave;
+    e.level = nextLevel;
+    e.uiState = 'playing';
+    e.entities = []; // clear field
+
     setTimeLeft(wave.duration);
-    setGameState('playing');
-    setIsPlaying(true);
+    setUIState('playing');
+
     if (nextLevel === 1) {
+      e.state.reset();
+      e.state.collected = 0;
+      e.state.cursedHits = 0;
+      e.state.combo = 0;
       setScore(0);
       setCollected(0);
       setCursedHits(0);
@@ -80,115 +111,209 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
     } else {
       playSound('levelUp');
     }
-  }, [level, score, collected, startAmbientMusic, playSound, addScore]);
+  }, [level, startAmbientMusic, playSound, addScore]);
 
-  // Timer logic
+  // Engine Initialization & Loop
   useEffect(() => {
-    if (gameState !== 'playing' || timeLeft <= 0) {
-      if (timeLeft === 0 && gameState === 'playing') {
-        if (score >= currentWave.target) {
-          setGameState('levelup');
-          setIsPlaying(false);
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { alpha: false }); // optimizes compositing
+    if (!ctx) return;
+
+    const input = new InputManager(canvas);
+    const renderSys = new RenderSystem(ctx);
+
+    engineRef.current.input = input;
+    engineRef.current.render = renderSys;
+
+    const update = (delta: number) => {
+      const e = engineRef.current;
+      if (e.uiState !== 'playing') {
+        input.update(delta); // flush inputs
+        return;
+      }
+
+      e.timeElapsed += delta;
+
+      // Update Timer visually
+      const newTimeLeft = Math.ceil(e.wave.duration - e.timeElapsed);
+      if (newTimeLeft !== timeLeft && newTimeLeft >= 0) {
+        setTimeLeft(newTimeLeft);
+        if (newTimeLeft <= 6 && newTimeLeft > 0) playSound('tick');
+      }
+
+      // Timer completion logic
+      if (e.timeElapsed >= e.wave.duration) {
+        if (e.state.score >= e.wave.target) {
+          e.uiState = 'levelup';
+          setUIState('levelup');
           playSound('victory');
         } else {
-          setGameState('defeat');
-          setIsPlaying(false);
+          e.uiState = 'defeat';
+          setUIState('defeat');
           stopAmbientMusic();
           playSound('defeat');
         }
       }
-      return;
-    }
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        if (prev <= 6) playSound('tick');
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [gameState, timeLeft, score, currentWave.target, playSound, stopAmbientMusic]);
-
-  // Spawning logic
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const spawnInterval = setInterval(() => {
-      const now = Date.now();
-      const rand = Math.random();
-      let type: Scarab['type'], emoji: string, points: number;
-
-      // Special items based on wave
-      if (rand < 0.05 && level >= 2) {
-        type = 'time'; emoji = '⌛'; points = 0; // Gives time
-      } else if (rand < 0.1 && level >= 3) {
-        type = 'bonus'; emoji = '💎'; points = 500;
-      } else if (rand < 0.15) {
-        type = 'sacred'; emoji = '🪲'; points = 250;
-      } else if (rand < 0.35) {
-        type = 'cursed'; emoji = '🦂'; points = -150;
-      } else if (rand < 0.6) {
-        type = 'gold'; emoji = '𓆣'; points = 100;
-      } else {
-        type = 'silver'; emoji = '🪲'; points = 50;
+      // Spawning Logic
+      e.spawnTimer += delta * 1000;
+      if (e.spawnTimer >= e.wave.spawnRate) {
+        e.spawnTimer = 0;
+        spawnEntity(e);
       }
 
-      const lifespan = type === 'sacred' || type === 'bonus' ? 1200 : 2500 - (level * 150);
+      // Input Checking (Clicking entities)
+      const clicks = input.clicks;
+      let clickedSomething = false;
 
-      setScarabs(prev => [...prev, {
-        id: now + Math.random(),
-        x: Math.random() * (FIELD_WIDTH - 60) + 30,
-        y: Math.random() * (FIELD_HEIGHT - 60) + 30,
-        type, emoji, points,
-        expiresAt: now + lifespan
-      }]);
-    }, currentWave.spawnRate);
+      if (clicks.length > 0) {
+        for (const click of clicks) {
+          // check backwards for Z-index
+          for (let i = e.entities.length - 1; i >= 0; i--) {
+            const scarab = e.entities[i];
+            if (!scarab.isActive) continue;
 
-    return () => clearInterval(spawnInterval);
-  }, [gameState, level, currentWave.spawnRate]);
+            const dx = click.x - scarab.x;
+            const dy = click.y - scarab.y;
+            if (Math.sqrt(dx * dx + dy * dy) < scarab.width) {
+              // Hit!
+              handleHit(scarab, e);
+              scarab.isActive = false;
+              clickedSomething = true;
+              break; // only hit one per click
+            }
+          }
+        }
+      }
 
-  // Expiry logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      setScarabs(prev => prev.filter(s => s.expiresAt > now));
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
+      // Update Systems
+      for (const ent of e.entities) {
+        if (ent.isActive) ent.update(delta);
+      }
+      e.juice.update(delta);
 
-  const handleScarabClick = (scarab: Scarab) => {
-    if (gameState !== 'playing') return;
+      // Flush inputs
+      input.update(delta);
+    };
 
-    const now = Date.now();
-    const timeSinceLast = now - lastClickRef.current;
-    lastClickRef.current = now;
+    const drawBackground = () => {
+      ctx.fillStyle = '#1a1612'; // deep obsidian/sand combo
+      ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
 
-    setScarabs(prev => prev.filter(s => s.id !== scarab.id));
+      // Draw subtle grid patterns
+      ctx.strokeStyle = 'rgba(218, 165, 32, 0.05)';
+      ctx.beginPath();
+      for (let x = 0; x < FIELD_WIDTH; x += 100) { ctx.moveTo(x, 0); ctx.lineTo(x, FIELD_HEIGHT); }
+      for (let y = 0; y < FIELD_HEIGHT; y += 112.5) { ctx.moveTo(0, y); ctx.lineTo(FIELD_WIDTH, y); }
+      ctx.stroke();
+    };
+
+    const render = () => {
+      const e = engineRef.current;
+
+      ctx.save();
+
+      // Apply screen shake to entire game viewport
+      e.juice.applyScreenShake(ctx);
+
+      drawBackground();
+
+      // Draw Entities
+      renderSys.render(e.entities);
+
+      // Draw Juice/Particles over top
+      renderSys.render(e.juice.particles);
+
+      ctx.restore();
+    };
+
+    const loop = new GameLoop(update, render);
+    engineRef.current.loop = loop;
+    loop.start();
+
+    return () => {
+      loop.stop();
+      input.cleanup();
+    };
+  }, [playSound, stopAmbientMusic]);
+
+  // SPAWNER & HIT HANDLERS
+  const spawnEntity = (e: any) => {
+    const rand = Math.random();
+    let type: ScarabType, emoji: string, points: number, color: string;
+
+    if (rand < 0.05 && e.level >= 2) {
+      type = 'time'; emoji = '⌛'; points = 0; color = '#50ff50';
+    } else if (rand < 0.1 && e.level >= 3) {
+      type = 'bonus'; emoji = '💎'; points = 500; color = '#00ffff';
+    } else if (rand < 0.15) {
+      type = 'sacred'; emoji = '🪲'; points = 250; color = '#ffd700';
+    } else if (rand < 0.35) {
+      type = 'cursed'; emoji = '🦂'; points = -150; color = '#ff3030';
+    } else if (rand < 0.6) {
+      type = 'gold'; emoji = '𓆣'; points = 100; color = '#d4af37';
+    } else {
+      type = 'silver'; emoji = '🪲'; points = 50; color = '#c0c0c0';
+    }
+
+    const lifespan = type === 'sacred' || type === 'bonus' ? 1.2 : 2.5 - (e.level * 0.15);
+
+    e.entities.push(new ScarabEntity(
+      Math.random() * (FIELD_WIDTH - 60) + 30,
+      Math.random() * (FIELD_HEIGHT - 60) + 30,
+      type, emoji, points, color, lifespan
+    ));
+  };
+
+  const handleHit = (scarab: ScarabEntity, e: any) => {
+    const explosionColor = scarab.color;
 
     if (scarab.type === 'cursed') {
       playSound('wrong');
-      setCursedHits(prev => prev + 1);
-      setScore(prev => Math.max(0, prev - 150));
-      setCombo(0);
+      e.state.cursedHits++;
+      e.state.score = Math.max(0, e.state.score - 150);
+      e.state.combo = 0;
+
+      e.juice.spawnExplosion(scarab.x, scarab.y, explosionColor, 20);
+      e.juice.triggerScreenShake(0.3); // violent shake
+
     } else if (scarab.type === 'time') {
       playSound('collect');
-      setTimeLeft(prev => prev + 5);
-      setCollected(prev => prev + 1);
+      e.timeElapsed = Math.max(0, e.timeElapsed - 5); // rewinds time
+      e.state.collected++;
+
+      e.juice.spawnExplosion(scarab.x, scarab.y, explosionColor, 15);
+      e.juice.triggerScreenShake(0.1);
+
     } else {
       playSound('collect');
-      const newCombo = timeSinceLast < 1200 ? combo + 1 : 1;
-      setCombo(newCombo);
-      setCollected(prev => prev + 1);
+
+      const now = performance.now();
+      const timeSinceLast = now - e.state.lastHitTime;
+      e.state.lastHitTime = now;
+
+      const newCombo = timeSinceLast < 1200 ? e.state.combo + 1 : 1;
+      e.state.combo = newCombo;
+      e.state.collected++;
+
       const comboBonus = Math.floor(newCombo / 3) * 50;
-      setScore(prev => prev + scarab.points + comboBonus); if (newCombo >= 3 && newCombo % 3 === 0) {
+      e.state.score += (scarab.points + comboBonus);
+
+      if (newCombo >= 3 && newCombo % 3 === 0) {
         playSound('streak');
       }
+
+      e.juice.spawnExplosion(scarab.x, scarab.y, explosionColor, 10 + (newCombo * 2));
     }
+
+    // Sync React purely for UI Overlays/Headers
+    // Throttled UI syncing is best, but basic setter is fine
+    setScore(e.state.score);
+    setCollected(e.state.collected);
+    setCursedHits(e.state.cursedHits);
+    setCombo(e.state.combo);
   };
 
   return (
@@ -258,49 +383,16 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
             </div>
           </div>
 
-          {/* Game Field */}
+          {/* Game Engine Field Canvas */}
           <GameBoardScaler originalWidth={FIELD_WIDTH} originalHeight={FIELD_HEIGHT} className="overflow-hidden">
-            <div
-              className="relative w-full h-full bg-gradient-to-b from-sandstone/10 to-obsidian/30 cursor-crosshair overflow-hidden"
-            >
-              {/* Field background patterns */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none grid grid-cols-6 grid-rows-4">
-                {[...Array(24)].map((_, i) => (
-                  <div key={i} className="border-[0.5px] border-gold/10 flex items-center justify-center text-xs">𓆣</div>
-                ))}
-              </div>
-
-              {gameState === 'playing' && (
-                <AnimatePresence>
-                  {scarabs.map(scarab => (
-                    <motion.button
-                      key={scarab.id}
-                      initial={{ scale: 0, rotate: -45 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.8 }}
-                      onClick={() => handleScarabClick(scarab)}
-                      className={`absolute text-4xl select-none z-10 
-                      ${scarab.type === 'sacred' ? 'drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]' : ''}
-                      ${scarab.type === 'bonus' ? 'drop-shadow-[0_0_8px_rgba(0,255,255,0.8)] animate-bounce' : ''}
-                      ${scarab.type === 'cursed' ? 'drop-shadow-[0_0_8px_rgba(255,0,0,0.5)]' : ''}
-                      ${scarab.type === 'time' ? 'drop-shadow-[0_0_8px_rgba(50,255,50,0.8)]' : ''}
-                    `}
-                      style={{
-                        left: scarab.x,
-                        top: scarab.y,
-                        filter: scarab.type === 'sacred' ? 'hue-rotate(45deg)' : 'none'
-                      }}
-                    >
-                      {scarab.emoji}
-                      {scarab.type === 'time' && (
-                        <div className="absolute -top-2 -right-2 bg-scarab text-[10px] p-0.5 rounded-full text-white">+5s</div>
-                      )}
-                    </motion.button>
-                  ))}
-                </AnimatePresence>
-              )}
+            <div className="relative w-full h-full cursor-crosshair">
+              <canvas
+                ref={canvasRef}
+                width={FIELD_WIDTH}
+                height={FIELD_HEIGHT}
+                style={{ touchAction: 'none' }}
+                className="w-full h-full block"
+              />
 
               {/* Overlays */}
               <AnimatePresence>
@@ -345,7 +437,7 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
                     actionLabel="Play Again"
                     onAction={() => {
                       setLevel(0);
-                      setGameState('intro');
+                      setUIState('intro');
                     }}
                     onSecondaryAction={onBack}
                   />
@@ -377,15 +469,13 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
             <div className="text-center">
               <div className="text-[10px] uppercase text-muted-foreground mb-1">Items Caught</div>
               <div className="flex items-center justify-center gap-1">
-                <Bug size={14} className="text-gold" />
-                <span className="font-bold">{collected}</span>
+                <span className="font-bold text-gold">{collected}</span>
               </div>
             </div>
             <div className="text-center">
               <div className="text-[10px] uppercase text-muted-foreground mb-1">Cursed Touches</div>
               <div className="flex items-center justify-center gap-1">
-                <Skull size={14} className="text-terracotta" />
-                <span className="font-bold">{cursedHits}</span>
+                <span className="font-bold text-terracotta">{cursedHits}</span>
               </div>
             </div>
             <div className="text-center">
@@ -420,22 +510,4 @@ export function ScarabCollectorGame({ onBack }: ScarabCollectorGameProps) {
   );
 }
 
-const Skull = ({ size, className }: { size?: number, className?: string }) => (
-  <svg
-    width={size || 24}
-    height={size || 24}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M9 10L9.01 10" />
-    <path d="M15 10L15.01 10" />
-    <path d="M12 2a8 8 0 0 0-8 8v1a2 2 0 0 0 2 2 1.4 1.4 0 0 1 1.1.7l.7 2.2a2 2 0 0 0 1.9 1.4h6.6a2 2 0 0 0 1.9-1.4l.7-2.2a1.4 1.4 0 0 1 1.1-.7 2 2 0 0 0 2-2v-1a8 8 0 0 0-8-8z" />
-    <path d="M12 14v2" />
-    <path d="M9 21a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1H9v1z" />
-  </svg>
-);
+

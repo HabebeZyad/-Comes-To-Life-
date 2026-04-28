@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, MapPin, Sparkles, ChevronRight, Play, Filter, Brain } from 'lucide-react';
+import { BookOpen, Clock, MapPin, Sparkles, ChevronRight, Play, Filter, Brain, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 import { egyptianStories, type Story } from '@/data/egyptianStories';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription } from '@/components/ui/EgyptianCard';
-import { DustParticles } from '@/components/effects/DustParticles';
-import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
 import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
 import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn } from '@/lib/utils';
@@ -19,10 +18,14 @@ export default function Stories() {
   const [typeFilter, setTypeFilter] = useState<FilterType>('all');
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [showAIFeatures, setShowAIFeatures] = useState(false);
+  const [panoStory, setPanoStory] = useState<string | null>(null);
 
   const filteredStories = useMemo(() => {
     return egyptianStories.filter(story => {
       if (story.id === 'shipwrecked-sailor') return false;
+      if (story.id === 'tomb-golden-scarab') return false;
+      if (story.id === 'heretic-pharaoh') return false;
+      if (story.id === 'sinuhe-tale') return false;
       if (typeFilter !== 'all' && story.type !== typeFilter) return false;
       if (periodFilter !== 'all' && story.periodId !== periodFilter) return false;
       return true;
@@ -39,9 +42,6 @@ export default function Stories() {
 
   return (
     <div className="min-h-screen bg-background pt-20">
-      <DustParticles count={15} />
-      <HieroglyphBackground density="low" animated />
-
       {/* Header */}
       <header className="relative px-6 py-12 border-b border-border">
         <div className="max-w-7xl mx-auto text-center">
@@ -62,7 +62,7 @@ export default function Stories() {
       </header>
 
       {/* Filters & AI Toggle */}
-      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-16 z-30 bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {/* Type Filters */}
@@ -179,20 +179,19 @@ export default function Stories() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <FeaturedStoryCard story={filteredStories[0]} />
+            <FeaturedStoryCard story={filteredStories[0]} onOpenPano={() => setPanoStory(filteredStories[0].id)} />
           </motion.div>
         )}
 
         {/* Stories Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStories.slice(1).map((story, index) => (
+          {filteredStories.slice(1).map((story) => (
             <motion.div
               key={story.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
-              <StoryCard story={story} />
+              <StoryCard story={story} onOpenPano={() => setPanoStory(story.id)} />
             </motion.div>
           ))}
         </div>
@@ -238,27 +237,117 @@ export default function Stories() {
           </div>
         </section>
       </div>
+
+      {/* Panorama Modal */}
+      <AnimatePresence>
+        {(panoStory === 'westcar-papyrus' || panoStory === 'eloquent-peasant') && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="w-full max-w-7xl my-auto bg-[#0a0805] border-2 border-gold/30 rounded-[2rem] shadow-[0_0_50px_rgba(218,165,32,0.15)] relative flex flex-col overflow-hidden"
+            >
+              <button
+                onClick={() => setPanoStory(null)}
+                className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-gold/20 text-gold rounded-full border border-gold/30 transition-colors"
+                aria-label="Close viewer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {panoStory === 'westcar-papyrus' ? (
+                <>
+                  <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
+                    <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                  </div>
+
+                  <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
+                    <h3 className="text-2xl md:text-3xl font-display text-gold-gradient drop-shadow-md">
+                      Egyptian Museum and Papyrus Collection
+                    </h3>
+                    <p className="text-gold/60 font-display tracking-widest text-sm uppercase mt-2">
+                      (Berlin, Germany)
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col lg:flex-row w-full h-[85vh] min-h-[600px]">
+                  {/* Panel 1: Berlin */}
+                  <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gold/30 relative">
+                    <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
+                      <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                    </div>
+                    <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
+                      <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
+                        Egyptian Museum, Berlin
+                      </h3>
+                      <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto">
+                        Holds important papyri like P. Berlin 10499
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Panel 2: British Museum */}
+                  <div className="flex-1 flex flex-col relative">
+                    <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
+                      <ScryingOrb mode="viewer" image="panorama_british.jpg" />
+                    </div>
+                    <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
+                      <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
+                        British Museum
+                      </h3>
+                      <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto mt-auto">
+                        Holds several fragments of the Ramesseum papyri
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function FeaturedStoryCard({ story }: { story: Story }) {
+function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => void }) {
   const periodIcon = egyptianPeriods.find(p => p.id === story.periodId)?.icon || '𓂀';
   const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
 
   return (
     <EgyptianCard variant="gold" className="overflow-hidden group" glowOnHover>
       <div className={`h-2 bg-gradient-to-r ${periodColor}`} />
-      <EgyptianCardContent className="p-6">
+      <EgyptianCardContent className="p-6 relative">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Story Info */}
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">{periodIcon}</span>
               <span className="text-xs font-display text-primary uppercase tracking-wider">
                 {story.period} • {story.type}
               </span>
             </div>
+
+            {(story.id === 'westcar-papyrus' || story.id === 'eloquent-peasant') && (
+              <div
+                className="absolute top-0 right-0 z-40 group/orb-trigger cursor-pointer flex items-center"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenPano?.(); }}
+              >
+                <div className="absolute right-full mr-4 whitespace-nowrap px-4 py-2 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-sm opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
+                  {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
+                </div>
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
+                  <ScryingOrb mode="globe" />
+                </div>
+              </div>
+            )}
             <h2 className="font-display text-2xl md:text-3xl font-bold text-gold-gradient mb-2">
               {story.title}
             </h2>
@@ -327,7 +416,7 @@ function FeaturedStoryCard({ story }: { story: Story }) {
   );
 }
 
-function StoryCard({ story }: { story: Story }) {
+function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => void }) {
   const periodIcon = egyptianPeriods.find(p => p.id === story.periodId)?.icon || '𓂀';
   const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
 
@@ -335,13 +424,27 @@ function StoryCard({ story }: { story: Story }) {
     <Link to={`/stories/${story.id}`}>
       <EgyptianCard variant="interactive" className="h-full group" glowOnHover>
         <div className={`h-1 bg-gradient-to-r ${periodColor}`} />
-        <EgyptianCardHeader>
+        <EgyptianCardHeader className="relative">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">{periodIcon}</span>
             <span className="text-xs font-display text-muted-foreground uppercase tracking-wider">
               {story.period}
             </span>
           </div>
+
+          {(story.id === 'westcar-papyrus' || story.id === 'eloquent-peasant') && (
+            <div
+              className="absolute top-2 right-2 z-40 group/orb-trigger cursor-pointer flex items-center"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenPano?.(); }}
+            >
+              <div className="absolute right-full mr-4 whitespace-nowrap px-3 py-1 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-xs opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
+                {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
+              </div>
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
+                <ScryingOrb mode="globe" />
+              </div>
+            </div>
+          )}
           <EgyptianCardTitle className="group-hover:text-primary transition-colors">
             {story.title}
           </EgyptianCardTitle>
