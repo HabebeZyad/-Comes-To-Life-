@@ -9,6 +9,16 @@ export interface StoryPanel {
   dialogue?: { speaker: string; text: string }[];
   historicalNote?: string;
   subtext?: string; // Political or philosophical subtext
+  choices?: AdventureChoice[];
+}
+
+export interface AdventureChoice {
+  id: string;
+  text: string;
+  consequence: string;
+  leadsTo?: string; // Next panel ID
+  affectsEnding?: boolean;
+  morality?: 'truth' | 'deception' | 'neutral';
 }
 
 export interface StoryCharacter {
@@ -160,6 +170,20 @@ export const egyptianStories: Story[] = [
         narration: 'Prince Bauefre stepped forward to tell of a wonder from the reign of his grandfather, King Sneferu. It was a tale of a lost jewel, and a magician who could command the very waters.',
         dialogue: [
           { speaker: 'Prince Bauefre', text: 'Let me tell you, O Majesty, of a wonder that happened in the days of your father... A tale of the chief lector priest, Djadjaemankh.' }
+        ],
+        choices: [
+          {
+            id: 'wp-2-choice-1',
+            text: 'Listen intently to the tale',
+            consequence: 'You showed deep respect for the magic of the ancestors.',
+            morality: 'neutral'
+          },
+          {
+            id: 'wp-2-choice-2',
+            text: 'Express skepticism of the wonder',
+            consequence: 'You challenged the limits of ancient magic.',
+            morality: 'truth'
+          }
         ]
       },
       {
@@ -189,7 +213,21 @@ export const egyptianStories: Story[] = [
           { speaker: 'Djedi', text: 'It is done, my sovereign. Life returns to that which was claimed by the knife.' },
           { speaker: 'Khufu', text: '(Astonished) The gods speak through you, Djedi! Truly, magic never died in Egypt.' }
         ],
-        historicalNote: 'The tale of Djedi contains the earliest known recorded instance of the "decoding" magic trick still performed by modern illusionists.'
+        historicalNote: 'The tale of Djedi contains the earliest known recorded instance of the "decoding" magic trick still performed by modern illusionists.',
+        choices: [
+          {
+            id: 'wp-5-choice-1',
+            text: 'Reward Djedi generously',
+            consequence: 'You honored the sage for his divine gifts.',
+            morality: 'neutral'
+          },
+          {
+            id: 'wp-5-choice-2',
+            text: 'Ask for the secret of the magic',
+            consequence: 'You sought forbidden knowledge beyond your station.',
+            morality: 'deception'
+          }
+        ]
       },
       {
         id: 'wp-6',

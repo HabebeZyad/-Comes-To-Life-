@@ -11,11 +11,21 @@ import { StoryPuzzleModal } from '@/components/puzzles/PuzzleModals';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CelestialSimulation } from '@/components/effects/CelestialSimulation';
+import { useGame } from '@/contexts/GameContext';
 
 export default function StoryReader() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { 
+    profile, 
+    updateStoryProgress, 
+    addStoryChoice, 
+    unlockEnding, 
+    incrementPuzzlesSolved,
+    recordPlayTime,
+    unlockAchievement
+  } = useGame();
   const [currentPanelIndex, setCurrentPanelIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [showHistoricalNote, setShowHistoricalNote] = useState(false);
@@ -68,11 +78,20 @@ export default function StoryReader() {
       if (puzzle && !completedPuzzles.has(puzzle.id)) {
         setActivePuzzle(puzzle);
       } else {
-        setCurrentPanelIndex(currentPanelIndex + 1);
+        const nextIndex = currentPanelIndex + 1;
+        setCurrentPanelIndex(nextIndex);
         setShowHistoricalNote(false);
+
+        // Update profile progress
+        if (storyId) {
+          updateStoryProgress({
+            currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+            currentPanel: nextIndex
+          });
+        }
       }
     }
-  }, [currentPanelIndex, story, completedPanels, currentPanel, getPuzzleForPanel, completedPuzzles]);
+  }, [currentPanelIndex, story, completedPanels, currentPanel, getPuzzleForPanel, completedPuzzles, storyId, updateStoryProgress]);
 
   useEffect(() => {
     if (isAutoPlaying && story) {
@@ -92,7 +111,20 @@ export default function StoryReader() {
     const audio = new Audio(getAssetUrl('/sounds/paper-transition.mp3'));
     audio.volume = 0.3;
     audio.play().catch(() => { });
-  }, [currentPanelIndex]);
+
+    // Track completion if on last panel
+    if (story && currentPanelIndex === story.panels.length - 1 && storyId) {
+      const episodeNum = parseInt(storyId.replace('ep', '')) || 1;
+      if (!profile?.storyProgress.episodesCompleted.includes(episodeNum)) {
+        updateStoryProgress({
+          episodesCompleted: [...(profile?.storyProgress.episodesCompleted || []), episodeNum]
+        });
+        
+        // Record play time (rough estimate: 5 mins per story)
+        recordPlayTime(5);
+      }
+    }
+  }, [currentPanelIndex, story, storyId, profile, updateStoryProgress, recordPlayTime]);
 
   if (!story) {
     return null;
@@ -117,8 +149,54 @@ export default function StoryReader() {
       });
     }
     setActivePuzzle(null);
-    setCurrentPanelIndex(currentPanelIndex + 1);
+    const nextIndex = currentPanelIndex + 1;
+    setCurrentPanelIndex(nextIndex);
     setShowHistoricalNote(false);
+    incrementPuzzlesSolved();
+
+    // Update profile progress
+    if (storyId) {
+      updateStoryProgress({
+        currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+        currentPanel: nextIndex
+      });
+    }
+  };
+
+  const handleChoice = (choice: any) => {
+    if (storyId) {
+      addStoryChoice({
+        episodeId: parseInt(storyId.replace('ep', '')) || 1,
+        choiceId: choice.id,
+        optionSelected: choice.text,
+        timestamp: new Date(),
+        consequences: [choice.consequence]
+      });
+
+      // Unlock achievement for first choice
+      if (profile?.storyChoices.length === 0) {
+        unlockAchievement('first-choice');
+      }
+
+      // If choice has leadsTo, jump to that panel
+      if (choice.leadsTo) {
+        const targetIndex = story?.panels.findIndex(p => p.id === choice.leadsTo);
+        if (targetIndex !== -1 && targetIndex !== undefined) {
+          setCurrentPanelIndex(targetIndex);
+          return;
+        }
+      }
+
+      // Otherwise proceed to next panel
+      const nextIndex = currentPanelIndex + 1;
+      setCurrentPanelIndex(nextIndex);
+      
+      // Update progress
+      updateStoryProgress({
+        currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+        currentPanel: nextIndex
+      });
+    }
   };
 
   const handlePuzzleClose = () => {
@@ -592,6 +670,30 @@ export default function StoryReader() {
                   ))}
                 </div>
               )}
+
+              {/* Interaction Choices */}
+              {currentPanel.choices && currentPanel.choices.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 mb-12">
+                  {currentPanel.choices.map((choice, i) => (
+                    <motion.div
+                      key={choice.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.5 + i * 0.2 }}
+                    >
+                      <EgyptianButton
+                        variant="outline"
+                        className="w-full text-left p-6 h-auto flex flex-col items-start gap-2 border-2 border-primary/30 hover:border-primary group"
+                        onClick={() => handleChoice(choice)}
+                      >
+                        <span className="text-xs font-display text-primary tracking-widest uppercase opacity-70 group-hover:opacity-100">Decision Point</span>
+                        <span className="text-lg font-display text-gold">{choice.text}</span>
+                      </EgyptianButton>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
 
               {/* Scholarly Historical Note */}
               {currentPanel.historicalNote && (

@@ -8,6 +8,7 @@ import { GameBoardScaler } from '@/components/ui/GameBoardScaler';
 import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
+import { useGame } from '@/contexts/GameContext';
 
 interface TombExplorerGameProps {
     onBack: () => void;
@@ -331,6 +332,7 @@ export function TombExplorerGame({ onBack }: TombExplorerGameProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
     const { addScore } = useHighScores();
+    const { incrementPuzzlesSolved, recordPlayTime } = useGame();
 
     // Mutable game state for the logic loop
     const g = useRef({
@@ -469,6 +471,8 @@ export function TombExplorerGame({ onBack }: TombExplorerGameProps) {
         setScore(s => s + bonus);
         g.score += bonus;
         playSound('victory');
+        incrementPuzzlesSolved();
+        recordPlayTime(5); // Rough estimate per level
         spawnParticles(g.player.x + PW / 2, g.player.y + PH / 2, '#f4c03f', 50);
         spawnParticles(g.player.x + PW / 2, g.player.y + PH / 2, '#fffacc', 25);
         spawnParticles(g.player.x + PW / 2, g.player.y + PH / 2, '#ff80cc', 15);

@@ -18,10 +18,12 @@ import { GreatMindsGame } from '@/components/games/GreatMindsGame';
 import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
 import { TombExplorerGame } from '@/components/games/TombExplorerGame';
 import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
+import { GlyphRevealGame } from '@/components/games/GlyphRevealGame';
+import { GamesOfTheNile } from '@/components/games/nile/GamesOfTheNile';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal' | 'nile-games';
 
 interface Game {
   id: GameType;
@@ -37,6 +39,8 @@ interface Game {
 }
 
 const games: Game[] = [
+  { id: 'nile-games', title: 'Games of the Nile', description: 'Master the ancient board games of the Pharaohs: Senet, Mehen, and Hounds & Jackals.', icon: Gamepad2, color: 'from-gold-dark to-primary', emoji: '𓊖', category: 'Wisdom', difficulty: 'Expert', duration: '10-15 min', isNew: true },
+  { id: 'glyph-reveal', title: 'Hidden Pharaoh', description: 'Cross out identical sacred symbols to reveal the ancient images hidden beneath.', icon: Puzzle, color: 'from-obsidian to-primary', emoji: '🖼️', category: 'Wisdom', difficulty: 'Easy', duration: '3-5 min', isNew: true },
   { id: 'tomb-explorer', title: 'Tomb Explorer', description: 'Navigate dark chambers, avoid traps, and recover lost treasures.', icon: Map, color: 'from-terracotta to-gold-dark', emoji: '𓊖', category: 'Action', difficulty: 'Hard', duration: '4-6 min', isNew: true },
   { id: 'hieroglyph-match', title: 'Hieroglyph Match', description: 'Match sacred symbols to their meanings in this linguistic trial.', icon: Languages, color: 'from-lapis to-turquoise', emoji: '𓇚', category: 'Wisdom', difficulty: 'Medium', duration: '3-5 min', isNew: true },
   { id: 'riddles', title: "Pharaoh's Riddles", description: "Face the Sphinx and answer 4 levels of cryptic ancient wisdom.", icon: Star, color: 'from-scarab to-turquoise', emoji: '🦁', category: 'Wisdom', difficulty: 'Expert', duration: '5-8 min' },
@@ -71,6 +75,8 @@ const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> 
   'scribes-journal': ScribesLostJournalGame,
   'tomb-explorer': TombExplorerGame,
   'hieroglyph-match': HieroglyphMatchGame,
+  'glyph-reveal': GlyphRevealGame,
+  'nile-games': GamesOfTheNile,
 };
 
 export default function Games() {

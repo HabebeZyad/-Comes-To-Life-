@@ -8,6 +8,7 @@ import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
 import { hieroglyphDatabase, HieroglyphEntry } from '@/data/hieroglyphDatabase';
 import { cn } from '@/lib/utils';
+import { useGame } from '@/contexts/GameContext';
 
 interface HieroglyphMatchGameProps {
   onBack: () => void;
@@ -41,6 +42,7 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
 
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
+  const { incrementPuzzlesSolved, recordPlayTime } = useGame();
 
   const wave = WAVES[currentWaveIdx];
 
@@ -125,6 +127,8 @@ export function HieroglyphMatchGame({ onBack }: HieroglyphMatchGameProps) {
     const waveScore = score + timeBonus;
     setTotalScore(prev => prev + waveScore);
     playSound('victory');
+    incrementPuzzlesSolved();
+    recordPlayTime(3); // Rough estimate per wave
 
     if (currentWaveIdx < WAVES.length - 1) {
       setGameState('levelUp');

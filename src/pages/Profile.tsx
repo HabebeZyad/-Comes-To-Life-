@@ -12,22 +12,14 @@ import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground'
 import { useGame } from '@/contexts/GameContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { achievements as achievementData } from '@/data/achievements';
 
 const isImageAvatar = (avatar: string) => avatar.startsWith('data:image');
 
 const avatarOptions = ['🏺', '𓂀', '𓃭', '𓆣', '𓋹', '𓊖', '𓅃', '𓃠', '𓆙', '𓃗'];
 
-const achievements = [
-  { id: 'first-choice', title: 'Path Chosen', description: 'Made your first moral choice', icon: '𓃀', rarity: 'common' as const },
-  { id: 'truth-seeker', title: 'Truth Seeker', description: 'Chose truth in Episode 3', icon: '𓂋', rarity: 'rare' as const },
-  { id: 'tomb-explorer', title: 'Tomb Explorer', description: 'Completed your first tomb', icon: '𓊖', rarity: 'common' as const },
-  { id: 'hieroglyph-master', title: 'Hieroglyph Master', description: 'Scanned 20 hieroglyphs', icon: '𓏤', rarity: 'epic' as const },
-  { id: 'coop-champion', title: 'Co-op Champion', description: 'Completed 5 co-op sessions', icon: '𓅃', rarity: 'rare' as const },
-  { id: 'all-endings', title: 'Keeper of Fates', description: 'Unlocked all story endings', icon: '𓋹', rarity: 'legendary' as const },
-  { id: 'speed-reader', title: 'Swift Scribe', description: 'Read 3 stories in one session', icon: '𓏞', rarity: 'rare' as const },
-  { id: 'puzzle-king', title: 'Riddle of the Sphinx', description: 'Solved 10 puzzles', icon: '𓃬', rarity: 'epic' as const },
-  { id: 'lore-keeper', title: 'Keeper of Scrolls', description: 'Unlocked all historical notes', icon: '𓏛', rarity: 'legendary' as const },
-];
+// Achievements are now imported from @/data/achievements
+
 
 const rarityConfig = {
   common: { label: 'Common', color: 'text-foreground/70', border: 'border-border', bg: 'bg-muted/30', glow: '' },
@@ -205,7 +197,7 @@ export default function Profile() {
 
   const unlockedCount = useMemo(() => {
     if (!profile) return 0;
-    return achievements.filter(a => profile.achievements.find(pa => pa.id === a.id && pa.unlockedAt)).length;
+    return achievementData.filter(a => profile.achievements.find(pa => pa.id === a.id && pa.unlockedAt)).length;
   }, [profile]);
 
   const handleSave = () => {
@@ -386,7 +378,7 @@ export default function Profile() {
                     </div>
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Trophy className="w-3.5 h-3.5 text-gold" />
-                      <span>{unlockedCount}/{achievements.length}</span>
+                      <span>{unlockedCount}/{achievementData.length}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Flame className="w-3.5 h-3.5 text-terracotta" />
@@ -496,7 +488,7 @@ export default function Profile() {
                   </h3>
                   <div className="flex justify-around flex-wrap gap-4">
                     <RadialProgress value={profile.storyProgress.episodesCompleted.length} max={3} label="Episodes" sublabel="of 3" color="hsl(var(--primary))" />
-                    <RadialProgress value={unlockedCount} max={achievements.length} label="Achievements" sublabel={`of ${achievements.length}`} color="hsl(var(--turquoise))" />
+                    <RadialProgress value={unlockedCount} max={achievementData.length} label="Achievements" sublabel={`of ${achievementData.length}`} color="hsl(var(--turquoise))" />
                     <RadialProgress value={profile.endingsUnlocked.length} max={4} label="Endings" sublabel="of 4" color="hsl(var(--terracotta))" />
                   </div>
                 </EgyptianCard>
@@ -599,16 +591,16 @@ export default function Profile() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="font-display text-2xl font-bold text-gold-gradient">Achievements</h2>
-                  <p className="text-sm text-muted-foreground">{unlockedCount} of {achievements.length} unlocked</p>
+                  <p className="text-sm text-muted-foreground">{unlockedCount} of {achievementData.length} unlocked</p>
                 </div>
                 <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                   <Award className="w-4 h-4 text-primary" />
-                  <span className="font-display text-sm text-primary font-semibold">{Math.round((unlockedCount / achievements.length) * 100)}%</span>
+                  <span className="font-display text-sm text-primary font-semibold">{Math.round((unlockedCount / achievementData.length) * 100)}%</span>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {achievements.map((achievement, i) => {
+                {achievementData.map((achievement, i) => {
                   const unlocked = profile.achievements.find(a => a.id === achievement.id && a.unlockedAt);
                   const config = rarityConfig[achievement.rarity];
 
