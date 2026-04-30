@@ -6,7 +6,6 @@ import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
 import { MemoryPalace } from '@/components/storytelling/MemoryPalace';
 import { CelestialSimulation } from '@/components/effects/CelestialSimulation';
-import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 
 export default function StorytellingHomePage() {
   const getAssetUrl = (path?: string) => {
