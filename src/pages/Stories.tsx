@@ -1,15 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Clock, MapPin, Sparkles, ChevronRight, Play, Filter, Brain, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 import { egyptianStories, type Story } from '@/data/egyptianStories';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription } from '@/components/ui/EgyptianCard';
-import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
-import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn } from '@/lib/utils';
+import { PageLoader } from '@/components/layout/PageLoader';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+
+// Lazy-loaded heavy components for improved initial load performance
+const ScryingOrb = lazy(() => import('@/components/storytelling/ScryingOrb').then(m => ({ default: m.ScryingOrb })));
+const HieroglyphScanner = lazy(() => import('@/components/ai/HieroglyphScanner').then(m => ({ default: m.HieroglyphScanner })));
+const SceneGenerator = lazy(() => import('@/components/ai/SceneGenerator').then(m => ({ default: m.SceneGenerator })));
 
 type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
 type PeriodFilter = 'all' | string;
@@ -135,10 +139,12 @@ export default function Stories() {
                 AI-Powered Features
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <HieroglyphScanner />
-                <SceneGenerator />
-              </div>
+              <Suspense fallback={<LoadingSpinner />}>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <HieroglyphScanner />
+                  <SceneGenerator />
+                </div>
+              </Suspense>
 
               {/* AI Technical Notes */}
               <EgyptianCard className="mt-4 border-dashed">
@@ -261,13 +267,14 @@ export default function Stories() {
                 <X className="w-6 h-6" />
               </button>
 
-              {panoStory === 'westcar-papyrus' ? (
-                <>
-                  <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
-                    <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
-                  </div>
+              <Suspense fallback={<PageLoader />}>
+                {panoStory === 'westcar-papyrus' ? (
+                  <>
+                    <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
+                      <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                    </div>
 
-                  <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
+                    <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
                     <h3 className="text-2xl md:text-3xl font-display text-gold-gradient drop-shadow-md">
                       Egyptian Museum and Papyrus Collection
                     </h3>
@@ -276,39 +283,40 @@ export default function Stories() {
                     </p>
                   </div>
                 </>
-              ) : (
-                <div className="flex flex-col lg:flex-row w-full h-[85vh] min-h-[600px]">
-                  {/* Panel 1: Berlin */}
-                  <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gold/30 relative">
-                    <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
-                      <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                    ) : (
+                  <div className="flex flex-col lg:flex-row w-full h-[85vh] min-h-[600px]">
+                    {/* Panel 1: Berlin */}
+                    <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gold/30 relative">
+                      <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
+                        <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                      </div>
+                      <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
+                        <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
+                          Egyptian Museum, Berlin
+                        </h3>
+                        <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto">
+                          Holds important papyri like P. Berlin 10499
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
-                      <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
-                        Egyptian Museum, Berlin
-                      </h3>
-                      <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto">
-                        Holds important papyri like P. Berlin 10499
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Panel 2: British Museum */}
-                  <div className="flex-1 flex flex-col relative">
-                    <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
-                      <ScryingOrb mode="viewer" image="panorama_british.jpg" />
-                    </div>
-                    <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
-                      <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
-                        British Museum
-                      </h3>
-                      <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto mt-auto">
-                        Holds several fragments of the Ramesseum papyri
-                      </p>
+                    {/* Panel 2: British Museum */}
+                    <div className="flex-1 flex flex-col relative">
+                      <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
+                        <ScryingOrb mode="viewer" image="panorama_british.jpg" />
+                      </div>
+                      <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
+                        <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
+                          British Museum
+                        </h3>
+                        <p className="text-gold/80 font-body text-sm mt-3 border-t border-gold/10 pt-2 inline-block mx-auto mt-auto">
+                          Holds several fragments of the Ramesseum papyri
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </Suspense>
             </motion.div>
           </motion.div>
         )}
@@ -344,7 +352,9 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
                   {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
                 </div>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
-                  <ScryingOrb mode="globe" />
+                  <Suspense fallback={<div className="w-full h-full animate-pulse bg-gold/10 rounded-full" />}>
+                    <ScryingOrb mode="globe" />
+                  </Suspense>
                 </div>
               </div>
             )}
@@ -441,7 +451,9 @@ function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => voi
                 {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
               </div>
               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
-                <ScryingOrb mode="globe" />
+                <Suspense fallback={<div className="w-full h-full animate-pulse bg-gold/10 rounded-full" />}>
+                  <ScryingOrb mode="globe" />
+                </Suspense>
               </div>
             </div>
           )}
