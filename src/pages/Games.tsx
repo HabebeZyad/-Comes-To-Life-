@@ -18,10 +18,11 @@ import { GreatMindsGame } from '@/components/games/GreatMindsGame';
 import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
 import { TombExplorerGame } from '@/components/games/TombExplorerGame';
 import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
+import { GlyphRevealGame } from '@/components/games/GlyphRevealGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { DustParticles } from '@/components/effects/DustParticles';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match';
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal';
 
 interface Game {
   id: GameType;
@@ -37,6 +38,7 @@ interface Game {
 }
 
 const games: Game[] = [
+  { id: 'glyph-reveal', title: 'Hidden Pharaoh', description: 'Cross out identical sacred symbols to reveal the ancient images hidden beneath.', icon: Puzzle, color: 'from-obsidian to-primary', emoji: '🖼️', category: 'Wisdom', difficulty: 'Easy', duration: '3-5 min', isNew: true },
   { id: 'tomb-explorer', title: 'Tomb Explorer', description: 'Navigate dark chambers, avoid traps, and recover lost treasures.', icon: Map, color: 'from-terracotta to-gold-dark', emoji: '𓊖', category: 'Action', difficulty: 'Hard', duration: '4-6 min', isNew: true },
   { id: 'hieroglyph-match', title: 'Hieroglyph Match', description: 'Match sacred symbols to their meanings in this linguistic trial.', icon: Languages, color: 'from-lapis to-turquoise', emoji: '𓇚', category: 'Wisdom', difficulty: 'Medium', duration: '3-5 min', isNew: true },
   { id: 'riddles', title: "Pharaoh's Riddles", description: "Face the Sphinx and answer 4 levels of cryptic ancient wisdom.", icon: Star, color: 'from-scarab to-turquoise', emoji: '🦁', category: 'Wisdom', difficulty: 'Expert', duration: '5-8 min' },
@@ -71,6 +73,7 @@ const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> 
   'scribes-journal': ScribesLostJournalGame,
   'tomb-explorer': TombExplorerGame,
   'hieroglyph-match': HieroglyphMatchGame,
+  'glyph-reveal': GlyphRevealGame,
 };
 
 export default function Games() {
