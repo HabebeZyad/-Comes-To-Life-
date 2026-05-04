@@ -5,7 +5,9 @@ import { ChevronLeft, ChevronRight, Play, BookOpen, X } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
-import { ScryingOrb } from './ScryingOrb';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+
+const ScryingOrb = React.lazy(() => import('./ScryingOrb').then(m => ({ default: m.ScryingOrb })));
 
 interface Chamber {
     id: string;
@@ -102,7 +104,9 @@ export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
                                             See where The Papyrus is kept in Now
                                         </div>
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 aspect-square flex items-center justify-center rounded-full overflow-hidden border-2 border-gold shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold/80 hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
-                                            <ScryingOrb mode="globe" />
+                                            <React.Suspense fallback={<LoadingSpinner className="scale-50" />}>
+                                                <ScryingOrb mode="globe" />
+                                            </React.Suspense>
                                         </div>
                                     </div>
                                 )}
@@ -214,7 +218,9 @@ export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
                             </button>
 
                             <div className="w-full h-[60vh] min-h-[400px] relative shrink-0">
-                                <ScryingOrb mode="viewer" />
+                                <React.Suspense fallback={<LoadingSpinner className="h-full" />}>
+                                    <ScryingOrb mode="viewer" />
+                                </React.Suspense>
                             </div>
 
                             <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
