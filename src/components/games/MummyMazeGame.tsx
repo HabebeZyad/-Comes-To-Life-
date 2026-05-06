@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Trophy, Star, Sun, Moon, Zap, ChevronsLeft, ChevronsRight, ChevronsUp, ChevronsDown, Users, Compass, Timer } from 'lucide-react';
+import { ArrowLeft, Trophy, Star, Sun, Moon, Zap, ChevronsLeft, ChevronsRight, ChevronsUp, ChevronsDown, Compass, Timer } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { LandscapePrompt } from '@/components/ui/LandscapePrompt';
@@ -8,6 +8,7 @@ import { useGameAudio } from '@/hooks/useGameAudio';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useMobile } from '@/hooks/use-mobile';
 import { GameOverlay } from './GameOverlay';
+import { useGame } from '@/contexts/GameContext';
 
 interface MummyMazeGameProps {
   onBack: () => void;
@@ -137,6 +138,32 @@ const levels: Level[] = [
   }
 ];
 
+// ── D-pad button — supports pointer-down hold-to-repeat ───────────────────
+interface DpadButtonProps {
+  icon: React.ReactNode;
+  active: boolean;
+  onStart: () => void;
+  onEnd: () => void;
+}
+
+function DpadButton({ icon, active, onStart, onEnd }: DpadButtonProps) {
+  return (
+    <button
+      className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center transition-all duration-100 touch-manipulation select-none
+        ${active
+          ? 'bg-primary/30 border-primary scale-95 shadow-gold-glow'
+          : 'bg-obsidian/60 border-gold/30 hover:border-gold/50 active:scale-95'
+        }`}
+      onPointerDown={(e) => { e.preventDefault(); onStart(); }}
+      onPointerUp={onEnd}
+      onPointerLeave={onEnd}
+      onPointerCancel={onEnd}
+    >
+      <span className={active ? 'text-primary' : 'text-gold/80'}>{icon}</span>
+    </button>
+  );
+}
+
 export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'levelUp' | 'victory' | 'defeat'>('intro');
   const [currentLevel, setCurrentLevel] = useState(0);
@@ -147,17 +174,26 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
+  const scoreRef = useRef(0); // always in sync, safe to read inside effects
+  const totalTimeSpentRef = useRef(0);
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
   const { addScore } = useHighScores();
+  const { incrementPuzzlesSolved, recordPlayTime } = useGame();
   const isMobile = useMobile();
 
   const level = useMemo(() => levels[currentLevel], [currentLevel]);
+
+  // ── Touch / swipe state ──────────────────────────────────────────────────
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dpadIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [dpadActive, setDpadActive] = useState<string | null>(null);
 
   const initLevel = useCallback((index: number) => {
     const current = levels[index];
     setRaPos(current.raStart);
     setThothPos(current.thothStart);
     setGateOpen(false);
+    setActiveChar('ra');
     setGameState('playing');
     setTimeLeft(current.timeLimit);
     playSound('gameStart');
@@ -165,19 +201,23 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
   }, [playSound, startAmbientMusic]);
 
   useEffect(() => {
-    if (gameState === 'playing') {
-      if (timeLeft > 0) {
-        const timer = setInterval(() => {
-          setTimeLeft(t => t - 1);
-          setTotalTimeSpent(t => t + 1);
-        }, 1000);
-        return () => clearInterval(timer);
-      } else {
-        setGameState('defeat');
-        playSound('defeat');
-        stopAmbientMusic();
-      }
+    if (gameState !== 'playing') return;
+    if (timeLeft <= 0) {
+      setGameState('defeat');
+      playSound('defeat');
+      stopAmbientMusic();
+      return;
     }
+    const timer = setTimeout(() => {
+      setTimeLeft(t => t - 1);
+      setTotalTimeSpent(t => {
+        const next = t + 1;
+        totalTimeSpentRef.current = next;
+        return next;
+      });
+      if (timeLeft <= 5) playSound('tick');
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [gameState, timeLeft, playSound, stopAmbientMusic]);
 
   const moveChar = useCallback((dx: number, dy: number) => {
@@ -197,6 +237,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
       if (tile === 'water') {
         setGameState('defeat');
         playSound('defeat');
+        if (navigator.vibrate) navigator.vibrate([80, 30, 80]);
         return;
       }
       setRaPos({ x: newX, y: newY });
@@ -204,15 +245,20 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
       if (tile === 'lava') {
         setGameState('defeat');
         playSound('defeat');
+        if (navigator.vibrate) navigator.vibrate([80, 30, 80]);
         return;
       }
       setThothPos({ x: newX, y: newY });
     }
 
+    if (navigator.vibrate) navigator.vibrate(25);
     playSound('move');
   }, [activeChar, raPos, thothPos, gameState, currentLevel, level, gateOpen, playSound]);
 
   useEffect(() => {
+    // Guard: only evaluate win/gate conditions while actively playing
+    if (gameState !== 'playing') return;
+
     const thothOnPlate = TILE_MAP[level.grid[thothPos.y][thothPos.x]] === 'pressure-plate';
     const raOnPlate = TILE_MAP[level.grid[raPos.y][raPos.x]] === 'pressure-plate';
     setGateOpen(raOnPlate || thothOnPlate);
@@ -222,8 +268,13 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
 
     if (raOnExit && thothOnExit) {
       const levelScore = Math.max(100, timeLeft * 20);
-      setScore(s => s + levelScore);
+      const newTotal = scoreRef.current + levelScore;
+      scoreRef.current = newTotal;
+      setScore(newTotal);
       playSound('victory');
+      stopAmbientMusic();
+      incrementPuzzlesSolved();
+      recordPlayTime(2); // Rough estimate per level
 
       if (currentLevel < levels.length - 1) {
         setGameState('levelUp');
@@ -231,13 +282,13 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
         setGameState('victory');
         addScore({
           playerName: 'Scribe',
-          score: score + levelScore,
+          score: newTotal,
           game: 'maze',
-          details: `Master Navigator - ${totalTimeSpent}s total`
+          details: `Master Navigator - ${totalTimeSpentRef.current}s total`
         });
       }
     }
-  }, [raPos, thothPos, level, timeLeft, gameState, currentLevel, addScore, score, totalTimeSpent, playSound]);
+  }, [raPos, thothPos, level, timeLeft, gameState, currentLevel, addScore, playSound, stopAmbientMusic]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -245,6 +296,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
       }
+      if (e.key === 'ArrowUp' || e.key === 'w') moveChar(0, -1);
       if (e.key === 'ArrowDown' || e.key === 's') moveChar(0, 1);
       if (e.key === 'ArrowLeft' || e.key === 'a') moveChar(-1, 0);
       if (e.key === 'ArrowRight' || e.key === 'd') moveChar(1, 0);
@@ -257,16 +309,73 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [moveChar, playSound, gameState]);
 
+  // ── Swipe gesture handler ────────────────────────────────────────────────
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current || gameState !== 'playing') return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartRef.current.x;
+    const dy = t.clientY - touchStartRef.current.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    touchStartRef.current = null;
+
+    const MIN_SWIPE = 28;
+    if (Math.max(absDx, absDy) < MIN_SWIPE) return;
+    e.preventDefault();
+
+    if (absDx > absDy) {
+      moveChar(dx > 0 ? 1 : -1, 0);
+    } else {
+      moveChar(0, dy > 0 ? 1 : -1);
+    }
+  }, [gameState, moveChar]);
+
+  // ── D-pad hold-to-repeat ─────────────────────────────────────────────────
+  const startDpadMove = useCallback((dx: number, dy: number, key: string) => {
+    if (gameState !== 'playing') return;
+    setDpadActive(key);
+    moveChar(dx, dy);
+    dpadIntervalRef.current = setInterval(() => moveChar(dx, dy), 175);
+  }, [gameState, moveChar]);
+
+  const stopDpadMove = useCallback(() => {
+    setDpadActive(null);
+    if (dpadIntervalRef.current) {
+      clearInterval(dpadIntervalRef.current);
+      dpadIntervalRef.current = null;
+    }
+  }, []);
+
+  // Clear hold interval when game ends
+  useEffect(() => {
+    if (gameState !== 'playing') stopDpadMove();
+  }, [gameState, stopDpadMove]);
+
+  const switchSpirit = useCallback(() => {
+    setActiveChar(prev => prev === 'ra' ? 'thoth' : 'ra');
+    playSound('click');
+    if (navigator.vibrate) navigator.vibrate(40);
+  }, [playSound]);
+
   const handleNextLevel = () => {
     const nextIdx = currentLevel + 1;
     setCurrentLevel(nextIdx);
-    initLevel(nextIdx);
+    initLevel(nextIdx); // initLevel already resets activeChar to 'ra'
   };
 
   const resetGame = () => {
+    stopAmbientMusic();
+    scoreRef.current = 0;
+    totalTimeSpentRef.current = 0;
     setScore(0);
     setCurrentLevel(0);
     setTotalTimeSpent(0);
+    setActiveChar('ra');
     initLevel(0);
   };
 
@@ -306,7 +415,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
               </div>
               <div className="ml-2">
                 <h2 className="text-xl font-display text-gold-gradient leading-none">{level.name}</h2>
-                <p className="text-xs text-muted-foreground font-body mt-1">Switch: SPACE | Move: ARROWS</p>
+                <p className="text-xs text-muted-foreground font-body mt-1">{isMobile ? 'Swipe grid · Tap spirit to switch' : 'Switch: SPACE | Move: ARROWS'}</p>
               </div>
               <div className={`flex items-center gap-2 px-4 py-1 rounded-full border ${timeLeft < 10 ? 'bg-terracotta/20 border-terracotta animate-pulse' : 'bg-obsidian/40 border-gold/20'}`}>
                 <Timer size={18} className={timeLeft < 10 ? 'text-terracotta' : 'text-primary'} />
@@ -318,7 +427,9 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
           <div className="relative flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
             <div
               className="relative bg-obsidian border-4 border-gold/40 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-              style={{ width: GRID_WIDTH * TILE_SIZE, height: GRID_HEIGHT * TILE_SIZE }}
+              style={{ width: GRID_WIDTH * TILE_SIZE, height: GRID_HEIGHT * TILE_SIZE, touchAction: 'none' }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
             >
               {/* Grid Rendering */}
               {level.grid.map((row, y) => row.map((tileIdx, x) => {
@@ -357,6 +468,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'ra' ? 'z-30' : 'opacity-70 grayscale-[0.5]'}`}
                 style={{ width: TILE_SIZE, height: TILE_SIZE }}
+                onPointerDown={(e) => { e.stopPropagation(); if (activeChar !== 'ra') switchSpirit(); }}
               >
                 <div className={`w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white border-2 border-gold-light shadow-gold-glow ${activeChar === 'ra' ? 'scale-110' : 'scale-90'}`}>
                   <Sun size={22} className={activeChar === 'ra' ? 'animate-spin-slow' : ''} />
@@ -368,6 +480,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 className={`absolute z-20 flex items-center justify-center transition-all ${activeChar === 'thoth' ? 'z-30' : 'opacity-70 grayscale-[0.5]'}`}
                 style={{ width: TILE_SIZE, height: TILE_SIZE }}
+                onPointerDown={(e) => { e.stopPropagation(); if (activeChar !== 'thoth') switchSpirit(); }}
               >
                 <div className={`w-9 h-9 bg-turquoise rounded-xl flex items-center justify-center text-obsidian border-2 border-turquoise-light shadow-turquoise-glow ${activeChar === 'thoth' ? 'scale-110' : 'scale-90'}`}>
                   <Moon size={22} className={activeChar === 'thoth' ? 'animate-pulse' : ''} />
@@ -392,8 +505,8 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                   title="Chamber Cleared!"
                   description={`You have mastered ${level.name}. The path deeper into the pyramid opens.`}
                   stats={[
-                    { label: 'Time Bonus', value: `${timeLeft}s` },
-                    { label: 'Total Score', value: score }
+                    { label: 'Level Score', value: `+${Math.max(100, timeLeft * 20)}` },
+                    { label: 'Total Score', value: scoreRef.current }
                   ]}
                   actionLabel="Next Chamber"
                   onAction={handleNextLevel}
@@ -409,7 +522,7 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
                   score={score}
                   stars={5}
                   stats={[
-                    { label: 'Total Time', value: `${totalTimeSpent}s` },
+                    { label: 'Total Time', value: `${totalTimeSpentRef.current}s` },
                     { label: 'Rank', value: 'High Priest' }
                   ]}
                   actionLabel="Enter Again"
@@ -437,18 +550,74 @@ export function MummyMazeGame({ onBack }: MummyMazeGameProps) {
           </div>
 
           {gameState === 'playing' && isMobile && (
-            <div className="p-6 bg-gold/5 border-t border-gold/10 flex flex-col items-center gap-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div />
-                <EgyptianButton size="lg" onClick={() => moveChar(0, -1)} className="w-14 h-14 p-0"><ChevronsUp /></EgyptianButton>
-                <div />
-                <EgyptianButton size="lg" onClick={() => moveChar(-1, 0)} className="w-14 h-14 p-0"><ChevronsLeft /></EgyptianButton>
-                <EgyptianButton size="lg" onClick={() => moveChar(0, 1)} className="w-14 h-14 p-0"><ChevronsDown /></EgyptianButton>
-                <EgyptianButton size="lg" onClick={() => moveChar(1, 0)} className="w-14 h-14 p-0"><ChevronsRight /></EgyptianButton>
+            <div className="p-5 bg-gold/5 border-t border-gold/10">
+              {/* Active spirit indicator */}
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <button
+                  onPointerDown={() => { if (activeChar !== 'ra') switchSpirit(); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-200 touch-manipulation select-none ${activeChar === 'ra' ? 'bg-primary/20 border-primary shadow-gold-glow' : 'bg-muted/30 border-transparent opacity-50'}`}
+                >
+                  <Sun size={18} className="text-primary" />
+                  <span className="text-sm font-display text-gold">Ra</span>
+                </button>
+                <button
+                  onPointerDown={switchSpirit}
+                  className="px-3 py-1.5 rounded-full bg-obsidian/60 border border-gold/30 text-xs font-display text-gold touch-manipulation select-none active:scale-95 transition-transform"
+                >
+                  ⇄ Switch
+                </button>
+                <button
+                  onPointerDown={() => { if (activeChar !== 'thoth') switchSpirit(); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all duration-200 touch-manipulation select-none ${activeChar === 'thoth' ? 'bg-turquoise/20 border-turquoise shadow-turquoise-glow' : 'bg-muted/30 border-transparent opacity-50'}`}
+                >
+                  <Moon size={18} className="text-turquoise" />
+                  <span className="text-sm font-display text-gold">Thoth</span>
+                </button>
               </div>
-              <EgyptianButton size="xl" variant="hero" className="w-full max-w-xs flex gap-3 shadow-turquoise-glow" onClick={() => { setActiveChar(prev => prev === 'ra' ? 'thoth' : 'ra'); playSound('click'); }}>
-                <Users size={24} /> <span>Switch Spirit</span>
-              </EgyptianButton>
+
+              {/* D-pad */}
+              <div className="flex justify-center">
+                <div className="grid grid-cols-3 gap-2" style={{ width: 168 }}>
+                  {/* Row 1 */}
+                  <div />
+                  <DpadButton
+                    icon={<ChevronsUp size={22} />}
+                    active={dpadActive === 'up'}
+                    onStart={() => startDpadMove(0, -1, 'up')}
+                    onEnd={stopDpadMove}
+                  />
+                  <div />
+                  {/* Row 2 */}
+                  <DpadButton
+                    icon={<ChevronsLeft size={22} />}
+                    active={dpadActive === 'left'}
+                    onStart={() => startDpadMove(-1, 0, 'left')}
+                    onEnd={stopDpadMove}
+                  />
+                  <div className="w-14 h-14 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-gold/20 border border-gold/30" />
+                  </div>
+                  <DpadButton
+                    icon={<ChevronsRight size={22} />}
+                    active={dpadActive === 'right'}
+                    onStart={() => startDpadMove(1, 0, 'right')}
+                    onEnd={stopDpadMove}
+                  />
+                  {/* Row 3 */}
+                  <div />
+                  <DpadButton
+                    icon={<ChevronsDown size={22} />}
+                    active={dpadActive === 'down'}
+                    onStart={() => startDpadMove(0, 1, 'down')}
+                    onEnd={stopDpadMove}
+                  />
+                  <div />
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-muted-foreground font-body mt-3 opacity-60">
+                Swipe the grid · tap a spirit · or use the D-pad
+              </p>
             </div>
           )}
         </EgyptianCard>

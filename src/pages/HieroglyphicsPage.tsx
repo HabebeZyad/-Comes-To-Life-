@@ -5,6 +5,7 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphQuiz } from '@/components/quiz/HieroglyphQuiz';
+import { useGame } from '@/contexts/GameContext';
 import {
   hieroglyphDatabase,
   HieroglyphEntry,
@@ -23,6 +24,13 @@ export default function HieroglyphicsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [gridView, setGridView] = useState(true);
+  const { incrementHieroglyphsScanned } = useGame();
+
+  const handleSelectGlyph = (glyph: HieroglyphEntry) => {
+    setSelectedGlyph(glyph);
+    setShowHieroglyphDetail(true);
+    incrementHieroglyphsScanned();
+  };
 
   useEffect(() => {
     if (viewMode === 'quiz') {
@@ -152,7 +160,7 @@ export default function HieroglyphicsPage() {
                     key={glyph.gardinerCode}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    onClick={() => { setSelectedGlyph(glyph); setShowHieroglyphDetail(true); }}
+                    onClick={() => handleSelectGlyph(glyph)}
                     className="aspect-square rounded-xl bg-card border border-border hover:border-gold/50 hover:shadow-gold-glow transition-all flex flex-col items-center justify-center p-2 group"
                     title={`${glyph.gardinerCode}: ${glyph.name}`}
                   >
@@ -170,7 +178,7 @@ export default function HieroglyphicsPage() {
                     key={glyph.gardinerCode}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    onClick={() => { setSelectedGlyph(glyph); setShowHieroglyphDetail(true); }}
+                    onClick={() => handleSelectGlyph(glyph)}
                     className="w-full p-4 rounded-xl bg-card border border-border hover:border-gold/50 hover:shadow-gold-glow transition-all flex items-center gap-4 text-left group"
                   >
                     <span className="text-4xl w-16 flex-shrink-0 text-center">{glyph.symbol}</span>

@@ -8,6 +8,17 @@ export interface StoryPanel {
   narration: string;
   dialogue?: { speaker: string; text: string }[];
   historicalNote?: string;
+  subtext?: string; // Political or philosophical subtext
+  choices?: AdventureChoice[];
+}
+
+export interface AdventureChoice {
+  id: string;
+  text: string;
+  consequence: string;
+  leadsTo?: string; // Next panel ID
+  affectsEnding?: boolean;
+  morality?: 'truth' | 'deception' | 'neutral';
 }
 
 export interface StoryCharacter {
@@ -54,26 +65,58 @@ export const egyptianStories: Story[] = [
     relatedLocations: ['punt', 'red-sea'],
     puzzleIds: [],
     estimatedReadTime: 15,
-    coverImage: '/shipwrecked-papyrus.jpeg',
+    coverImage: '/shipwrecked-sailor.jpeg',
     videoUrl: '/videos/shipwrecked-sailor.mp4',
     subtitlesUrl: '/videos/shipwrecked-sailor.vtt',
     characters: [
       {
         id: 'sailor',
         name: 'The Sailor',
-        role: 'Explorer',
-        description: 'A brave Egyptian sailor who survives a devastating shipwreck, only to find himself on the enchanted Island of the Ka.',
-        traits: ['Resilient', 'Fearful', 'Faithful']
+        role: 'Protagonist',
+        description: 'A resilient Egyptian explorer who survives a cataclysmic shipwreck, only to be cast upon the enchanted Island of the Ka.',
+        traits: ['Resilient', 'Faithful', 'Pious']
       },
       {
         id: 'serpent-king',
         name: 'The Serpent King',
-        role: 'Lord of Punt',
-        description: 'A colossal serpent covered in gold and lapis lazuli. The ruler of the mystical island who tests the sailor\'s courage.',
-        traits: ['Majestic', 'Wise', 'Powerful']
+        role: 'Divine Guardian',
+        description: 'A colossal serpent of gold and lapis lazuli, the sovereign of the mystical island who guards the secrets of the divine.',
+        traits: ['Majestic', 'Ancient', 'Omniscient']
       }
     ],
     panels: [] // transitions directly to video playback
+  },
+  {
+    id: 'tomb-golden-scarab',
+    title: 'The Tomb of the Golden Scarab',
+    subtitle: 'Secrets of the Priest-King',
+    period: 'Late Period',
+    periodId: 'late-period',
+    type: 'mythological',
+    description: 'An immersive cinematic journey into a long-forgotten burial chamber. Deep beneath the shifting sands, a sacred secret waits for those brave enough to enter the tomb of the last Priest-King.',
+    themes: ['Mystery', 'Ancestry', 'Ritual'],
+    relatedLocations: ['thebes', 'valley-of-the-kings'],
+    puzzleIds: [],
+    estimatedReadTime: 12,
+    coverImage: '/images/stories/golden-scarab.png',
+    characters: [],
+    panels: []
+  },
+  {
+    id: 'heretic-pharaoh',
+    title: 'The Heretic Pharaoh',
+    subtitle: 'The Revolution of Akhenaten',
+    period: 'New Kingdom',
+    periodId: 'new-kingdom',
+    type: 'historical',
+    description: 'Experience the dramatic transformation of a kingdom. Witness the rise of Akhenaten, the pharaoh who challenged thousands of years of tradition to follow the light of a single god.',
+    themes: ['Revolution', 'Sun Worship', 'Change'],
+    relatedLocations: ['amarna', 'akhetaten'],
+    puzzleIds: [],
+    estimatedReadTime: 18,
+    coverImage: '/images/stories/heretic-pharaoh.png',
+    characters: [],
+    panels: []
   },
   // OLD KINGDOM STORIES
   {
@@ -127,6 +170,20 @@ export const egyptianStories: Story[] = [
         narration: 'Prince Bauefre stepped forward to tell of a wonder from the reign of his grandfather, King Sneferu. It was a tale of a lost jewel, and a magician who could command the very waters.',
         dialogue: [
           { speaker: 'Prince Bauefre', text: 'Let me tell you, O Majesty, of a wonder that happened in the days of your father... A tale of the chief lector priest, Djadjaemankh.' }
+        ],
+        choices: [
+          {
+            id: 'wp-2-choice-1',
+            text: 'Listen intently to the tale',
+            consequence: 'You showed deep respect for the magic of the ancestors.',
+            morality: 'neutral'
+          },
+          {
+            id: 'wp-2-choice-2',
+            text: 'Express skepticism of the wonder',
+            consequence: 'You challenged the limits of ancient magic.',
+            morality: 'truth'
+          }
         ]
       },
       {
@@ -156,7 +213,21 @@ export const egyptianStories: Story[] = [
           { speaker: 'Djedi', text: 'It is done, my sovereign. Life returns to that which was claimed by the knife.' },
           { speaker: 'Khufu', text: '(Astonished) The gods speak through you, Djedi! Truly, magic never died in Egypt.' }
         ],
-        historicalNote: 'The tale of Djedi contains the earliest known recorded instance of the "decoding" magic trick still performed by modern illusionists.'
+        historicalNote: 'The tale of Djedi contains the earliest known recorded instance of the "decoding" magic trick still performed by modern illusionists.',
+        choices: [
+          {
+            id: 'wp-5-choice-1',
+            text: 'Reward Djedi generously',
+            consequence: 'You honored the sage for his divine gifts.',
+            morality: 'neutral'
+          },
+          {
+            id: 'wp-5-choice-2',
+            text: 'Ask for the secret of the magic',
+            consequence: 'You sought forbidden knowledge beyond your station.',
+            morality: 'deception'
+          }
+        ]
       },
       {
         id: 'wp-6',
@@ -591,7 +662,6 @@ export const egyptianStories: Story[] = [
         id: 'ki-6',
         imagePrompt: 'Stela being carved at Karnak temple, showing Kamose\'s deeds. Workers inscribe hieroglyphs while priests oversee. Realistic historical, sense of history being recorded.',
         narration: 'Kamose died before victory came. But his words lived on, carved in stone at Karnak. And his brother Ahmose would fulfill the oath - driving the Hyksos out forever.',
-        historicalNote: 'Kamose\'s stelae were discovered at Karnak and remain our primary source for the war of liberation.'
       }
     ]
   }

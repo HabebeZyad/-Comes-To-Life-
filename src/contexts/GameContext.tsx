@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PlayerProfile, EpisodeProgress, TombProgress, StoryChoice, Achievement, MuseumSettings } from '@/types/game';
+import { achievements as achievementData } from '@/data/achievements';
+import { useToast } from '@/hooks/use-toast';
 
 interface GameContextType {
   profile: PlayerProfile | null;
@@ -9,6 +11,9 @@ interface GameContextType {
   addStoryChoice: (choice: StoryChoice) => void;
   unlockAchievement: (achievementId: string) => void;
   unlockEnding: (endingId: string) => void;
+  incrementHieroglyphsScanned: () => void;
+  incrementPuzzlesSolved: () => void;
+  recordPlayTime: (minutes: number) => void;
   resetProgress: () => void;
 
   // Museum mode
@@ -71,6 +76,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [isMuseumMode, setIsMuseumMode] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [narrationEnabled, setNarrationEnabled] = useState(false);
+  const { toast } = useToast();
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -145,13 +151,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const unlockAchievement = (achievementId: string) => {
     if (profile) {
-      const updatedAchievements = profile.achievements.map(a =>
-        a.id === achievementId ? { ...a, unlockedAt: new Date() } : a
-      );
+      const alreadyUnlocked = profile.achievements.find(a => a.id === achievementId && a.unlockedAt);
+      if (alreadyUnlocked) return;
+
+      const achievement = achievementData.find(a => a.id === achievementId);
+      if (!achievement) return;
+
+      const updatedAchievements = [
+        ...profile.achievements.filter(a => a.id !== achievementId),
+        { ...achievement, unlockedAt: new Date() }
+      ];
+
       setProfileState({
         ...profile,
         achievements: updatedAchievements,
         lastPlayed: new Date(),
+      });
+
+      toast({
+        title: "Achievement Unlocked! 🏆",
+        description: achievement.title,
       });
     }
   };
@@ -161,6 +180,59 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setProfileState({
         ...profile,
         endingsUnlocked: [...profile.endingsUnlocked, endingId],
+        lastPlayed: new Date(),
+      });
+      
+      toast({
+        title: "New Ending Unlocked! ✨",
+        description: `You've discovered: ${endingId}`,
+      });
+
+      if (profile.endingsUnlocked.length + 1 >= 4) {
+        unlockAchievement('all-endings');
+      }
+    }
+  };
+
+  const incrementHieroglyphsScanned = () => {
+    if (profile) {
+      const newCount = profile.hieroglyphsScanned + 1;
+      setProfileState({
+        ...profile,
+        hieroglyphsScanned: newCount,
+        lastPlayed: new Date(),
+      });
+
+      if (newCount === 1) unlockAchievement('hieroglyph-master'); // Or a smaller one
+      if (newCount === 20) unlockAchievement('hieroglyph-master');
+    }
+  };
+
+  const incrementPuzzlesSolved = () => {
+    if (profile) {
+      const newCount = (profile.puzzlesSolved || 0) + 1;
+      const newTombPuzzles = (profile.tombProgress.puzzlesSolved || 0) + 1;
+      
+      setProfileState({
+        ...profile,
+        puzzlesSolved: newCount,
+        tombProgress: {
+          ...profile.tombProgress,
+          puzzlesSolved: newTombPuzzles
+        },
+        lastPlayed: new Date(),
+      });
+
+      if (newCount === 1) unlockAchievement('tomb-explorer');
+      if (newCount === 10) unlockAchievement('puzzle-king');
+    }
+  };
+
+  const recordPlayTime = (minutes: number) => {
+    if (profile) {
+      setProfileState({
+        ...profile,
+        totalPlayTime: profile.totalPlayTime + minutes,
         lastPlayed: new Date(),
       });
     }
@@ -187,6 +259,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       addStoryChoice,
       unlockAchievement,
       unlockEnding,
+      incrementHieroglyphsScanned,
+      incrementPuzzlesSolved,
+      recordPlayTime,
       resetProgress,
       museumSettings,
       setMuseumSettings,

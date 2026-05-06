@@ -70,6 +70,8 @@ export default function Index() {
             src={heroImage}
             alt="Ancient Egyptian tomb"
             className="w-full h-full object-cover opacity-60"
+            loading="eager" // Hero image should load fast
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         </div>
@@ -307,6 +309,7 @@ export default function Index() {
                       alt="Episode 3 Preview"
                       className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-[1.15]"
                       src={heroImage}
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-1000" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_black_100%)] opacity-20 group-hover:opacity-10 transition-opacity duration-1000" />

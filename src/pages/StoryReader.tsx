@@ -10,11 +10,22 @@ import { DustParticles } from '@/components/effects/DustParticles';
 import { StoryPuzzleModal } from '@/components/puzzles/PuzzleModals';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { CelestialSimulation } from '@/components/effects/CelestialSimulation';
+import { useGame } from '@/contexts/GameContext';
 
 export default function StoryReader() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { 
+    profile, 
+    updateStoryProgress, 
+    addStoryChoice, 
+    unlockEnding, 
+    incrementPuzzlesSolved,
+    recordPlayTime,
+    unlockAchievement
+  } = useGame();
   const [currentPanelIndex, setCurrentPanelIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [showHistoricalNote, setShowHistoricalNote] = useState(false);
@@ -22,6 +33,7 @@ export default function StoryReader() {
   const [activePuzzle, setActivePuzzle] = useState<StoryPuzzle | null>(null);
   const [completedPuzzles, setCompletedPuzzles] = useState<Set<string>>(new Set());
   const [totalScore, setTotalScore] = useState(0);
+  const [showSubtext, setShowSubtext] = useState(false);
 
   const story = storyId ? getStoryById(storyId) : undefined;
   const [showIntro, setShowIntro] = useState(!!story?.coverImage);
@@ -66,11 +78,20 @@ export default function StoryReader() {
       if (puzzle && !completedPuzzles.has(puzzle.id)) {
         setActivePuzzle(puzzle);
       } else {
-        setCurrentPanelIndex(currentPanelIndex + 1);
+        const nextIndex = currentPanelIndex + 1;
+        setCurrentPanelIndex(nextIndex);
         setShowHistoricalNote(false);
+
+        // Update profile progress
+        if (storyId) {
+          updateStoryProgress({
+            currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+            currentPanel: nextIndex
+          });
+        }
       }
     }
-  }, [currentPanelIndex, story, completedPanels, currentPanel, getPuzzleForPanel, completedPuzzles]);
+  }, [currentPanelIndex, story, completedPanels, currentPanel, getPuzzleForPanel, completedPuzzles, storyId, updateStoryProgress]);
 
   useEffect(() => {
     if (isAutoPlaying && story) {
@@ -90,7 +111,20 @@ export default function StoryReader() {
     const audio = new Audio(getAssetUrl('/sounds/paper-transition.mp3'));
     audio.volume = 0.3;
     audio.play().catch(() => { });
-  }, [currentPanelIndex]);
+
+    // Track completion if on last panel
+    if (story && currentPanelIndex === story.panels.length - 1 && storyId) {
+      const episodeNum = parseInt(storyId.replace('ep', '')) || 1;
+      if (!profile?.storyProgress.episodesCompleted.includes(episodeNum)) {
+        updateStoryProgress({
+          episodesCompleted: [...(profile?.storyProgress.episodesCompleted || []), episodeNum]
+        });
+        
+        // Record play time (rough estimate: 5 mins per story)
+        recordPlayTime(5);
+      }
+    }
+  }, [currentPanelIndex, story, storyId, profile, updateStoryProgress, recordPlayTime]);
 
   if (!story) {
     return null;
@@ -115,8 +149,54 @@ export default function StoryReader() {
       });
     }
     setActivePuzzle(null);
-    setCurrentPanelIndex(currentPanelIndex + 1);
+    const nextIndex = currentPanelIndex + 1;
+    setCurrentPanelIndex(nextIndex);
     setShowHistoricalNote(false);
+    incrementPuzzlesSolved();
+
+    // Update profile progress
+    if (storyId) {
+      updateStoryProgress({
+        currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+        currentPanel: nextIndex
+      });
+    }
+  };
+
+  const handleChoice = (choice: any) => {
+    if (storyId) {
+      addStoryChoice({
+        episodeId: parseInt(storyId.replace('ep', '')) || 1,
+        choiceId: choice.id,
+        optionSelected: choice.text,
+        timestamp: new Date(),
+        consequences: [choice.consequence]
+      });
+
+      // Unlock achievement for first choice
+      if (profile?.storyChoices.length === 0) {
+        unlockAchievement('first-choice');
+      }
+
+      // If choice has leadsTo, jump to that panel
+      if (choice.leadsTo) {
+        const targetIndex = story?.panels.findIndex(p => p.id === choice.leadsTo);
+        if (targetIndex !== -1 && targetIndex !== undefined) {
+          setCurrentPanelIndex(targetIndex);
+          return;
+        }
+      }
+
+      // Otherwise proceed to next panel
+      const nextIndex = currentPanelIndex + 1;
+      setCurrentPanelIndex(nextIndex);
+      
+      // Update progress
+      updateStoryProgress({
+        currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
+        currentPanel: nextIndex
+      });
+    }
   };
 
   const handlePuzzleClose = () => {
@@ -263,6 +343,13 @@ export default function StoryReader() {
           </div>
         </div>
       </header>
+
+      {/* Celestial Simulation layer for Mythological/Historical stories */}
+      {story.type !== 'literary' && (
+        <div className="fixed inset-0 z-0 opacity-40 pointer-events-none">
+          <CelestialSimulation timeOfDay={currentPanelIndex % 2 === 0 ? 'night' : 'dusk'} />
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="pt-20 pb-24">
@@ -414,7 +501,19 @@ export default function StoryReader() {
 
                     <EgyptianCardContent className="p-8 relative">
                       {/* Story Scroll Icon */}
-                      <div className="absolute top-4 right-4 opacity-20">
+                      <div className="absolute top-4 right-4 flex gap-4">
+                        {currentPanel.subtext && (
+                          <button
+                            onClick={() => setShowSubtext(!showSubtext)}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-1 rounded-full text-xs font-display transition-all",
+                              showSubtext ? "bg-gold text-black" : "bg-gold/10 text-gold border border-gold/20"
+                            )}
+                          >
+                            <Lightbulb className="w-3 h-3" />
+                            {showSubtext ? "Hide Subtext" : "View Subtext"}
+                          </button>
+                        )}
                         <motion.span
                           className="text-2xl"
                           animate={{ rotate: [0, 5, -5, 0] }}
@@ -425,14 +524,34 @@ export default function StoryReader() {
                       </div>
 
                       {/* Narration Text */}
-                      <motion.p
-                        className="font-body text-lg md:text-xl text-foreground/90 leading-relaxed relative z-10"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.8 }}
-                      >
-                        {currentPanel.narration}
-                      </motion.p>
+                      <div className="space-y-4">
+                        <motion.p
+                          className="font-body text-lg md:text-xl text-foreground/90 leading-relaxed relative z-10"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3, duration: 0.8 }}
+                        >
+                          {currentPanel.narration}
+                        </motion.p>
+
+                        <AnimatePresence>
+                          {showSubtext && currentPanel.subtext && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              className="p-4 bg-gold/10 border border-gold/30 rounded-xl mt-4"
+                            >
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-display text-gold tracking-widest uppercase">Sacred Subtext / Political Reality</span>
+                              </div>
+                              <p className="text-sm text-gold/80 italic leading-relaxed">
+                                {currentPanel.subtext}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
 
                       {/* Subtle Background Pattern */}
                       <div className="absolute inset-0 opacity-5">
@@ -551,6 +670,30 @@ export default function StoryReader() {
                   ))}
                 </div>
               )}
+
+              {/* Interaction Choices */}
+              {currentPanel.choices && currentPanel.choices.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 mb-12">
+                  {currentPanel.choices.map((choice, i) => (
+                    <motion.div
+                      key={choice.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.5 + i * 0.2 }}
+                    >
+                      <EgyptianButton
+                        variant="outline"
+                        className="w-full text-left p-6 h-auto flex flex-col items-start gap-2 border-2 border-primary/30 hover:border-primary group"
+                        onClick={() => handleChoice(choice)}
+                      >
+                        <span className="text-xs font-display text-primary tracking-widest uppercase opacity-70 group-hover:opacity-100">Decision Point</span>
+                        <span className="text-lg font-display text-gold">{choice.text}</span>
+                      </EgyptianButton>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
 
               {/* Scholarly Historical Note */}
               {currentPanel.historicalNote && (
