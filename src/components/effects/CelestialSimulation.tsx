@@ -1,6 +1,8 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import styles from './CelestialSimulation.module.css';
 
 interface Star {
     id: number;
@@ -8,7 +10,8 @@ interface Star {
     y: number;
     size: number;
     opacity: number;
-    isSpecial?: boolean;
+    duration: number;
+    delay: number;
 }
 
 interface CelestialSimulationProps {
@@ -16,7 +19,12 @@ interface CelestialSimulationProps {
     showOrion?: boolean;
 }
 
-export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
+/**
+ * CelestialSimulation Component
+ * Optimized to use CSS animations for the star field (200+ elements) to reduce main thread load.
+ * Wrapped in React.memo to prevent unnecessary re-renders when parent state updates.
+ */
+const CelestialSimulationComponent: React.FC<CelestialSimulationProps> = ({
     timeOfDay = 'night',
     showOrion = true
 }) => {
@@ -29,17 +37,19 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                 y: Math.random() * 100,
                 size: Math.random() * 2 + 1,
                 opacity: Math.random() * 0.7 + 0.3,
+                duration: Math.random() * 3 + 2,
+                delay: Math.random() * 5,
             });
         }
         return s;
     }, []);
 
     // Simplified Orion's Belt simulation
-    const orionBelt = [
-        { x: 45, y: 40 },
-        { x: 50, y: 42 },
-        { x: 55, y: 44 },
-    ];
+    const orionBelt = useMemo(() => [
+        { x: 45, y: 40, delay: 0 },
+        { x: 50, y: 42, delay: 0.2 },
+        { x: 55, y: 44, delay: 0.4 },
+    ], []);
 
     const skyColors = {
         day: 'bg-gradient-to-b from-blue-400 to-orange-100',
@@ -49,7 +59,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
     };
 
     return (
-        <div className={`absolute inset-0 overflow-hidden transition-colors duration-[3000ms] ${skyColors[timeOfDay]}`}>
+        <div className={cn("absolute inset-0 overflow-hidden transition-colors duration-[3000ms]", skyColors[timeOfDay])}>
             {/* Star Field (only visible at night/dusk/dawn) */}
             {(timeOfDay !== 'day') && (
                 <motion.div
@@ -58,47 +68,32 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                     className="absolute inset-0"
                 >
                     {stars.map((star) => (
-                        <motion.div
+                        <div
                             key={star.id}
-                            className="absolute bg-white rounded-full"
+                            className={styles.star}
                             style={{
-                                left: `${star.x}%`,
-                                top: `${star.y}%`,
-                                width: `${star.size}px`,
-                                height: `${star.size}px`,
-                                opacity: star.opacity,
-                            }}
-                            animate={{
-                                opacity: [star.opacity, star.opacity * 0.3, star.opacity],
-                            }}
-                            transition={{
-                                duration: Math.random() * 3 + 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                            }}
+                                '--star-x': star.x,
+                                '--star-y': star.y,
+                                '--star-size': star.size,
+                                '--star-opacity': star.opacity,
+                                '--star-duration': `${star.duration}s`,
+                                '--star-delay': `${star.delay}s`,
+                            } as React.CSSProperties}
                         />
                     ))}
 
                     {/* Orion's Belt */}
                     {showOrion && orionBelt.map((star, i) => (
-                        <motion.div
+                        <div
                             key={`orion-${i}`}
-                            className="absolute bg-gold rounded-full shadow-[0_0_10px_rgba(189,144,36,0.8)] z-10"
+                            className={styles.orionStar}
                             style={{
-                                left: `${star.x}%`,
-                                top: `${star.y}%`,
-                                width: '4px',
-                                height: '4px',
-                            }}
-                            animate={{
-                                scale: [1, 1.5, 1],
-                                opacity: [0.8, 1, 0.8],
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                delay: i * 0.2,
-                            }}
+                                '--star-x': star.x,
+                                '--star-y': star.y,
+                                '--star-size': 4,
+                                '--star-duration': '2s',
+                                '--star-delay': `${star.delay}s`,
+                            } as React.CSSProperties}
                         />
                     ))}
                 </motion.div>
@@ -123,6 +118,4 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
     );
 };
 
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(' ');
-}
+export const CelestialSimulation = memo(CelestialSimulationComponent);
