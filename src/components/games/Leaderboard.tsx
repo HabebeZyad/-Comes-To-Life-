@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Crown, Medal, Star, Trash2 } from 'lucide-react';
+import { Trophy, Crown, Medal, Star, Trash2, Award, Activity, CalendarDays, Flame, Filter } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useHighScores } from '@/hooks/useHighScores';
 
 const GAME_NAMES: Record<string, { label: string; emoji: string }> = {
-  all: { label: 'All Games', emoji: '🏆' },
   memory: { label: 'Sacred Symbols', emoji: '𓋹' },
   maze: { label: 'Mummy Maze', emoji: '🧟' },
   riddles: { label: "Pharaoh's Riddles", emoji: '🦁' },
   pyramid: { label: 'Pyramid Builder', emoji: '🏛️' },
   decoder: { label: 'Hieroglyph Decoder', emoji: '𓂀' },
-  'temple-escape': { label: 'Temple Escape', emoji: '🏛️' },
+  'temple-escape': { label: 'Temple Escape', emoji: '🏺' },
   'nile-navigator': { label: 'Nile Navigator', emoji: '⛵' },
   'scarab-collector': { label: 'Scarab Collector', emoji: '𓆣' },
   'guess-the-pharaoh': { label: 'Guess the Pharaoh', emoji: '👑' },
@@ -22,13 +21,36 @@ const GAME_NAMES: Record<string, { label: string; emoji: string }> = {
   'scribes-journal': { label: "Scribe's Journal", emoji: '📓' },
   'tomb-explorer': { label: 'Tomb Explorer', emoji: '𓊖' },
   'hieroglyph-match': { label: 'Hieroglyph Match', emoji: '𓇚' },
+  'glyph-reveal': { label: 'Hidden Pharaoh', emoji: '🖼️' },
+  'nile-games': { label: 'Games of the Nile', emoji: '𓏏' },
+  senet: { label: 'Senet', emoji: '𓏏' },
 };
 
-export function Leaderboard() {
-  const { getGameScores, getTopScores, clearScores } = useHighScores();
-  const [filter, setFilter] = useState('all');
+const filters = [
+  { key: 'all', label: 'All Records', emoji: '🏆' },
+  { key: 'recent', label: 'Recent Runs', emoji: '✨' },
+  ...Object.entries(GAME_NAMES).map(([key, value]) => ({ key, ...value })),
+];
 
-  const displayScores = filter === 'all' ? getTopScores(20) : getGameScores(filter);
+function formatDate(date: string) {
+  try {
+    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(date));
+  } catch {
+    return 'Unknown';
+  }
+}
+
+export function Leaderboard() {
+  const { getGameScores, getTopScores, getRecentScores, clearScores, getPlayerProgression } = useHighScores();
+  const [filter, setFilter] = useState('all');
+  const progression = getPlayerProgression();
+
+  const displayScores =
+    filter === 'all'
+      ? getTopScores(20)
+      : filter === 'recent'
+        ? getRecentScores(20)
+        : getGameScores(filter);
 
   const getRankIcon = (index: number) => {
     if (index === 0) return <Crown className="text-primary fill-primary" size={20} />;
@@ -37,75 +59,124 @@ export function Leaderboard() {
     return <span className="text-muted-foreground font-body text-sm w-5 text-center">{index + 1}</span>;
   };
 
+  const handleClear = () => {
+    clearScores(filter === 'all' || filter === 'recent' ? undefined : filter);
+  };
+
   return (
-    <EgyptianCard variant="tomb" padding="lg">
-      <div className="flex items-center gap-3 mb-6">
-        <Trophy className="text-primary" size={28} />
-        <h2 className="text-3xl font-display text-gold-gradient">Hall of Records</h2>
+    <EgyptianCard variant="tomb" padding="lg" className="overflow-hidden">
+      <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <Trophy className="text-primary" size={28} />
+            <h2 className="text-3xl font-display text-gold-gradient">Hall of Records</h2>
+          </div>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Persistent records for every challenge, ranked by score and preserved locally for fast replay goals.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[520px]">
+          {[
+            { label: 'Rank', value: progression.rankTitle, icon: Award },
+            { label: 'Total', value: progression.totalScore.toLocaleString(), icon: Star },
+            { label: 'Best', value: progression.bestScore.toLocaleString(), icon: Flame },
+            { label: 'Runs', value: progression.totalPlays, icon: Activity },
+          ].map((metric) => {
+            const Icon = metric.icon;
+            return (
+              <div key={metric.label} className="rounded-lg border border-gold/15 bg-black/25 p-3 text-center">
+                <Icon className="mx-auto mb-2 h-4 w-4 text-primary" />
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{metric.label}</div>
+                <div className="mt-1 truncate font-display text-sm text-gold-light">{metric.value}</div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {Object.entries(GAME_NAMES).map(([key, { label, emoji }]) => (
-          <button
-            key={key}
-            onClick={() => setFilter(key)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-body transition-all border ${filter === key
-              ? 'bg-primary text-primary-foreground border-gold-light/50'
-              : 'bg-card text-muted-foreground border-border hover:border-gold/30'
+      <div className="mb-5 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+        <Filter className="h-4 w-4 text-primary" />
+        Record Filter
+      </div>
+
+      <div className="mb-6 overflow-x-auto scrollbar-none">
+        <div className="flex w-max gap-2 pr-2">
+          {filters.map(({ key, label, emoji }) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-lg border px-3 py-2 text-sm font-body transition-all ${
+                filter === key
+                  ? 'border-gold/50 bg-primary text-primary-foreground shadow-gold-glow'
+                  : 'border-border bg-card/80 text-muted-foreground hover:border-gold/30 hover:text-foreground'
               }`}
-          >
-            {emoji} {label}
-          </button>
-        ))}
+            >
+              <span className="mr-1.5">{emoji}</span>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Scores */}
-      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-        <AnimatePresence>
+      <div className="space-y-2 max-h-[460px] overflow-y-auto pr-2">
+        <AnimatePresence mode="popLayout">
           {displayScores.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-              <div className="text-6xl mb-4">📜</div>
-              <p className="text-xl text-muted-foreground font-body">No records yet. Play some games!</p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-white/10 bg-black/20 py-14 text-center">
+              <Trophy className="mx-auto mb-4 h-12 w-12 text-primary/70" />
+              <p className="text-xl text-muted-foreground font-body">No records yet. Start a trial to open the archive.</p>
             </motion.div>
           ) : (
-            displayScores.map((entry, index) => (
-              <motion.div
-                key={`${entry.game}-${entry.date}-${index}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`flex items-center gap-3 p-3 rounded-lg border ${index < 3 ? 'bg-gold-dark/10 border-gold/20' : 'bg-card/50 border-border'
+            displayScores.map((entry, index) => {
+              const gameInfo = GAME_NAMES[entry.game] || { label: entry.game, emoji: '🎮' };
+
+              return (
+                <motion.div
+                  layout
+                  key={`${entry.game}-${entry.date}-${index}`}
+                  initial={{ opacity: 0, x: -18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 18 }}
+                  transition={{ delay: index * 0.025 }}
+                  className={`flex items-center gap-3 rounded-lg border p-3 ${
+                    index < 3 ? 'bg-gold-dark/10 border-gold/25' : 'bg-card/50 border-border'
                   }`}
-              >
-                <div className="w-6 flex justify-center">{getRankIcon(index)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-display text-foreground truncate">{entry.playerName}</span>
-                    <span className="text-xs text-muted-foreground font-body">
-                      {GAME_NAMES[entry.game]?.emoji || '🎮'} {GAME_NAMES[entry.game]?.label || entry.game}
-                    </span>
+                >
+                  <div className="w-7 flex justify-center">{getRankIcon(index)}</div>
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/25 text-2xl">
+                    {gameInfo.emoji}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-body">
-                    {entry.difficulty && <span className="capitalize">{entry.difficulty}</span>}
-                    {entry.details && <span>• {entry.details}</span>}
-                    <span>• {new Date(entry.date).toLocaleDateString()}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="font-display text-foreground truncate">{entry.playerName}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-widest text-primary">
+                        {gameInfo.label}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-body">
+                      {entry.difficulty && <span className="capitalize">{entry.difficulty}</span>}
+                      {entry.details && <span>{entry.details}</span>}
+                      <span className="inline-flex items-center gap-1">
+                        <CalendarDays className="h-3 w-3" />
+                        {formatDate(entry.date)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="text-primary" size={14} />
-                  <span className="font-display text-lg text-primary">{entry.score}</span>
-                </div>
-              </motion.div>
-            ))
+                  <div className="flex items-center gap-1">
+                    <Star className="text-primary" size={14} />
+                    <span className="font-display text-lg text-primary">{entry.score.toLocaleString()}</span>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </AnimatePresence>
       </div>
 
       {displayScores.length > 0 && (
         <div className="mt-4 flex justify-end">
-          <EgyptianButton variant="ghost" size="sm" onClick={clearScores}>
-            <Trash2 size={14} /> Clear All Records
+          <EgyptianButton variant="ghost" size="sm" onClick={handleClear}>
+            <Trash2 size={14} /> {filter === 'all' || filter === 'recent' ? 'Clear All Records' : 'Clear This Game'}
           </EgyptianButton>
         </div>
       )}

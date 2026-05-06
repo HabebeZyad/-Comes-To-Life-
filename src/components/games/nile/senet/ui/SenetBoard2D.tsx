@@ -1,0 +1,56 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { GameState, Square } from '../engine/types';
+import { Sparkles, Milestone, Eye, Tent, Waves as Water } from 'lucide-react';
+
+interface SenetBoard2DProps {
+  gameState: GameState;
+  onPieceClick: (id: number) => void;
+  selectedPiece: number | null;
+  legalMoves: number[];
+}
+
+export const SenetBoard2D: React.FC<SenetBoard2DProps> = ({ gameState, onPieceClick, selectedPiece, legalMoves }) => {
+  const getVisualPosition = (id: number) => {
+    if (id <= 10) return { row: 0, col: id - 1 };
+    if (id <= 20) return { row: 1, col: 20 - id };
+    return { row: 2, col: id - 21 };
+  };
+
+  const getSquareIcon = (type: string) => {
+    switch (type) {
+      case 'rebirth': return <Milestone className="text-turquoise" size={20} />;
+      case 'happiness': return <Sparkles className="text-primary" size={20} />;
+      case 'water': return <Water className="text-blue-400" size={20} />;
+      case 're-atum': return <Eye className="text-gold" size={18} />;
+      case 'last': return <Tent className="text-primary" size={20} />;
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="grid grid-rows-3 grid-cols-10 h-full w-full gap-1 p-2 bg-black/20 rounded-lg border-2 border-gold/20">
+      {gameState.board.map((square) => {
+        const { row, col } = getVisualPosition(square.id);
+        const isLegal = legalMoves.includes(square.id);
+        return (
+          <div 
+            key={square.id}
+            style={{ gridRow: row + 1, gridColumn: col + 1 }}
+            className={`relative flex items-center justify-center border border-gold/10 ${(row + col) % 2 === 0 ? 'bg-black/30' : 'bg-black/10'} ${isLegal ? 'ring-1 ring-primary/40' : ''}`}
+          >
+            <span className="absolute top-0.5 left-0.5 text-[6px] text-gold/20">{square.id}</span>
+            <div className="opacity-20">{getSquareIcon(square.type)}</div>
+            {square.piece && (
+              <motion.div
+                layoutId={`piece-${square.id}`}
+                onClick={() => isLegal && onPieceClick(square.id)}
+                className={`w-3/4 h-3/4 rounded-sm cursor-pointer ${square.piece === 'player1' ? 'bg-gold shadow-lg' : 'bg-lapis shadow-lg'} ${isLegal ? 'animate-pulse' : ''}`}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};

@@ -49,7 +49,7 @@ export function GlyphRevealGame({ onBack }: GlyphRevealGameProps) {
     const shuffledSymbols = [...hieroglyphDatabase].sort(() => Math.random() - 0.5).slice(0, currentLevel.pairs);
     
     // Duplicate to make pairs
-    let pairs = [...shuffledSymbols, ...shuffledSymbols].map(entry => entry.symbol);
+    const pairs = [...shuffledSymbols, ...shuffledSymbols].map(entry => entry.symbol);
     
     // Shuffle the board to ensure random placement
     pairs.sort(() => Math.random() - 0.5);
@@ -395,7 +395,7 @@ export function GlyphRevealGame({ onBack }: GlyphRevealGameProps) {
                     </div>
                     <div className="flex justify-end border-t border-white/10 pt-4">
                       <EgyptianButton onClick={handleLevelSummaryNext} variant="default">
-                        {currentLevelIdx < LEVELS.length - 1 ? 'Continue to Next Level' : 'Complete Journey'} <ArrowLeft size={16} className="ml-2 rotate-180" />
+                         {currentLevelIdx < LEVELS.length - 1 ? 'Continue to Next Level' : 'Complete Journey'} <ArrowLeft size={16} className="ml-2 rotate-180" />
                       </EgyptianButton>
                     </div>
                   </motion.div>
