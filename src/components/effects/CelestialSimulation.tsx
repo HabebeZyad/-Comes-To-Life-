@@ -1,6 +1,7 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import styles from './CelestialSimulation.module.css';
 
 interface Star {
     id: number;
@@ -8,6 +9,7 @@ interface Star {
     y: number;
     size: number;
     opacity: number;
+    duration: number;
     isSpecial?: boolean;
 }
 
@@ -16,7 +18,13 @@ interface CelestialSimulationProps {
     showOrion?: boolean;
 }
 
-export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
+/**
+ * CelestialSimulation Component
+ * Optimized to use CSS keyframe animations for stars instead of Framer Motion,
+ * offloading animation calculations to the browser's compositor thread.
+ * Wrapped in React.memo to prevent unnecessary re-renders in heavy parent components.
+ */
+const CelestialSimulationComponent: React.FC<CelestialSimulationProps> = ({
     timeOfDay = 'night',
     showOrion = true
 }) => {
@@ -29,6 +37,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                 y: Math.random() * 100,
                 size: Math.random() * 2 + 1,
                 opacity: Math.random() * 0.7 + 0.3,
+                duration: Math.random() * 3 + 2,
             });
         }
         return s;
@@ -58,47 +67,29 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                     className="absolute inset-0"
                 >
                     {stars.map((star) => (
-                        <motion.div
+                        <div
                             key={star.id}
-                            className="absolute bg-white rounded-full"
+                            className={`absolute bg-white rounded-full ${styles.star}`}
                             style={{
-                                left: `${star.x}%`,
-                                top: `${star.y}%`,
-                                width: `${star.size}px`,
-                                height: `${star.size}px`,
-                                opacity: star.opacity,
-                            }}
-                            animate={{
-                                opacity: [star.opacity, star.opacity * 0.3, star.opacity],
-                            }}
-                            transition={{
-                                duration: Math.random() * 3 + 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                            }}
+                                '--x': star.x,
+                                '--y': star.y,
+                                '--size': star.size,
+                                '--opacity': star.opacity,
+                                '--duration': `${star.duration}s`,
+                            } as React.CSSProperties}
                         />
                     ))}
 
                     {/* Orion's Belt */}
                     {showOrion && orionBelt.map((star, i) => (
-                        <motion.div
+                        <div
                             key={`orion-${i}`}
-                            className="absolute bg-gold rounded-full shadow-[0_0_10px_rgba(189,144,36,0.8)] z-10"
+                            className={`absolute bg-gold rounded-full shadow-[0_0_10px_rgba(189,144,36,0.8)] z-10 ${styles.orionStar}`}
                             style={{
-                                left: `${star.x}%`,
-                                top: `${star.y}%`,
-                                width: '4px',
-                                height: '4px',
-                            }}
-                            animate={{
-                                scale: [1, 1.5, 1],
-                                opacity: [0.8, 1, 0.8],
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                delay: i * 0.2,
-                            }}
+                                '--x': star.x,
+                                '--y': star.y,
+                                '--delay': i * 0.2,
+                            } as React.CSSProperties}
                         />
                     ))}
                 </motion.div>
@@ -122,6 +113,8 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
         </div>
     );
 };
+
+export const CelestialSimulation = memo(CelestialSimulationComponent);
 
 function cn(...classes: string[]) {
     return classes.filter(Boolean).join(' ');
