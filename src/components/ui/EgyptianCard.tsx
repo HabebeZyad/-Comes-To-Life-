@@ -8,19 +8,19 @@ const egyptianCardVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-card border border-border shadow-card hieroglyph-pattern",
+          "luxury-panel gold-border-gradient",
         gold:
-          "bg-gradient-to-br from-card via-card to-muted border-2 border-gold/30 shadow-gold-glow",
+          "bg-gradient-to-br from-card via-card to-muted border border-gold/30 shadow-gold-glow gold-border-gradient",
         lapis:
-          "bg-lapis-deep border border-lapis-light/30 shadow-deep",
+          "bg-gradient-to-br from-lapis-deep to-obsidian border border-lapis-light/30 shadow-deep",
         papyrus:
-          "bg-papyrus text-obsidian border border-sandstone",
+          "bg-papyrus text-obsidian border border-sandstone shadow-card papyrus-texture",
         tomb:
-          "bg-tomb-gradient border border-gold/20 shadow-deep",
+          "bg-tomb-gradient border border-gold/20 shadow-deep gold-border-gradient",
         interactive:
-          "bg-card border border-border hover:border-gold/50 hover:shadow-gold-glow cursor-pointer group",
+          "luxury-panel gold-border-gradient cursor-pointer group interactive-lift hover:border-gold/50",
         museum:
-          "bg-card border-4 border-gold/50 shadow-deep p-8",
+          "bg-surface-gradient border border-gold/40 shadow-deep p-8 gold-border-gradient",
       },
       padding: {
         none: "p-0",

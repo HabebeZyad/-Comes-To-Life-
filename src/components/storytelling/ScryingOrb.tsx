@@ -1,43 +1,9 @@
-import React, { useEffect } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
-import { Sphere, OrbitControls, useTexture, ContactShadows, Text } from '@react-three/drei';
+/// <reference types="@react-three/fiber" />
+import React, { useEffect, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Sphere, OrbitControls, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-
-const ForceResize = () => {
-    useEffect(() => {
-        // Dispatches global resize events to force React-Three-Fiber to recalculate
-        // its pixel bounding box exactly after Framer Motion finishes scaling the parent.
-        const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-        const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 900); // Exceeds the 0.8s animation duration
-        return () => { clearTimeout(t1); clearTimeout(t2); };
-    }, []);
-    return null;
-};
-
-const GlobeGlobe = () => {
-    return (
-        <group>
-            <Sphere args={[3.6, 64, 64]}>
-                <meshStandardMaterial color="#d4af37" metalness={0.7} roughness={0.3} />
-            </Sphere>
-
-            <Text position={[0, 0, 3.8]} fontSize={4.5} color="#000000" outlineColor="#cca630" outlineWidth={0.05}>
-                𓂀
-            </Text>
-            <Text position={[0, 0, -3.8]} rotation={[0, Math.PI, 0]} fontSize={4.5} color="#000000" outlineColor="#cca630" outlineWidth={0.05}>
-                𓂀
-            </Text>
-            <Text position={[3.8, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={4.5} color="#000000" outlineColor="#cca630" outlineWidth={0.05}>
-                𓂀
-            </Text>
-            <Text position={[-3.8, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={4.5} color="#000000" outlineColor="#cca630" outlineWidth={0.05}>
-                𓂀
-            </Text>
-
-            <ContactShadows opacity={0.8} scale={10} blur={2.5} far={5} color="#000000" position={[0, -4, 0]} />
-        </group>
-    );
-};
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Viewer360 = ({ image }: { image: string }) => {
     const textureUrl = (import.meta.env.BASE_URL || '/') + image;
@@ -46,7 +12,7 @@ const Viewer360 = ({ image }: { image: string }) => {
     useEffect(() => {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.wrapS = THREE.RepeatWrapping;
-        texture.repeat.x = 1; // Native orientation for inside viewing
+        texture.repeat.x = 1;
     }, [texture]);
 
     return (
@@ -56,34 +22,77 @@ const Viewer360 = ({ image }: { image: string }) => {
     );
 };
 
-export const ScryingOrb = ({ mode = "globe", image = "panorama.jpg" }: { mode?: "globe" | "viewer", image?: string }) => {
-    return (
-        <div className={`relative w-full h-full z-20 overflow-hidden bg-black/60`}>
-            <Canvas camera={{ position: mode === 'viewer' ? [0.1, 0, 0] : [0, 0, 10], fov: mode === 'viewer' ? 80 : 45 }} className={`absolute inset-0 w-full h-full ${mode === 'globe' ? 'pointer-events-none' : 'cursor-grab active:cursor-grabbing'}`}>
-                <ForceResize />
-                <ambientLight intensity={1.5} />
-                <directionalLight position={[10, 10, 5]} intensity={2.5} />
-                <directionalLight position={[-10, 10, -5]} intensity={1} />
-                <React.Suspense fallback={null}>
-                    {mode === 'globe' ? <GlobeGlobe /> : <Viewer360 image={image} />}
-                </React.Suspense>
+export const ScryingOrb = ({ mode = 'globe', image = 'panorama.jpg' }: { mode?: 'globe' | 'viewer', image?: string }) => {
+    const isViewer = mode === 'viewer';
 
-                {mode === 'globe' ? (
-                    <OrbitControls
-                        enableZoom={false}
-                        enablePan={false}
-                        autoRotate={true}
-                        autoRotateSpeed={1.5}
-                    />
+    return (
+        <div className="relative w-full h-full z-20 overflow-hidden rounded-lg bg-black/60">
+            <AnimatePresence mode="wait">
+                {isViewer ? (
+                    /* High-end 3D Viewer Mode (Inside) */
+                    <motion.div 
+                        key="viewer"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0"
+                    >
+                        <Canvas 
+                            camera={{ position: [0.1, 0, 0], fov: 80 }} 
+                            className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
+                        >
+                            <ambientLight intensity={1.5} />
+                            <directionalLight position={[10, 10, 5]} intensity={2.5} />
+                            <Suspense fallback={null}>
+                                <Viewer360 image={image} />
+                            </Suspense>
+                            <OrbitControls
+                                enableZoom={true}
+                                enablePan={false}
+                                rotateSpeed={-0.4}
+                                target={[0, 0, 0]}
+                            />
+                        </Canvas>
+                        
+                        {/* Legend for Viewer Mode */}
+                        <div className="absolute bottom-4 left-4 right-4 pointer-events-none flex items-center gap-3 rounded-lg border border-gold/20 bg-black/45 px-4 py-3 backdrop-blur-md z-30">
+                            <div className="h-2 w-2 rounded-full bg-gold-light animate-pulse" />
+                            <div>
+                                <div className="font-display text-sm text-gold-light uppercase tracking-widest">𓂀 Heritage Viewer</div>
+                                <div className="text-xs text-muted-foreground italic">Drag to explore the sacred chamber</div>
+                            </div>
+                        </div>
+                    </motion.div>
                 ) : (
-                    <OrbitControls
-                        enableZoom={true}
-                        enablePan={false}
-                        rotateSpeed={-0.4}
-                        target={[0, 0, 0]}
-                    />
+                    /* Classic CSS/Framer Motion Globe Mode (Outside) - RESTORED EXACTLY */
+                    <motion.div 
+                        key="globe"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex items-center justify-center"
+                    >
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+                            className="absolute h-[72%] w-[72%] rounded-full border border-gold/20"
+                        />
+                        <motion.div
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 36, repeat: Infinity, ease: 'linear' }}
+                            className="absolute h-[54%] w-[54%] rounded-full border border-turquoise/20"
+                        />
+                        <motion.div
+                            animate={{ y: [-8, 8, -8] }}
+                            transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+                            className="relative flex h-36 w-36 items-center justify-center rounded-full border border-gold/35 bg-[radial-gradient(circle_at_35%_25%,hsl(var(--gold-light)/0.85),hsl(var(--gold)/0.42)_34%,hsl(var(--lapis-deep)/0.85)_72%,hsl(var(--obsidian))_100%)] shadow-[0_0_70px_hsl(var(--gold)/0.28)]"
+                        >
+                            <div className="absolute inset-4 rounded-full border border-white/10" />
+                            <span className="text-6xl text-obsidian drop-shadow-gold-glow select-none">𓂀</span>
+                        </motion.div>
+                    </motion.div>
                 )}
-            </Canvas>
+            </AnimatePresence>
         </div>
     );
 };

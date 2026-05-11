@@ -5,30 +5,30 @@ import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useHighScores } from '@/hooks/useHighScores';
 
-const GAME_NAMES: Record<string, { label: string; emoji: string }> = {
-  memory: { label: 'Sacred Symbols', emoji: '𓋹' },
-  maze: { label: 'Mummy Maze', emoji: '🧟' },
-  riddles: { label: "Pharaoh's Riddles", emoji: '🦁' },
-  pyramid: { label: 'Pyramid Builder', emoji: '🏛️' },
-  decoder: { label: 'Hieroglyph Decoder', emoji: '𓂀' },
-  'temple-escape': { label: 'Temple Escape', emoji: '🏺' },
-  'nile-navigator': { label: 'Nile Navigator', emoji: '⛵' },
-  'scarab-collector': { label: 'Scarab Collector', emoji: '𓆣' },
-  'guess-the-pharaoh': { label: 'Guess the Pharaoh', emoji: '👑' },
-  'pyramid-trail': { label: 'The Pyramid Trail', emoji: '📍' },
-  'order-builders': { label: 'Order of the Builders', emoji: '⏳' },
-  'great-minds': { label: 'The Great Minds', emoji: '🧠' },
-  'scribes-journal': { label: "Scribe's Journal", emoji: '📓' },
-  'tomb-explorer': { label: 'Tomb Explorer', emoji: '𓊖' },
-  'hieroglyph-match': { label: 'Hieroglyph Match', emoji: '𓇚' },
-  'glyph-reveal': { label: 'Hidden Pharaoh', emoji: '🖼️' },
-  'nile-games': { label: 'Games of the Nile', emoji: '𓏏' },
-  senet: { label: 'Senet', emoji: '𓏏' },
+const GAME_NAMES: Record<string, { label: string; code: string }> = {
+  memory: { label: 'Sacred Symbols', code: 'SS' },
+  maze: { label: 'Mummy Maze', code: 'MM' },
+  riddles: { label: "Pharaoh's Riddles", code: 'PR' },
+  pyramid: { label: 'Pyramid Builder', code: 'PB' },
+  decoder: { label: 'Hieroglyph Decoder', code: 'HD' },
+  'temple-escape': { label: 'Temple Escape', code: 'TE' },
+  'nile-navigator': { label: 'Nile Navigator', code: 'NN' },
+  'scarab-collector': { label: 'Scarab Collector', code: 'SC' },
+  'guess-the-pharaoh': { label: 'Guess the Pharaoh', code: 'GP' },
+  'pyramid-trail': { label: 'The Pyramid Trail', code: 'PT' },
+  'order-builders': { label: 'Order of the Builders', code: 'OB' },
+  'great-minds': { label: 'The Great Minds', code: 'GM' },
+  'scribes-journal': { label: "Scribe's Journal", code: 'SJ' },
+  'tomb-explorer': { label: 'Tomb Explorer', code: 'TX' },
+  'hieroglyph-match': { label: 'Hieroglyph Match', code: 'HM' },
+  'glyph-reveal': { label: 'Hidden Pharaoh', code: 'HP' },
+  'nile-games': { label: 'Games of the Nile', code: 'GN' },
+  senet: { label: 'Senet', code: 'SN' },
 };
 
 const filters = [
-  { key: 'all', label: 'All Records', emoji: '🏆' },
-  { key: 'recent', label: 'Recent Runs', emoji: '✨' },
+  { key: 'all', label: 'All Records', code: 'ALL' },
+  { key: 'recent', label: 'Recent Runs', code: 'NEW' },
   ...Object.entries(GAME_NAMES).map(([key, value]) => ({ key, ...value })),
 ];
 
@@ -87,7 +87,7 @@ export function Leaderboard() {
             return (
               <div key={metric.label} className="rounded-lg border border-gold/15 bg-black/25 p-3 text-center">
                 <Icon className="mx-auto mb-2 h-4 w-4 text-primary" />
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{metric.label}</div>
+                <div className="text-[10px] uppercase text-muted-foreground">{metric.label}</div>
                 <div className="mt-1 truncate font-display text-sm text-gold-light">{metric.value}</div>
               </div>
             );
@@ -95,14 +95,14 @@ export function Leaderboard() {
         </div>
       </div>
 
-      <div className="mb-5 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+      <div className="mb-5 flex items-center gap-2 text-xs uppercase text-muted-foreground">
         <Filter className="h-4 w-4 text-primary" />
         Record Filter
       </div>
 
       <div className="mb-6 overflow-x-auto scrollbar-none">
         <div className="flex w-max gap-2 pr-2">
-          {filters.map(({ key, label, emoji }) => (
+          {filters.map(({ key, label, code }) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
@@ -112,7 +112,7 @@ export function Leaderboard() {
                   : 'border-border bg-card/80 text-muted-foreground hover:border-gold/30 hover:text-foreground'
               }`}
             >
-              <span className="mr-1.5">{emoji}</span>
+              <span className="mr-1.5 font-display text-[10px] text-gold-light">{code}</span>
               {label}
             </button>
           ))}
@@ -122,13 +122,13 @@ export function Leaderboard() {
       <div className="space-y-2 max-h-[460px] overflow-y-auto pr-2">
         <AnimatePresence mode="popLayout">
           {displayScores.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-white/10 bg-black/20 py-14 text-center">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-lg border border-white/10 bg-black/20 py-14 text-center">
               <Trophy className="mx-auto mb-4 h-12 w-12 text-primary/70" />
               <p className="text-xl text-muted-foreground font-body">No records yet. Start a trial to open the archive.</p>
             </motion.div>
           ) : (
             displayScores.map((entry, index) => {
-              const gameInfo = GAME_NAMES[entry.game] || { label: entry.game, emoji: '🎮' };
+              const gameInfo = GAME_NAMES[entry.game] || { label: entry.game, code: 'GM' };
 
               return (
                 <motion.div
@@ -143,13 +143,13 @@ export function Leaderboard() {
                   }`}
                 >
                   <div className="w-7 flex justify-center">{getRankIcon(index)}</div>
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/25 text-2xl">
-                    {gameInfo.emoji}
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/25 font-display text-sm text-gold-light">
+                    {gameInfo.code}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="font-display text-foreground truncate">{entry.playerName}</span>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-widest text-primary">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] uppercase text-primary">
                         {gameInfo.label}
                       </span>
                     </div>

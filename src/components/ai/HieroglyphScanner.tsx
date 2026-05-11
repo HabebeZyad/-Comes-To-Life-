@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, Scan, X, BookOpen, Copy, Check, Loader2 } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
+import { EgyptianCardContent } from '@/components/ui/EgyptianCard';
+import { TiltCard } from '@/components/ui/TiltCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getByGardinerCode, searchHieroglyphs } from '@/data/hieroglyphDatabase';
@@ -161,29 +162,30 @@ export function HieroglyphScanner() {
   };
 
   return (
-    <EgyptianCard variant="interactive" className="overflow-hidden">
+    <TiltCard containerClassName="w-full" className="p-0 overflow-hidden" tilt={false}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+        className="w-full p-6 flex items-center justify-between hover:bg-gold/5 transition-colors relative z-20"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-turquoise/20 flex items-center justify-center">
-            <Scan className="w-5 h-5 text-turquoise" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-turquoise/20 flex items-center justify-center border border-turquoise/30">
+            <Scan className="w-6 h-6 text-turquoise" />
           </div>
           <div className="text-left">
-            <h3 className="font-display font-semibold text-foreground">
+            <h3 className="font-display font-bold text-xl text-gold-light">
               AI Hieroglyph Scanner
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Upload an image to analyze hieroglyphs
+            <p className="text-sm text-muted-foreground font-display tracking-wide">
+              Neural analysis of ancient inscriptions
             </p>
           </div>
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 0 : 45 }}
           transition={{ duration: 0.3 }}
+          className="text-gold/40"
         >
-          <X className="w-5 h-5 text-muted-foreground" />
+          <X className="w-6 h-6" />
         </motion.div>
       </button>
 
@@ -193,10 +195,10 @@ export function HieroglyphScanner() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+            className="overflow-hidden relative z-10"
           >
-            <EgyptianCardContent className="p-4 pt-0 space-y-4">
+            <div className="p-6 pt-0 space-y-6">
               {/* Upload Area */}
               <input
                 ref={fileInputRef}
@@ -362,10 +364,10 @@ export function HieroglyphScanner() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </EgyptianCardContent>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </EgyptianCard>
+    </TiltCard>
   );
 }

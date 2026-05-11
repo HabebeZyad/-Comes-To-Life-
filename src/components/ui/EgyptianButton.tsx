@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const egyptianButtonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-display text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-display text-sm font-bold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
   {
     variants: {
       variant: {
@@ -25,6 +25,10 @@ const egyptianButtonVariants = cva(
           "bg-terracotta text-foreground hover:bg-terracotta/80 border border-terracotta/50",
         museum:
           "bg-card text-card-foreground hover:bg-muted border-2 border-gold/50 text-lg py-6 px-8",
+        gold:
+          "bg-gradient-to-r from-gold-dark via-primary to-gold-light text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--gold)/0.4)] border border-gold-light/30 transition-all",
+        interactive:
+          "bg-card text-foreground hover:text-primary border border-border hover:border-primary/50 hover:shadow-gold-glow transition-all duration-300",
         nav:
           "bg-gold/20 text-primary border border-gold/30 hover:bg-gold/30 hover:text-foreground transition-all",
       },

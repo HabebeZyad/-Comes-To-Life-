@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ImageIcon, Sparkles, Loader2, RefreshCw, ChevronDown, Download, Maximize2, X, Copy, Check } from 'lucide-react';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
+import { EgyptianCardContent } from '@/components/ui/EgyptianCard';
+import { TiltCard } from '@/components/ui/TiltCard';
 import { useToast } from '@/hooks/use-toast';
 
 interface GeneratedScene {
@@ -135,42 +136,43 @@ export function SceneGenerator() {
 
     return (
         <>
-            <EgyptianCard variant="interactive" className="overflow-hidden">
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-turquoise/20 flex items-center justify-center">
-                            <ImageIcon className="w-5 h-5 text-turquoise" />
-                        </div>
-                        <div className="text-left">
-                            <h3 className="font-display font-semibold text-foreground">
-                                Scene Generation
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                                Transform stories into vivid visual scenes
-                            </p>
-                        </div>
+            <TiltCard containerClassName="w-full" className="p-0 overflow-hidden" tilt={false}>
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full p-6 flex items-center justify-between hover:bg-gold/5 transition-colors relative z-20"
+            >
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-turquoise/20 flex items-center justify-center border border-turquoise/30">
+                        <ImageIcon className="w-6 h-6 text-turquoise" />
                     </div>
-                    <motion.div
-                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    </motion.div>
-                </button>
+                    <div className="text-left">
+                        <h3 className="font-display font-bold text-xl text-gold-light">
+                            Scene Generation
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-display tracking-wide">
+                            Transform stories into vivid visual scenes
+                        </p>
+                    </div>
+                </div>
+                <motion.div
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-gold/40"
+                >
+                    <ChevronDown className="w-6 h-6" />
+                </motion.div>
+            </button>
 
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                        >
-                            <EgyptianCardContent className="p-4 pt-0 space-y-4">
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+                        className="overflow-hidden relative z-10"
+                    >
+                        <div className="p-6 pt-0 space-y-6">
                                 {!generatedScene ? (
                                     <>
                                         {/* Scene Description */}
@@ -350,11 +352,11 @@ export function SceneGenerator() {
                                         </div>
                                     </motion.div>
                                 )}
-                            </EgyptianCardContent>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </EgyptianCard>
+            </TiltCard>
 
             {/* Fullscreen Modal */}
             <AnimatePresence>

@@ -7,13 +7,13 @@
 @layer base {
   :root {
     /* Egyptian-inspired color palette */
-    --background: 40 20% 8%;
-    --foreground: 43 30% 90%;
+    --background: 38 24% 7%;
+    --foreground: 43 34% 92%;
 
-    --card: 40 15% 12%;
+    --card: 38 18% 12%;
     --card-foreground: 43 30% 90%;
 
-    --popover: 40 15% 10%;
+    --popover: 38 20% 10%;
     --popover-foreground: 43 30% 90%;
 
     /* Gold - Primary */
@@ -25,8 +25,8 @@
     --secondary-foreground: 43 30% 90%;
 
     /* Papyrus - Muted */
-    --muted: 40 20% 18%;
-    --muted-foreground: 40 15% 55%;
+    --muted: 38 20% 17%;
+    --muted-foreground: 39 16% 64%;
 
     /* Turquoise - Accent */
     --accent: 175 60% 40%;
@@ -35,7 +35,7 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 43 30% 90%;
 
-    --border: 40 20% 20%;
+    --border: 39 18% 22%;
     --input: 40 20% 15%;
     --ring: 43 70% 47%;
 
@@ -62,14 +62,16 @@
     --gradient-gold: linear-gradient(135deg, hsl(43 80% 60%) 0%, hsl(43 70% 47%) 50%, hsl(40 60% 35%) 100%);
     --gradient-lapis: linear-gradient(180deg, hsl(210 50% 25%) 0%, hsl(215 55% 18%) 100%);
     --gradient-papyrus: linear-gradient(180deg, hsl(40 35% 85%) 0%, hsl(40 25% 70%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(40 20% 8%) 0%, hsl(40 15% 12%) 50%, hsl(215 55% 18%) 100%);
-    --gradient-tomb: radial-gradient(ellipse at center, hsl(40 20% 12%) 0%, hsl(40 20% 6%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(38 24% 7%) 0%, hsl(38 18% 11%) 46%, hsl(215 55% 15%) 100%);
+    --gradient-tomb: radial-gradient(ellipse at center, hsl(38 20% 13%) 0%, hsl(38 24% 6%) 100%);
+    --gradient-surface: linear-gradient(145deg, hsl(38 18% 13% / 0.94), hsl(215 42% 13% / 0.88));
+    --gradient-border: linear-gradient(135deg, hsl(var(--gold) / 0.55), hsl(var(--turquoise) / 0.22), hsl(var(--gold-dark) / 0.35));
 
     /* Shadows */
     --shadow-gold: 0 0 30px hsl(43 70% 47% / 0.3);
     --shadow-glow: 0 0 60px hsl(43 70% 47% / 0.2);
     --shadow-deep: 0 20px 60px hsl(0 0% 0% / 0.5);
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 14px 45px hsl(0 0% 0% / 0.34);
 
     /* Typography */
     --font-display: 'Cinzel', serif;
@@ -120,10 +122,21 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    min-height: 100vh;
+    background:
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--obsidian)) 48%, hsl(var(--lapis-deep)) 100%);
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    font-variant-ligatures: common-ligatures;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--gold-light));
+    outline-offset: 3px;
   }
 }
 
@@ -143,6 +156,10 @@
     background: var(--gradient-tomb);
   }
 
+  .bg-surface-gradient {
+    background: var(--gradient-surface);
+  }
+
   .shadow-gold-glow {
     box-shadow: var(--shadow-gold);
   }
@@ -151,12 +168,137 @@
     box-shadow: var(--shadow-deep);
   }
 
+  .drop-shadow-gold-glow {
+    filter: drop-shadow(0 0 18px hsl(var(--gold) / 0.45));
+  }
+
   .border-gold {
     border-color: hsl(var(--gold));
   }
 
   .hieroglyph-pattern {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.05'%3E%3Cpath d='M30 30l15-15v30L30 30zm0 0L15 15v30l15-15z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .temple-grid {
+    background-image:
+      linear-gradient(hsl(var(--gold) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--gold) / 0.045) 1px, transparent 1px);
+    background-size: 72px 72px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
+  }
+
+  .luxury-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid hsl(var(--gold) / 0.22);
+    background:
+      linear-gradient(145deg, hsl(var(--card) / 0.84), hsl(var(--lapis-deep) / 0.58)),
+      var(--gradient-surface);
+    box-shadow: var(--shadow-card);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+
+  .luxury-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent, hsl(var(--gold) / 0.12), transparent),
+      radial-gradient(circle at 50% 0%, hsl(var(--gold) / 0.12), transparent 36%);
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+
+  .luxury-panel:hover::before {
+    opacity: 1;
+  }
+
+  .gold-border-gradient {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .gold-border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-border);
+    pointer-events: none;
+    z-index: -1;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  .temple-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.58), hsl(var(--turquoise) / 0.24), transparent);
+  }
+
+  .content-shell {
+    width: min(100% - 2rem, 80rem);
+    margin-inline: auto;
+  }
+
+  .section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid hsl(var(--gold) / 0.24);
+    background: hsl(var(--gold) / 0.08);
+    color: hsl(var(--gold-light));
+    border-radius: 999px;
+    padding: 0.42rem 0.78rem;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .interactive-lift {
+    transition: transform 420ms ease, border-color 420ms ease, box-shadow 420ms ease, background-color 420ms ease;
+  }
+
+  .interactive-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 60px hsl(0 0% 0% / 0.38), 0 0 38px hsl(var(--gold) / 0.14);
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s linear infinite;
+  }
+
+  .perspective-2000 {
+    perspective: 2000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
 
   .papyrus-texture {
@@ -250,4 +392,8 @@
 ::selection {
   background: hsl(var(--gold) / 0.3);
   color: hsl(var(--foreground));
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }

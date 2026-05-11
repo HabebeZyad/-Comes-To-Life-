@@ -36,6 +36,20 @@ class CollectorGameState extends GameState {
   public lastHitTime: number = 0;
 }
 
+interface CollectorEngine {
+  loop: GameLoop | null;
+  input: InputManager | null;
+  juice: JuiceSystem;
+  render: RenderSystem | null;
+  state: CollectorGameState;
+  entities: ScarabEntity[];
+  wave: typeof WAVES[number];
+  level: number;
+  uiState: 'intro' | 'playing' | 'levelup' | 'victory' | 'defeat';
+  timeElapsed: number;
+  spawnTimer: number;
+}
+
 export function ScarabCollectorGame({ onBack }: { onBack: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -53,13 +67,13 @@ export function ScarabCollectorGame({ onBack }: { onBack: () => void }) {
   const currentWave = WAVES[level - 1] || WAVES[0];
 
   // Engine refs to prevent state-stale closures
-  const engineRef = useRef({
-    loop: null as GameLoop | null,
-    input: null as InputManager | null,
+  const engineRef = useRef<CollectorEngine>({
+    loop: null,
+    input: null,
     juice: new JuiceSystem(),
-    render: null as RenderSystem | null,
+    render: null,
     state: new CollectorGameState(),
-    entities: [] as ScarabEntity[],
+    entities: [],
     wave: currentWave,
     level: 0,
     uiState: 'intro',
@@ -240,7 +254,7 @@ export function ScarabCollectorGame({ onBack }: { onBack: () => void }) {
   }, [playSound, stopAmbientMusic]);
 
   // SPAWNER & HIT HANDLERS
-  const spawnEntity = (e: any) => {
+  const spawnEntity = (e: CollectorEngine) => {
     const rand = Math.random();
     let type: ScarabType, emoji: string, points: number, color: string;
 
@@ -267,7 +281,7 @@ export function ScarabCollectorGame({ onBack }: { onBack: () => void }) {
     ));
   };
 
-  const handleHit = (scarab: ScarabEntity, e: any) => {
+  const handleHit = (scarab: ScarabEntity, e: CollectorEngine) => {
     const explosionColor = scarab.color;
 
     if (scarab.type === 'cursed') {

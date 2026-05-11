@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Search, User, Menu, X, Volume2, VolumeX, Globe, ScrollText, Gamepad2 } from 'lucide-react';
+import { Sparkles, Search, User, Menu, X, Volume2, VolumeX, ScrollText, Gamepad2, Eye } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
@@ -20,24 +20,25 @@ export function Navigation() {
   const { audioEnabled, setAudioEnabled, isMuseumMode } = useGame();
 
   if (isMuseumMode) {
-    return null; // Hide navigation in museum mode
+    return null;
   }
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 hidden md:block">
-        <div className="bg-background/80 backdrop-blur-lg border-b border-gold/20">
+      <nav className="fixed left-0 right-0 top-0 z-50 hidden md:block">
+        <div className="border-b border-gold/20 bg-background/80 shadow-[0_14px_44px_hsl(0_0%_0%/0.24)] backdrop-blur-xl">
           <div className="container mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
-              <Link to="/" className="flex items-center gap-3 group">
-                <span className="text-3xl animate-glow-pulse">𓂀</span>
-                <span className="font-display text-xl tracking-wider text-gold-gradient">
-                  Comes to Life
+            <div className="flex h-16 items-center justify-between">
+              <Link to="/" className="group flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-gold/30 bg-gold/10 shadow-gold-glow transition-transform group-hover:scale-105">
+                  <span className="text-xl text-gold-light drop-shadow-gold-glow">𓂀</span>
+                </span>
+                <span className="font-display text-xl text-gold-gradient">
+                  Comes To Life
                 </span>
               </Link>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/25 p-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -46,16 +47,21 @@ export function Navigation() {
                     <Link key={item.path} to={item.path}>
                       <motion.div
                         className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-lg font-display text-sm tracking-wide transition-all",
-                          isActive
-                            ? "bg-gold/20 text-primary border border-gold/30"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          'relative flex items-center gap-2 rounded-lg px-4 py-2 font-display text-sm transition-all',
+                          isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                         )}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
                       >
-                        <Icon className="w-4 h-4" />
-                        <span className="hidden lg:inline">{item.label}</span>
+                        {isActive && (
+                          <motion.span
+                            layoutId="nav-active"
+                            className="absolute inset-0 rounded-lg border border-gold/30 bg-gold/15"
+                            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                          />
+                        )}
+                        <Icon className="relative h-4 w-4" />
+                        <span className="relative hidden lg:inline">{item.label}</span>
                       </motion.div>
                     </Link>
                   );
@@ -63,9 +69,10 @@ export function Navigation() {
 
                 <button
                   onClick={() => setAudioEnabled(!audioEnabled)}
-                  className="ml-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                  aria-label={audioEnabled ? 'Disable sound' : 'Enable sound'}
+                  className="ml-2 rounded-lg border border-transparent p-2 text-muted-foreground transition-all hover:border-gold/20 hover:bg-gold/10 hover:text-foreground"
                 >
-                  {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                  {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -73,14 +80,15 @@ export function Navigation() {
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden fixed top-4 right-4 z-50">
+      <div className="fixed right-4 top-4 z-50 md:hidden">
         <EgyptianButton
           variant="default"
           size="icon"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+          className="shadow-deep"
         >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </EgyptianButton>
       </div>
 
@@ -94,17 +102,19 @@ export function Navigation() {
             className="fixed inset-0 z-40 md:hidden"
           >
             <div
-              className="absolute inset-0 bg-background/95 backdrop-blur-lg"
+              className="absolute inset-0 bg-background/80 backdrop-blur-xl"
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute right-0 top-0 bottom-0 w-72 bg-card border-l border-gold/20 p-6 pt-20">
+            <div className="luxury-panel absolute bottom-0 right-0 top-0 w-80 max-w-[86vw] border-l border-gold/25 p-6 pt-20">
               <Link
                 to="/"
-                className="flex items-center gap-3 mb-8"
+                className="mb-8 flex items-center gap-3"
                 onClick={() => setIsOpen(false)}
               >
-                <span className="text-3xl">𓂀</span>
-                <span className="font-display text-lg text-gold-gradient">Comes to Life</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-gold/30 bg-gold/10">
+                  <span className="text-2xl text-gold-light drop-shadow-gold-glow">𓂀</span>
+                </span>
+                <span className="font-display text-lg text-gold-gradient">Comes To Life</span>
               </Link>
 
               <div className="flex flex-col gap-2">
@@ -120,14 +130,14 @@ export function Navigation() {
                     >
                       <motion.div
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-lg font-display tracking-wide transition-all",
+                          'flex items-center gap-3 rounded-lg px-4 py-3 font-display transition-all',
                           isActive
-                            ? "bg-gold/20 text-primary border border-gold/30"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            ? 'border border-gold/30 bg-gold/15 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="h-5 w-5" />
                         <span>{item.label}</span>
                       </motion.div>
                     </Link>
@@ -139,9 +149,8 @@ export function Navigation() {
         )}
       </AnimatePresence>
 
-      {/* Sticky Bottom Mobile Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-gold/20 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center justify-around h-16 px-2 sm:px-4">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-16px_42px_rgba(0,0,0,0.46)] backdrop-blur-xl md:hidden">
+        <div className="flex h-16 items-center justify-around px-2 sm:px-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -150,18 +159,20 @@ export function Navigation() {
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex-1 flex justify-center py-2"
+                className="flex flex-1 justify-center py-2"
+                aria-label={item.label}
               >
                 <motion.div
                   className={cn(
-                    "flex flex-col items-center justify-center p-2 rounded-xl transition-all",
+                    'flex min-w-12 flex-col items-center justify-center rounded-lg p-2 transition-all',
                     isActive
-                      ? "text-primary shadow-[0_0_15px_rgba(255,191,0,0.15)] bg-gold/10 scale-110"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? 'scale-105 bg-gold/10 text-primary shadow-[0_0_15px_rgba(255,191,0,0.15)]'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className="h-6 w-6" />
+                  <span className="sr-only">{item.label}</span>
                 </motion.div>
               </Link>
             );

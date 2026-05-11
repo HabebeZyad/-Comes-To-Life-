@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Book, Sparkles, Info, X, Search, Grid, List, ChevronDown, Trophy } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
@@ -17,10 +18,16 @@ import {
 type ViewMode = 'dictionary' | 'quiz';
 
 export default function HieroglyphicsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedGlyph, setSelectedGlyph] = useState<HieroglyphEntry | null>(null);
   const [showHieroglyphDetail, setShowHieroglyphDetail] = useState(false);
   const [showLore, setShowLore] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('dictionary');
+  
+  const viewMode = (searchParams.get('mode') as ViewMode) || 'dictionary';
+  
+  const setViewMode = (mode: ViewMode) => {
+    setSearchParams({ mode });
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [gridView, setGridView] = useState(true);
@@ -85,7 +92,7 @@ export default function HieroglyphicsPage() {
             variant={viewMode === 'dictionary' ? 'hero' : 'outline'}
             onClick={() => setViewMode('dictionary')}
           >
-            <Book className="w-4 h-4" />
+            < Book className="w-4 h-4" />
             Dictionary
           </EgyptianButton>
           <EgyptianButton

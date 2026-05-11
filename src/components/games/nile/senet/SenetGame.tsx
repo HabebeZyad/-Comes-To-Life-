@@ -19,7 +19,6 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
     aiDifficulty: 'normal',
     is3D: false,
   });
-  const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [isThrowing, setIsThrowing] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
 
@@ -52,14 +51,8 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
     if (gameState.throwResult === 0 || gameState.isGameOver) return;
     const newState = SenetEngine.makeMove(gameState, fromId, gameState.throwResult);
     setGameState({ ...newState, history: [gameState, ...gameState.history].slice(0, 10) });
-    setSelectedPiece(null);
   }, [gameState]);
 
-  const handleUndo = useCallback(() => {
-    if (gameState.history.length > 0) {
-      setGameState(gameState.history[0]);
-    }
-  }, [gameState.history]);
 
   const handleRestart = () => setGameState(SenetEngine.createInitialState(settings.ruleMode));
   const legalMoves = gameState.throwResult > 0 ? SenetEngine.getLegalMoves(gameState, gameState.throwResult) : [];
@@ -83,14 +76,14 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
           <AnimatePresence mode="wait">
             {!settings.is3D ? (
               <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-5xl aspect-[10/4.5]">
-                <SenetBoard2D gameState={gameState} onPieceClick={handleMove} selectedPiece={selectedPiece} legalMoves={legalMoves} />
+                <SenetBoard2D gameState={gameState} onPieceClick={handleMove} legalMoves={legalMoves} />
               </motion.div>
             ) : <div className="text-gold/60 font-display">3D MODE COMING SOON</div>}
           </AnimatePresence>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-            <EgyptianButton 
-              variant="default" 
-              size="lg" 
+            <EgyptianButton
+              variant="default"
+              size="lg"
               disabled={isThrowing || gameState.throwResult > 0 || gameState.isGameOver || gameState.currentPlayer === 'player2'}
               onClick={handleThrow}
             >
@@ -101,40 +94,49 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
 
         <div className="w-full lg:w-80 bg-black/40 border-l border-gold/10 backdrop-blur-md p-6 flex flex-col gap-6 z-30">
           <div className="bg-lapis-deep/40 rounded-xl p-5 border border-lapis-light/20">
-             <p className="text-xs text-turquoise font-bold uppercase tracking-widest mb-1">Turn</p>
-             <h3 className={`text-2xl font-display uppercase ${gameState.currentPlayer === 'player1' ? 'text-primary' : 'text-white/60'}`}>
-                {gameState.currentPlayer === 'player1' ? 'Player' : 'AI'}
-             </h3>
-             <div className="mt-4 flex justify-between">
-                <div>
-                   <p className="text-[10px] text-white/40">Player</p>
-                   <div className="flex gap-1">
-                      {Array.from({ length: 5 - gameState.piecesOffBoard.player1 }).map((_, i) => (
-                        <div key={i} className="w-2 h-4 bg-primary rounded-full" />
-                      ))}
-                   </div>
+            <p className="text-xs text-turquoise font-bold uppercase tracking-widest mb-1">Turn</p>
+            <h3 className={`text-2xl font-display uppercase ${gameState.currentPlayer === 'player1' ? 'text-primary' : 'text-white/60'}`}>
+              {gameState.currentPlayer === 'player1' ? 'Player' : 'AI'}
+            </h3>
+            <div className="mt-4 flex justify-between">
+              <div>
+                <p className="text-[10px] text-white/40">Player</p>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 - gameState.piecesOffBoard.player1 }).map((_, i) => (
+                    <div key={i} className="w-2 h-4 bg-primary rounded-full" />
+                  ))}
                 </div>
-                <div className="text-right">
-                   <p className="text-[10px] text-white/40">AI</p>
-                   <div className="flex gap-1 justify-end">
-                      {Array.from({ length: 5 - gameState.piecesOffBoard.player2 }).map((_, i) => (
-                        <div key={i} className="w-2 h-4 bg-white/20 rounded-full" />
-                      ))}
-                   </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-white/40">AI</p>
+                <div className="flex gap-1 justify-end">
+                  {Array.from({ length: 5 - gameState.piecesOffBoard.player2 }).map((_, i) => (
+                    <div key={i} className="w-2 h-4 bg-white/20 rounded-full" />
+                  ))}
                 </div>
-             </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex-1 flex flex-col min-h-0">
-             <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-gold/60 uppercase flex items-center gap-2">History</p>
-                <button onClick={handleUndo} disabled={gameState.history.length === 0} className="text-[10px] text-primary">UNDO</button>
-             </div>
-             <div className="flex-1 bg-black/20 rounded-lg p-3 overflow-y-auto font-body text-sm border border-white/5 scrollbar-none">
-                {gameState.moveLog.map((log, i) => (
-                  <p key={i} className={`mb-1 ${i === 0 ? 'text-white' : 'text-white/40'}`}>{log}</p>
-                ))}
-             </div>
+            <p className="text-xs font-bold text-gold/60 uppercase mb-3 flex items-center gap-2">
+              <HelpCircle size={14} /> How to Play
+            </p>
+            <div className="flex-1 bg-black/20 rounded-lg p-4 overflow-y-auto font-body text-sm border border-white/5 space-y-3">
+               <p className="text-white/80 leading-relaxed">
+                 <span className="text-primary font-bold">Goal:</span> Move all 5 pieces off the board (Square 30).
+               </p>
+               <div className="space-y-2 text-white/60 text-xs">
+                 <p>• Throw 4 sticks. White sides count moves (all dark = 6).</p>
+                 <p>• <span className="text-gold">House of Happiness (26):</span> Safe haven. Must land here first.</p>
+                 <p>• <span className="text-destructive">House of Water (27):</span> Trap! Sends you back to Square 15.</p>
+                 <p>• Pieces protect each other when standing in pairs.</p>
+                 <p>• Leap over single enemy pieces to swap positions.</p>
+               </div>
+               <div className="pt-2 border-t border-white/5 italic text-[10px] text-white/40">
+                 "To play Senet is to walk the path of the soul through the underworld."
+               </div>
+            </div>
           </div>
 
           <EgyptianButton variant="lapis" className="w-full" onClick={handleRestart}>RESTART</EgyptianButton>
@@ -145,11 +147,11 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
         {gameState.winner && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
             <EgyptianCard variant="museum" className="max-w-md w-full text-center">
-               <EgyptianCardTitle className="text-4xl mb-4">VICTORY</EgyptianCardTitle>
-               <EgyptianCardContent className="mb-8">
-                  {gameState.winner === 'player1' ? "You Won!" : "AI Won!"}
-               </EgyptianCardContent>
-               <EgyptianButton variant="default" size="lg" className="w-full" onClick={handleRestart}>PLAY AGAIN</EgyptianButton>
+              <EgyptianCardTitle className="text-4xl mb-4">VICTORY</EgyptianCardTitle>
+              <EgyptianCardContent className="mb-8">
+                {gameState.winner === 'player1' ? "You Won!" : "AI Won!"}
+              </EgyptianCardContent>
+              <EgyptianButton variant="default" size="lg" className="w-full" onClick={handleRestart}>PLAY AGAIN</EgyptianButton>
             </EgyptianCard>
           </div>
         )}

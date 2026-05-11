@@ -2,55 +2,63 @@ import { Eye, Instagram, Twitter, Facebook, Mail, ArrowRight } from 'lucide-reac
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+const knowledgeLinks = [
+    { name: 'Storytelling', path: '/storytelling' },
+    { name: 'Historical Stories', path: '/stories' },
+    { name: 'Hieroglyphs', path: '/hieroglyphs' },
+    { name: 'Games', path: '/games' },
+    { name: 'Profile', path: '/profile' },
+];
+
+const foundationLinks = ['About Project', 'Contributors', 'Methodology', 'Education', 'Privacy Policy'];
+
 export const Footer = () => {
     return (
-        <footer className="bg-background pt-24 pb-28 md:pb-12 border-t border-gold/20 relative overflow-hidden">
-            {/* Background Decorative Element */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-            <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gold/5 blur-[100px] rounded-full" />
+        <footer className="relative overflow-hidden border-t border-gold/20 bg-background pb-28 pt-20 md:pb-12">
+            <div className="absolute left-1/2 top-0 h-px w-full max-w-7xl -translate-x-1/2 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+            <div className="absolute inset-0 temple-grid opacity-25" />
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
-
-                    {/* Column 1: Brand & Social */}
-                    <div className="space-y-8">
-                        <Link to="/" className="flex items-center gap-3 group">
-                            <span className="text-3xl animate-glow-pulse">𓂀</span>
-                            <span className="font-display text-xl tracking-wider text-gold-gradient">
-                                Comes to Life
+            <div className="content-shell relative z-10">
+                <div className="grid grid-cols-1 gap-12 rounded-lg border border-gold/10 bg-black/20 p-6 backdrop-blur-sm md:grid-cols-2 lg:grid-cols-4 lg:p-8">
+                    <div className="space-y-7">
+                        <Link to="/" className="group flex items-center gap-3">
+                            <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-gold/30 bg-gold/10 transition-transform group-hover:scale-105">
+                                <span className="text-xl text-gold-light drop-shadow-gold-glow">𓂀</span>
+                            </span>
+                            <span className="font-display text-xl text-gold-gradient">
+                                Comes To Life
                             </span>
                         </Link>
-                        <p className="font-body text-muted-foreground leading-relaxed text-sm max-w-xs">
-                            An interactive journey through digital humanities and ancient narratives, reimagining cultural heritage through modern technology and storytelling.
+                        <p className="max-w-xs font-body text-sm leading-relaxed text-muted-foreground">
+                            A digital humanities experience that reimagines ancient Egyptian culture through storytelling, games, and interactive learning tools.
                         </p>
-                        <div className="flex gap-4">
-                            {[Instagram, Twitter, Facebook, Mail].map((Icon, i) => (
+                        <div className="flex gap-3">
+                            {[
+                                { Icon: Instagram, label: 'Instagram' },
+                                { Icon: Twitter, label: 'Twitter' },
+                                { Icon: Facebook, label: 'Facebook' },
+                                { Icon: Mail, label: 'Email' },
+                            ].map(({ Icon, label }) => (
                                 <motion.a
-                                    key={i}
+                                    key={label}
                                     href="#"
-                                    whileHover={{ y: -5, scale: 1.1 }}
-                                    className="w-10 h-10 rounded-full border border-gold/20 flex items-center justify-center text-muted-foreground hover:text-gold hover:border-gold/40 transition-all duration-300"
+                                    aria-label={label}
+                                    whileHover={{ y: -4, scale: 1.08 }}
+                                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-gold/20 text-muted-foreground transition-all duration-300 hover:border-gold/40 hover:bg-gold/10 hover:text-gold"
                                 >
-                                    <Icon className="w-4 h-4" />
+                                    <Icon className="h-4 w-4" />
                                 </motion.a>
                             ))}
                         </div>
                     </div>
 
-                    {/* Column 2: Knowledge */}
-                    <div className="space-y-8">
-                        <h4 className="font-display text-xs font-bold tracking-[0.3em] text-gold uppercase">Knowledge</h4>
-                        <ul className="space-y-4">
-                            {[
-                                { name: 'Storytelling', path: '/storytelling' },
-                                { name: 'Historical Stories', path: '/stories' },
-                                { name: 'Hieroglyphs', path: '/hieroglyphs' },
-                                { name: 'Games', path: '/games' },
-                                { name: 'Profile', path: '/profile' }
-                            ].map((link) => (
+                    <div className="space-y-6">
+                        <h4 className="font-display text-sm font-bold uppercase text-gold">Knowledge</h4>
+                        <ul className="space-y-3">
+                            {knowledgeLinks.map((link) => (
                                 <li key={link.name}>
-                                    <Link to={link.path} className="font-body text-muted-foreground hover:text-foreground transition-colors duration-300 flex items-center gap-2 group text-sm">
-                                        <div className="w-1 h-1 rounded-full bg-gold scale-0 group-hover:scale-100 transition-transform" />
+                                    <Link to={link.path} className="group flex items-center gap-2 font-body text-sm text-muted-foreground transition-colors duration-300 hover:text-foreground">
+                                        <span className="h-1 w-1 rounded-full bg-gold opacity-0 transition-opacity group-hover:opacity-100" />
                                         {link.name}
                                     </Link>
                                 </li>
@@ -58,14 +66,13 @@ export const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Column 3: Foundation */}
-                    <div className="space-y-8">
-                        <h4 className="font-display text-xs font-bold tracking-[0.3em] text-gold uppercase">Foundation</h4>
-                        <ul className="space-y-4">
-                            {['About Project', 'Contributors', 'Methodology', 'Education', 'Privacy Policy'].map((link) => (
+                    <div className="space-y-6">
+                        <h4 className="font-display text-sm font-bold uppercase text-gold">Foundation</h4>
+                        <ul className="space-y-3">
+                            {foundationLinks.map((link) => (
                                 <li key={link}>
-                                    <a href="#" className="font-body text-muted-foreground hover:text-foreground transition-colors duration-300 flex items-center gap-2 group text-sm">
-                                        <div className="w-1 h-1 rounded-full bg-gold scale-0 group-hover:scale-100 transition-transform" />
+                                    <a href="#" className="group flex items-center gap-2 font-body text-sm text-muted-foreground transition-colors duration-300 hover:text-foreground">
+                                        <span className="h-1 w-1 rounded-full bg-gold opacity-0 transition-opacity group-hover:opacity-100" />
                                         {link}
                                     </a>
                                 </li>
@@ -73,38 +80,37 @@ export const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Column 4: Newsletter */}
-                    <div className="space-y-8">
-                        <h4 className="font-display text-xs font-bold tracking-[0.3em] text-gold uppercase">Newsletter</h4>
-                        <p className="font-body text-muted-foreground text-sm leading-relaxed">
-                            Subscribe to receive updates on new chapters and historical insights.
+                    <div className="space-y-6">
+                        <h4 className="font-display text-sm font-bold uppercase text-gold">Newsletter</h4>
+                        <p className="font-body text-sm leading-relaxed text-muted-foreground">
+                            Receive chapter releases, restoration notes, and new learning-mode updates.
                         </p>
                         <div className="relative group">
                             <input
                                 type="email"
-                                placeholder="Email Address"
-                                className="w-full bg-muted/50 border border-gold/20 rounded-full px-6 py-3 text-sm font-body text-foreground focus:outline-none focus:border-gold/40 transition-all"
+                                placeholder="Email address"
+                                className="w-full rounded-lg border border-gold/20 bg-muted/50 px-4 py-3 pr-12 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-gold/50"
                             />
                             <button
                                 aria-label="Subscribe to newsletter"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-gold hover:bg-gold/30 transition-colors"
+                                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md border border-gold/30 bg-gold/15 text-gold transition-colors hover:bg-gold/25"
                             >
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="h-4 w-4" />
                             </button>
                         </div>
                     </div>
-
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="pt-12 border-t border-gold/10 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
-                    <div className="text-muted-foreground text-[10px] uppercase tracking-[0.3em] font-display">
-                        © {new Date().getFullYear()} COMES TO LIFE. ALL RIGHTS RESERVED.
+                <div className="temple-divider my-8" />
+
+                <div className="flex flex-col items-center justify-between gap-5 text-center md:flex-row md:text-left">
+                    <div className="font-display text-xs uppercase text-muted-foreground">
+                        © {new Date().getFullYear()} Comes To Life. All rights reserved.
                     </div>
-                    <div className="flex gap-8 text-[9px] uppercase tracking-[0.2em] font-display text-muted-foreground">
-                        <a href="#" className="hover:text-gold transition-colors">Documentation</a>
-                        <a href="#" className="hover:text-gold transition-colors">Contact</a>
-                        <a href="#" className="hover:text-gold transition-colors">Licensing</a>
+                    <div className="flex flex-wrap justify-center gap-5 font-display text-xs uppercase text-muted-foreground">
+                        <a href="#" className="transition-colors hover:text-gold">Documentation</a>
+                        <a href="#" className="transition-colors hover:text-gold">Contact</a>
+                        <a href="#" className="transition-colors hover:text-gold">Licensing</a>
                     </div>
                 </div>
             </div>

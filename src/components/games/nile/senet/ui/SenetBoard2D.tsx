@@ -6,11 +6,10 @@ import { Sparkles, Milestone, Eye, Tent, Waves as Water } from 'lucide-react';
 interface SenetBoard2DProps {
   gameState: GameState;
   onPieceClick: (id: number) => void;
-  selectedPiece: number | null;
   legalMoves: number[];
 }
 
-export const SenetBoard2D: React.FC<SenetBoard2DProps> = ({ gameState, onPieceClick, selectedPiece, legalMoves }) => {
+export const SenetBoard2D: React.FC<SenetBoard2DProps> = ({ gameState, onPieceClick, legalMoves }) => {
   const getVisualPosition = (id: number) => {
     if (id <= 10) return { row: 0, col: id - 1 };
     if (id <= 20) return { row: 1, col: 20 - id };

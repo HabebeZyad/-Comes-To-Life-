@@ -46,12 +46,12 @@ export class SenetAI {
     state.board.forEach((square, idx) => {
       if (square.piece === player) {
         score += (idx + 1) * 2;
-        
+
         // Bonus for safe squares
         if (square.type === 'happiness' || square.type === 'three-truths' || square.type === 're-atum' || square.type === 'last') {
           score += 10;
         }
-        
+
         // Penalty for dangerous squares
         if (square.type === 'water') {
           score -= 50;
@@ -61,14 +61,14 @@ export class SenetAI {
         if (SenetEngine.isProtected(state, idx, player)) {
           score += 5;
         }
-        
+
         // Blockade bonus
         if (SenetEngine.isBlockade(state, idx, player)) {
           score += 15;
         }
       } else if (square.piece === opponent) {
         score -= (idx + 1) * 1.5;
-        
+
         if (SenetEngine.isProtected(state, idx, opponent)) {
           score -= 5;
         }
@@ -117,11 +117,11 @@ export class SenetAI {
 
   private static averageOverThrows(state: GameState, depth: number, isMaximizing: boolean, originalPlayer: Player): number {
     const probabilities = [
-      { res: 1, p: 4/16 },
-      { res: 2, p: 6/16 },
-      { res: 3, p: 4/16 },
-      { res: 4, p: 1/16 },
-      { res: 5, p: 1/16 }
+      { res: 1, p: 4 / 16 },
+      { res: 2, p: 6 / 16 },
+      { res: 3, p: 4 / 16 },
+      { res: 4, p: 1 / 16 },
+      { res: 5, p: 1 / 16 }
     ];
 
     let expectedValue = 0;

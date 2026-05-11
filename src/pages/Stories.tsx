@@ -10,6 +10,7 @@ import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitl
 import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
 import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn } from '@/lib/utils';
+import { TiltCard } from '@/components/ui/TiltCard';
 
 type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
 type PeriodFilter = 'all' | string;
@@ -22,6 +23,7 @@ export default function Stories() {
 
   const filteredStories = useMemo(() => {
     return egyptianStories.filter(story => {
+      if (story.id === 'kamose-intercepted') return false;
       if (story.id === 'shipwrecked-sailor') return false;
       if (story.id === 'tomb-golden-scarab') return false;
       if (story.id === 'heretic-pharaoh') return false;
@@ -41,7 +43,8 @@ export default function Stories() {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background relative overflow-hidden pt-20">
+
       {/* Header */}
       <header className="relative px-6 py-12 border-b border-border">
         <div className="max-w-7xl mx-auto text-center">
@@ -135,39 +138,56 @@ export default function Stories() {
                 AI-Powered Features
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <HieroglyphScanner />
                 <SceneGenerator />
               </div>
 
               {/* AI Technical Notes */}
-              <EgyptianCard className="mt-4 border-dashed">
-                <EgyptianCardContent className="p-4">
-                  <h4 className="font-display font-semibold mb-2 flex items-center gap-2">
-                    <Brain className="w-4 h-4 text-primary" />
+              <TiltCard className="mt-6 p-6 border-dashed" tilt={false}>
+                <div className="relative z-10">
+                  <h4 className="font-display font-bold text-lg mb-4 flex items-center gap-3 text-gold-light">
+                    <Brain className="w-5 h-5 text-primary" />
                     AI Implementation Details
                   </h4>
-                  <div className="grid md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <h5 className="font-semibold text-primary mb-1">Machine Learning Components</h5>
-                      <ul className="space-y-1 text-muted-foreground">
-                        <li>• <strong>Vision AI</strong> for hieroglyph recognition from images</li>
-                        <li>• <strong>Timeline Analysis</strong> for historical patterns</li>
-                        <li>• <strong>Scene Generation</strong> for AI-generated images</li>
+                  <div className="grid md:grid-cols-2 gap-8 text-sm">
+                    <div className="space-y-3">
+                      <h5 className="font-display font-bold text-xs uppercase tracking-widest text-primary/80">Machine Learning Components</h5>
+                      <ul className="space-y-2 text-muted-foreground font-body">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>Vision AI</strong> for neural hieroglyph recognition</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>Timeline Analysis</strong> for predictive history</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>Scene Generation</strong> for immersive visual synthesis</span>
+                        </li>
                       </ul>
                     </div>
-                    <div>
-                      <h5 className="font-semibold text-primary mb-1">Powered By</h5>
-                      <ul className="space-y-1 text-muted-foreground">
-                        <li>• <strong>Lovable AI Gateway</strong> for seamless AI access</li>
-                        <li>• <strong>Google Gemini</strong> models for generation</li>
-                        <li>• <strong>Edge Functions</strong> for secure processing</li>
-                        <li>• <strong>1800+ Hieroglyphs</strong> in the database</li>
+                    <div className="space-y-3">
+                      <h5 className="font-display font-bold text-xs uppercase tracking-widest text-primary/80">Powered By</h5>
+                      <ul className="space-y-2 text-muted-foreground font-body">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>Lovable AI Gateway</strong> for secure orchestration</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>Google Gemini</strong> LLM for historical generation</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span><strong>1800+ Hieroglyphs</strong> in the neural database</span>
+                        </li>
                       </ul>
                     </div>
                   </div>
-                </EgyptianCardContent>
-              </EgyptianCard>
+                </div>
+              </TiltCard>
             </motion.div>
           )}
         </AnimatePresence>
@@ -215,6 +235,7 @@ export default function Stories() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
+              { title: 'The Intercepted Letter', period: 'Second Intermediate', type: 'historical' },
               { title: 'The Hyksos Invasion', period: 'Second Intermediate', type: 'historical' },
               { title: 'Khufu\'s Secret', period: 'Old Kingdom', type: 'historical' },
               { title: 'The Two Kingdoms War', period: 'First Intermediate', type: 'historical' },
@@ -322,15 +343,15 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
   const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
 
   return (
-    <EgyptianCard variant="gold" className="overflow-hidden group" glowOnHover>
-      <div className={`h-2 bg-gradient-to-r ${periodColor}`} />
-      <EgyptianCardContent className="p-6 relative">
+    <TiltCard containerClassName="w-full" className="p-0 overflow-hidden group" tilt={false}>
+      <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
+      <div className="p-6 relative z-10">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Story Info */}
-          <div className="flex-1 relative">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{periodIcon}</span>
-              <span className="text-xs font-display text-primary uppercase tracking-wider">
+          <div className="flex-1 relative" style={{ transform: "translateZ(50px)" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-3xl text-gold-light drop-shadow-glow">{periodIcon}</span>
+              <span className="text-xs font-display text-primary uppercase tracking-[0.2em] font-bold">
                 {story.period} • {story.type}
               </span>
             </div>
@@ -348,133 +369,155 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
                 </div>
               </div>
             )}
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-gold-gradient mb-2">
+
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-gold-gradient mb-2 tracking-tight">
               {story.title}
             </h2>
-            <p className="text-lg text-muted-foreground font-display mb-4">
+            <p className="text-lg text-gold-light/60 font-display mb-4 tracking-wide italic">
               {story.subtitle}
             </p>
-            <p className="font-body text-foreground/80 mb-4">
+            <p className="font-body text-lg leading-relaxed text-foreground/80 mb-6 max-w-3xl">
               {story.description}
             </p>
 
             {/* Metadata */}
-            <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+            <div className="flex flex-wrap gap-4 mb-6 text-sm font-display uppercase tracking-widest text-muted-foreground/70">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
                 {story.estimatedReadTime} min read
               </div>
-              <div className="flex items-center gap-1">
-                <BookOpen className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-primary" />
                 {story.panels.length} panels
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
                 {story.relatedLocations.length} locations
               </div>
             </div>
 
             {/* Themes */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-8">
               {story.themes.map((theme, i) => (
-                <span key={i} className="px-3 py-1 bg-muted rounded-full text-sm">
+                <span key={i} className="px-3 py-1 bg-gold/5 border border-gold/10 rounded-full text-xs font-display uppercase tracking-widest text-gold-light/60">
                   {theme}
                 </span>
               ))}
             </div>
 
             <Link to={`/stories/${story.id}`}>
-              <EgyptianButton variant="hero" size="lg" shimmer>
-                <Play className="w-5 h-5" />
+              <EgyptianButton variant="hero" size="lg" shimmer className="px-10 group">
+                <Play className="w-5 h-5 transition-transform group-hover:scale-125" />
                 Begin Story
               </EgyptianButton>
             </Link>
           </div>
 
           {/* Characters Preview */}
-          <div className="lg:w-72">
-            <h4 className="font-display text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">
-              Characters
+          <div className="lg:w-72" style={{ transform: "translateZ(30px)" }}>
+            <h4 className="font-display text-[10px] font-bold mb-4 text-primary uppercase tracking-[0.3em]">
+              Primary Characters
             </h4>
             <div className="space-y-3">
               {story.characters.slice(0, 3).map((char) => (
-                <div key={char.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
+                <div key={char.id} className="flex items-start gap-3 p-3 rounded-lg bg-gold/5 border border-gold/10 hover:border-gold/20 transition-all">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl border border-primary/20">
                     𓀀
                   </div>
                   <div>
-                    <h5 className="font-display font-semibold text-sm">{char.name}</h5>
-                    <p className="text-xs text-muted-foreground">{char.role}</p>
+                    <h5 className="font-display font-bold text-sm text-gold-light">{char.name}</h5>
+                    <p className="text-[10px] text-muted-foreground font-display tracking-wider uppercase mt-0.5">{char.role}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </EgyptianCardContent>
-    </EgyptianCard>
+      </div>
+
+      {/* Background Decorative Element */}
+      <div className="absolute -right-20 -bottom-20 opacity-[0.03] grayscale transition-all duration-700 group-hover:opacity-[0.08] pointer-events-none">
+        <Sparkles className="h-96 w-96" />
+      </div>
+    </TiltCard>
   );
 }
 
 function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => void }) {
   const periodIcon = egyptianPeriods.find(p => p.id === story.periodId)?.icon || '𓂀';
-  const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
+  const isSpecialStory = story.id === 'eloquent-peasant' || story.id === 'pyramid-builders' || story.id === 'ankhtifi-famine';
+  const periodColor = isSpecialStory ? 'from-gold to-gold-dark' : (egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark');
 
   return (
-    <Link to={`/stories/${story.id}`}>
-      <EgyptianCard variant="interactive" className="h-full group" glowOnHover>
-        <div className={`h-1 bg-gradient-to-r ${periodColor}`} />
-        <EgyptianCardHeader className="relative">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">{periodIcon}</span>
-            <span className="text-xs font-display text-muted-foreground uppercase tracking-wider">
-              {story.period}
-            </span>
+    <div className="h-full">
+      <TiltCard className="p-0 overflow-hidden flex flex-col group" tilt={false}>
+        <Link to={`/stories/${story.id}`} className="absolute inset-0 z-30" />
+
+        <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
+        <div className="p-6 flex flex-col h-full relative z-10" style={{ transform: "translateZ(40px)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl text-gold-light group-hover:animate-glow-pulse">{periodIcon}</span>
+              <span className="text-[10px] font-display text-muted-foreground uppercase tracking-[0.2em]">
+                {story.period}
+              </span>
+            </div>
+
+            {(story.id === 'westcar-papyrus' || story.id === 'eloquent-peasant') && (
+              <div
+                className="relative z-40 group/orb-trigger cursor-pointer flex items-center"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenPano?.(); }}
+              >
+                <div className="absolute right-full mr-4 whitespace-nowrap px-4 py-2 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-sm opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
+                  See where The Papyrus is kept in Now
+                </div>
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/40 shadow-inner bg-black/60 transition-all group-hover:border-gold group-hover:shadow-gold-glow">
+                  <ScryingOrb mode="globe" />
+                </div>
+              </div>
+            )}
           </div>
 
-          {(story.id === 'westcar-papyrus' || story.id === 'eloquent-peasant') && (
-            <div
-              className="absolute top-2 right-2 z-40 group/orb-trigger cursor-pointer flex items-center"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpenPano?.(); }}
-            >
-              <div className="absolute right-full mr-4 whitespace-nowrap px-3 py-1 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-xs opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
-                {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
-              </div>
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
-                <ScryingOrb mode="globe" />
-              </div>
-            </div>
-          )}
-          <EgyptianCardTitle className="group-hover:text-primary transition-colors">
-            {story.title}
-          </EgyptianCardTitle>
-          <EgyptianCardDescription className="text-sm">
-            {story.subtitle}
-          </EgyptianCardDescription>
-        </EgyptianCardHeader>
-        <EgyptianCardContent>
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-            {story.description}
-          </p>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="space-y-3 flex-grow">
+            <h3 className="font-display text-2xl font-bold leading-tight group-hover:text-gold-light transition-colors tracking-tight">
+              {story.title}
+            </h3>
+            <p className="text-xs font-display text-primary/70 uppercase tracking-widest italic">
+              {story.subtitle}
+            </p>
+            <p className="font-body text-base text-muted-foreground line-clamp-3 group-hover:text-foreground/90 transition-colors">
+              {story.description}
+            </p>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-gold/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="flex items-center gap-1.5 text-[10px] font-display text-muted-foreground/80">
+                <Clock className="w-3 h-3 text-primary/60" />
                 {story.estimatedReadTime} min
               </span>
               <span className={cn(
-                "px-2 py-0.5 rounded-full capitalize",
-                story.type === 'historical' && "bg-primary/20 text-primary",
-                story.type === 'literary' && "bg-lapis/20 text-lapis",
-                story.type === 'mythological' && "bg-turquoise/20 text-turquoise"
+                "px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-widest",
+                story.type === 'historical' && "bg-primary/10 text-primary border border-primary/20",
+                story.type === 'literary' && "bg-lapis/10 text-lapis-light border border-lapis/20",
+                story.type === 'mythological' && "bg-turquoise/10 text-turquoise border border-turquoise/20"
               )}>
                 {story.type}
               </span>
             </div>
-            <ChevronRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center gap-2 text-primary group-hover:translate-x-2 transition-transform">
+              <span className="font-display text-[10px] uppercase tracking-widest font-bold">Discover</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
           </div>
-        </EgyptianCardContent>
-      </EgyptianCard>
-    </Link>
+        </div>
+
+        {/* Faint Background Icon */}
+        <div className="absolute -bottom-6 -right-6 opacity-[0.02] grayscale transition-all duration-700 group-hover:opacity-[0.05] group-hover:scale-110 pointer-events-none">
+          {periodIcon !== '𓂀' && <span className="text-[12rem]">{periodIcon}</span>}
+          {periodIcon === '𓂀' && <BookOpen className="h-48 w-48" />}
+        </div>
+      </TiltCard>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen, Search, Award, ShieldCheck, Sparkles } from 'lucide-react';
+import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen, Search, Award, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { MemoryGame } from '@/components/games/MemoryGame';
@@ -23,6 +24,7 @@ import { Leaderboard } from '@/components/games/Leaderboard';
 import { GamesOfTheNile } from '@/components/games/nile/GamesOfTheNile';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { useHighScores } from '@/hooks/useHighScores';
+import { TiltCard } from '@/components/ui/TiltCard';
 
 type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal' | 'nile-games';
 type CategoryFilter = 'All' | 'Wisdom' | 'Action' | 'History';
@@ -96,11 +98,14 @@ const difficultyValue: Record<Game['difficulty'], number> = {
 };
 
 export default function Games() {
-  const [currentGame, setCurrentGame] = useState<GameType>('menu');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [filter, setFilter] = useState<CategoryFilter>('All');
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('All');
   const [query, setQuery] = useState('');
+  
+  const currentGame = (searchParams.get('id') as GameType) || 'menu';
+
   const { getGameSummary, getPlayerProgression } = useHighScores();
   const progression = getPlayerProgression();
 
@@ -109,11 +114,11 @@ export default function Games() {
   }, [currentGame]);
 
   const handleBackToMenu = () => {
-    setCurrentGame('menu');
+    setSearchParams({});
   };
 
   const handleGameSelect = (gameId: GameType) => {
-    setCurrentGame(gameId);
+    setSearchParams({ id: gameId });
   };
 
   if (currentGame !== 'menu') {
@@ -132,7 +137,7 @@ export default function Games() {
   });
 
   return (
-    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-hero-gradient relative">
+    <div className="min-h-screen pt-20 pb-28 md:pb-12 px-4 bg-hero-gradient relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-full overflow-hidden pointer-events-none">
         <DustParticles />
       </div>
@@ -171,9 +176,11 @@ export default function Games() {
 
         <div className="sticky top-[70px] z-40 bg-hero-gradient md:bg-transparent pb-4 pt-2 -mx-4 px-4 md:mx-0 md:px-0 mb-8 border-b border-white/5 md:border-none shadow-xl shadow-black/20 md:shadow-none backdrop-blur-md md:backdrop-blur-0">
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-            <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)} className="w-full sm:w-auto">
-              <Trophy size={20} className="mr-2" /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
-            </EgyptianButton>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <EgyptianButton variant="lapis" size="lg" onClick={() => setShowLeaderboard(!showLeaderboard)} className="w-full sm:w-auto">
+                <Trophy size={20} className="mr-2" /> {showLeaderboard ? 'Hide Leaderboard' : 'Hall of Records'}
+              </EgyptianButton>
+            </div>
 
             <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-end">
               <div className="relative w-full lg:max-w-xs">
@@ -237,107 +244,115 @@ export default function Games() {
           )}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-8">
           <AnimatePresence mode="popLayout">
-            {filteredGames.map((game, index) => (
-              <motion.div
-                layout
-                key={game.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: index * 0.05 }}
-                className="group relative cursor-pointer"
-                onClick={() => handleGameSelect(game.id as GameType)}
-              >
-                {game.isFeatured && (
-                  <div className="absolute -top-3 left-5 z-20 rounded-full border border-primary/30 bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary-foreground shadow-gold-glow">
-                    Featured Collection
-                  </div>
-                )}
-                <EgyptianCard
-                  variant="interactive"
-                  padding="none"
-                  className="h-full overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors flex"
+            {filteredGames.map((game, index) => {
+              const summary = getGameSummary(game.id);
+              return (
+                <motion.div
+                  layout
+                  key={game.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="h-full"
                 >
-                  <div className="flex flex-row h-full w-full">
-                    <div className={`w-[34%] sm:w-1/4 md:w-[30%] shrink-0 min-w-[112px] bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden group-hover:opacity-95 transition-opacity`}>
-                      <div className="absolute inset-0 opacity-20 hieroglyph-pattern" />
-                      <div className="absolute inset-x-4 top-4 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                      <span className="text-5xl sm:text-7xl group-hover:scale-110 transition-transform duration-500 relative z-10 drop-shadow-gold-glow">{game.emoji}</span>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between bg-obsidian/45 min-w-0">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                          <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-primary uppercase">{game.category}</span>
-                          <span className="rounded-full border border-turquoise/25 bg-turquoise/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-turquoise uppercase">{game.mode}</span>
-                          {game.isNew && (
-                            <span className="rounded-full border border-gold/25 bg-gold/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-gold-light uppercase">New</span>
-                          )}
+                  <TiltCard 
+                    className="p-0 border-gold/20 hover:border-gold/50 cursor-pointer"
+                    containerClassName="h-full"
+                  >
+                    <div 
+                      className="flex flex-col sm:flex-row h-full w-full relative z-20"
+                      onClick={() => handleGameSelect(game.id as GameType)}
+                    >
+                      {/* Left/Top Icon Section */}
+                      <div className={`w-full sm:w-[32%] shrink-0 bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden`}>
+                        <div className="absolute inset-0 opacity-25 hieroglyph-pattern pointer-events-none" />
+                        <div className="absolute inset-x-4 top-4 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+                        
+                        <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-black/30 text-gold-light shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-110" style={{ transform: "translateZ(40px)" } as any}>
+                          <game.icon className="h-10 w-10 sm:h-12 sm:w-12 drop-shadow-md" />
                         </div>
 
-                        <div className="mb-2 flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <h3 className="text-xl sm:text-2xl font-display text-white group-hover:text-primary transition-colors truncate sm:whitespace-normal">{game.title}</h3>
-                            <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{game.tagline}</p>
+                        {game.isFeatured && (
+                          <div className="absolute -top-1 -left-1 z-30 px-3 py-1 bg-gold text-black font-display text-[9px] font-bold uppercase tracking-widest rounded-br-lg shadow-lg">
+                            Featured Collection
                           </div>
-                          <game.icon className="mt-1 hidden h-6 w-6 shrink-0 text-primary/80 sm:block" />
-                        </div>
+                        )}
+                      </div>
 
-                        <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-4 line-clamp-2">{game.description}</p>
+                      {/* Right/Bottom Content Section */}
+                      <div className="flex-1 p-6 flex flex-col justify-between bg-black/20 min-w-0" style={{ transform: "translateZ(20px)" } as any}>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] text-primary uppercase">{game.category}</span>
+                            <span className="rounded-md border border-turquoise/25 bg-turquoise/10 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] text-turquoise uppercase">{game.mode}</span>
+                            {game.isNew && (
+                              <span className="flex items-center gap-1 rounded-md border border-gold/25 bg-gold/10 px-2 py-0.5 text-[9px] font-bold tracking-[0.15em] text-gold-light uppercase">
+                                <Zap className="h-2 w-2 animate-pulse" /> New
+                              </span>
+                            )}
+                          </div>
 
-                        {(() => {
-                          const summary = getGameSummary(game.id);
-                          return summary ? (
-                            <div className="mb-4 grid grid-cols-3 gap-2">
-                              <div className="rounded-md border border-white/10 bg-black/25 p-2">
-                                <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Best</div>
-                                <div className="font-display text-sm text-primary">{summary.bestScore.toLocaleString()}</div>
+                          <div className="mb-3">
+                            <h3 className="text-2xl sm:text-3xl font-display text-white group-hover:text-gold-light transition-colors leading-tight">{game.title}</h3>
+                            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-gold/40 font-medium">{game.tagline}</p>
+                          </div>
+
+                          <p className="text-muted-foreground text-sm leading-relaxed mb-6 line-clamp-2 font-body italic opacity-80">
+                            "{game.description}"
+                          </p>
+
+                          {summary ? (
+                            <div className="mb-6 grid grid-cols-3 gap-3">
+                              <div className="rounded-lg border border-white/5 bg-white/5 p-2 text-center">
+                                <div className="text-[8px] uppercase tracking-widest text-muted-foreground mb-0.5">Best</div>
+                                <div className="font-display text-sm text-gold-light">{summary.bestScore.toLocaleString()}</div>
                               </div>
-                              <div className="rounded-md border border-white/10 bg-black/25 p-2">
-                                <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Runs</div>
+                              <div className="rounded-lg border border-white/5 bg-white/5 p-2 text-center">
+                                <div className="text-[8px] uppercase tracking-widest text-muted-foreground mb-0.5">Runs</div>
                                 <div className="font-display text-sm text-foreground">{summary.plays}</div>
                               </div>
-                              <div className="rounded-md border border-white/10 bg-black/25 p-2">
-                                <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Avg</div>
+                              <div className="rounded-lg border border-white/5 bg-white/5 p-2 text-center">
+                                <div className="text-[8px] uppercase tracking-widest text-muted-foreground mb-0.5">Avg</div>
                                 <div className="font-display text-sm text-turquoise">{summary.averageScore.toLocaleString()}</div>
                               </div>
                             </div>
                           ) : (
-                            <div className="mb-4 rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-muted-foreground">
-                              New record slot ready
+                            <div className="mb-6 flex items-center gap-3 rounded-lg border border-gold/10 bg-gold/5 px-4 py-3 text-[10px] text-gold/60 uppercase tracking-widest font-display">
+                              <Sparkles className="h-3 w-3 animate-pulse" />
+                              Uncharted Trial: Seek the First Record
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
 
-                        <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-primary to-turquoise"
-                            style={{ width: `${(difficultyValue[game.difficulty] / 4) * 100}%` }}
-                          />
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex gap-1">
+                              {[...Array(4)].map((_, i) => (
+                                <Star key={i} size={12} className={i < difficultyValue[game.difficulty] ? "text-gold fill-gold" : "text-white/10"} />
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10px] text-turquoise font-bold uppercase tracking-wider">
+                              <Timer size={12} className="animate-pulse" /> {game.duration}
+                            </div>
+                          </div>
+                          <div className="text-gold-light group-hover:translate-x-2 transition-transform flex items-center text-xs font-bold uppercase tracking-widest">
+                            Enter Trial <ChevronRight size={14} className="ml-1" />
+                          </div>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between mt-auto gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex gap-1" aria-label={`${game.difficulty} difficulty`}>
-                            {[...Array(4)].map((_, i) => (
-                              <Star key={i} size={13} className={i < difficultyValue[game.difficulty] ? "text-primary fill-primary" : "text-white/10"} />
-                            ))}
-                          </div>
-                          <div className="hidden sm:flex items-center gap-1 text-[10px] text-turquoise font-bold uppercase">
-                            <Timer size={12} /> {game.duration}
-                          </div>
-                        </div>
-                        <div className="text-primary group-hover:translate-x-1 transition-transform flex items-center text-xs sm:text-sm font-bold ml-auto">
-                          PLAY NOW <ChevronRight size={14} className="sm:w-4 sm:h-4" />
-                        </div>
+                      
+                      {/* Faint Background Icon */}
+                      <div className="absolute -bottom-6 -right-6 opacity-[0.02] grayscale transition-all duration-700 group-hover:opacity-[0.08] group-hover:scale-110 pointer-events-none z-0">
+                        <game.icon className="h-48 w-48" />
                       </div>
                     </div>
-                  </div>
-                </EgyptianCard>
-              </motion.div>
-            ))}
+                  </TiltCard>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
           {filteredGames.length === 0 && (
             <motion.div

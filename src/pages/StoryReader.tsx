@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, BookOpen, MapPin, Trophy, Home, Volume2, VolumeX, Lightbulb, Puzzle } from 'lucide-react';
-import { getStoryById, egyptianStories, type Story, type StoryPanel } from '@/data/egyptianStories';
+import { getStoryById, egyptianStories, type Story, type StoryPanel, type AdventureChoice } from '@/data/egyptianStories';
 import { getStoryPuzzlesByStory, type StoryPuzzle } from '@/data/mapPuzzles';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
@@ -163,7 +163,7 @@ export default function StoryReader() {
     }
   };
 
-  const handleChoice = (choice: any) => {
+  const handleChoice = (choice: AdventureChoice) => {
     if (storyId) {
       addStoryChoice({
         episodeId: parseInt(storyId.replace('ep', '')) || 1,

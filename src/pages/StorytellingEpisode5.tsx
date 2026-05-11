@@ -135,7 +135,7 @@ export default function StorytellingEpisode5() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl mt-16">
+      <main className="container mx-auto px-4 py-4 md:py-8 max-w-5xl mt-14 md:mt-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPanel.id}
@@ -145,24 +145,24 @@ export default function StorytellingEpisode5() {
             transition={{ duration: 0.4 }}
             className="relative"
           >
-            <EgyptianCard variant="tomb" padding="none" className="overflow-hidden mb-6">
-              <div className="relative h-[65vh] bg-black">
+            <EgyptianCard variant="tomb" padding="none" className="overflow-hidden mb-4 md:mb-6">
+              <div className="relative h-[45vh] sm:h-[55vh] md:h-[65vh] bg-black">
                 <img
                   src={getPanelImage(currentPanel.id)}
                   alt={`Panel ${currentPanelIndex + 1}`}
                   className="w-full h-full object-contain"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                 {currentPanel.narration && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="absolute bottom-0 left-0 right-0 p-6"
+                    className="absolute bottom-0 left-0 right-0 p-3 md:p-6"
                   >
-                    <div className="bg-black/70 backdrop-blur-sm border border-gold/20 rounded-xl p-4 max-w-3xl mx-auto">
-                      <p className="font-body text-base sm:text-lg text-white/90 italic text-center leading-relaxed">
+                    <div className="bg-black/75 backdrop-blur-md border border-gold/25 rounded-xl p-3 md:p-4 max-w-3xl mx-auto shadow-2xl">
+                      <p className="font-body text-sm sm:text-base md:text-lg text-white/95 italic text-center leading-relaxed">
                         {currentPanel.narration}
                       </p>
                     </div>

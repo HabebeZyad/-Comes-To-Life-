@@ -1,50 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Book, Map, BookOpen, ChevronDown, Play, Sparkles, Gamepad2, ScrollText, Brain, Check } from 'lucide-react';
+import { BookOpen, ChevronDown, Play, Sparkles, Gamepad2, ScrollText, Brain, ChevronRight, ArrowRight, Layers } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
 import { Footer } from '@/components/ui/Footer';
+import { TiltCard } from '@/components/ui/TiltCard';
+import { FeaturedShowcase } from '@/components/home/FeaturedShowcase';
 import heroImage from '@/assets/hero-tomb.jpg';
 
 const features = [
   {
     icon: Sparkles,
     title: 'Storytelling',
-    subtitle: 'Episode 3: The Scribe Who Lied',
+    subtitle: 'Branching Moral Lore',
     description: 'Experience branching narratives where your moral choices shape history itself. Discover secrets, confront lies, and determine the fate of ancient Egypt.',
     path: '/storytelling',
-    iconColor: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
+    category: 'Narrative',
+    color: 'from-amber-500 to-amber-700',
+    surface: 'from-amber-500/20 to-amber-700/10',
+    accent: 'text-amber-500',
   },
   {
     icon: ScrollText,
     title: 'Literature & Stories',
-    subtitle: 'Bring History to Life',
-    description: 'Explore historical tales from the Old Kingdom to the Second Intermediate Period with realistic illustrations and interactive storytelling.',
+    subtitle: 'Curated Ancient Tales',
+    description: 'Explore historical tales from the Old Kingdom to the Second Intermediate Period. Featuring the Westcar Papyrus and Sinuhe with realistic illustrations.',
     path: '/stories',
-    iconColor: 'text-gold',
-    bgColor: 'bg-gold/10',
+    category: 'Historical',
+    color: 'from-gold to-gold-dark',
+    surface: 'from-gold/20 to-gold-dark/10',
+    accent: 'text-gold',
   },
   {
     icon: Gamepad2,
-    title: 'Interactive Ancient Games',
-    subtitle: 'Challenge Your Mind',
-    description: 'Test your wisdom with puzzles, mazes, and strategy games inspired by ancient Egyptian history, mythology, and daily life.',
+    title: 'Interactive Games',
+    subtitle: 'Strategy and Puzzle Trials',
+    description: 'Test your wisdom with board games and puzzles inspired by the ancients. Navigate the Duat in Senet or solve the mysteries of the Coiled Serpent.',
     path: '/games',
-    iconColor: 'text-cyan-500',
-    bgColor: 'bg-cyan-500/10',
+    category: 'Strategy',
+    color: 'from-cyan-500 to-cyan-700',
+    surface: 'from-cyan-500/20 to-cyan-700/10',
+    accent: 'text-cyan-500',
   },
   {
     icon: BookOpen,
     title: 'Hieroglyph Explorer',
-    subtitle: 'Dictionary & Quiz',
+    subtitle: 'Dictionary and Quiz',
     description: 'Browse the complete Gardiner Sign List, search by name or meaning, and test your knowledge with the interactive quiz game.',
     path: '/hieroglyphs',
-    iconColor: 'text-emerald-500',
-    bgColor: 'bg-emerald-500/10',
+    category: 'Linguistic',
+    color: 'from-emerald-500 to-emerald-700',
+    surface: 'from-emerald-500/20 to-emerald-700/10',
+    accent: 'text-emerald-500',
   },
 ];
 
@@ -64,19 +73,17 @@ export default function Index() {
 
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
         <div className="absolute inset-0">
           <img
             src={heroImage}
             alt="Ancient Egyptian tomb"
             className="w-full h-full object-cover opacity-60"
-            loading="eager" // Hero image should load fast
+            loading="eager"
             fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         </div>
 
-        {/* Hero Content */}
         <div className="relative z-20 text-center px-6 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -92,7 +99,7 @@ export default function Index() {
             transition={{ duration: 1, delay: 0.5 }}
             className="font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-wider mb-6"
           >
-            <span className="text-gold-gradient">COMES TO LIFE</span>
+            <span className="text-gold-gradient uppercase">Comes To Life</span>
           </motion.h1>
 
           <motion.p
@@ -105,37 +112,27 @@ export default function Index() {
             stories branch, and mysteries await your discovery.
           </motion.p>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.9 }}
-            className="font-body text-lg text-muted-foreground mb-10"
-          >
-            Digital Humanities • Interactive Storytelling • Cultural Heritage
-          </motion.p>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.1 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-row flex-nowrap gap-3 md:gap-4 justify-center items-center"
           >
-            <Link to="/storytelling">
-              <EgyptianButton variant="hero" size="xl" shimmer>
-                <Play className="w-5 h-5" />
-                Begin Your Journey
+            <Link to="/storytelling" className="flex-1 sm:flex-none">
+              <EgyptianButton variant="hero" size="lg" shimmer className="w-full sm:w-auto px-4 md:px-10 uppercase tracking-widest text-sm font-bold">
+                <Play className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="whitespace-nowrap">Begin Journey</span>
               </EgyptianButton>
             </Link>
-            <Link to="/hieroglyphs">
-              <EgyptianButton variant="outline" size="xl">
-                <BookOpen className="w-5 h-5" />
-                Hieroglyph Explorer
+            <Link to="/games" className="flex-1 sm:flex-none">
+              <EgyptianButton variant="outline" size="lg" className="w-full sm:w-auto px-4 md:px-10 uppercase tracking-widest text-sm font-bold">
+                <Gamepad2 className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="whitespace-nowrap">Explore Games</span>
               </EgyptianButton>
             </Link>
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: scrolled ? 0 : 1 }}
@@ -146,184 +143,125 @@ export default function Index() {
             transition={{ duration: 2, repeat: Infinity }}
             className="flex flex-col items-center text-muted-foreground"
           >
-            <span className="text-sm font-display tracking-widest mb-2">EXPLORE</span>
-            <ChevronDown className="w-6 h-6" />
+            <span className="text-sm font-display tracking-widest mb-2 text-gold/60 uppercase">Explore</span>
+            <ChevronDown className="w-6 h-6 text-gold/40" />
           </motion.div>
         </motion.div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative py-24 px-6">
-        <div className="max-w-7xl mx-auto">
+      {/* Features Grid (Restored to User Snippet Style) */}
+      <section className="relative px-6 py-24">
+        <div className="content-shell">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="text-center mb-24"
+            transition={{ duration: 0.8 }}
+            className="mb-14 max-w-3xl"
           >
-            <div className="text-gold font-bold tracking-[0.4em] text-[10px] uppercase mb-4">Core Experiences</div>
-            <h2 className="font-display text-4xl md:text-6xl text-foreground mb-8 tracking-[0.2em] leading-tight">
-              DISCOVER THE <span className="text-gold-gradient">ANCIENT WORLD</span>
+            <div className="section-kicker mb-5">
+              <Layers className="h-4 w-4" />
+              Core experiences
+            </div>
+            <h2 className="font-display text-4xl leading-tight text-foreground md:text-6xl">
+              Learn through story, play, and discovery.
             </h2>
-            <p className="font-body text-muted-foreground max-w-3xl mx-auto leading-relaxed text-xl opacity-80">
-              Four interconnected modes that bring ancient Egypt to life through interactive storytelling, immersive experiences, and cultural discovery.
+            <p className="mt-5 font-body text-xl leading-relaxed text-muted-foreground">
+              The project works best when each section feels like a chamber in the same temple: focused, immersive, and easy to navigate.
             </p>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="mt-8 text-gold/50 text-3xl font-display"
-            >
-              ⌄
-            </motion.div>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-10">
+          <div className="grid gap-8 md:grid-cols-2">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2, duration: 0.8 }}
-                whileHover={{ y: -10 }}
-                className="group relative h-full flex flex-col p-10 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 hover:border-gold/40 transition-all duration-700 overflow-hidden cursor-pointer"
+                transition={{ delay: index * 0.08, duration: 0.55 }}
+                className="h-full"
               >
-                <Link to={feature.path} className="absolute inset-0 z-10" />
+                <TiltCard className="p-0 overflow-hidden flex flex-col group" tilt={true}>
+                  <Link to={feature.path} className="absolute inset-0 z-30" />
+                  
+                  <div className={`h-1.5 bg-gradient-to-r ${feature.color} relative z-20`} />
+                  
+                  <div className="p-7 flex flex-col h-full relative z-10" style={{ transform: "translateZ(40px)" }}>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className={`inline-flex rounded-lg border border-white/10 bg-gradient-to-br ${feature.surface} p-3.5`}>
+                        <feature.icon className={`h-7 w-7 ${feature.accent} transition-transform duration-500 group-hover:scale-125 group-hover:rotate-6`} />
+                      </div>
+                      <span className="text-[10px] font-display text-muted-foreground uppercase tracking-[0.3em]">
+                        {feature.category}
+                      </span>
+                    </div>
 
-                {/* Decorative Corners */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-gold/0 group-hover:border-gold/40 transition-all duration-500 rounded-tl-xl" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-gold/0 group-hover:border-gold/40 transition-all duration-500 rounded-br-xl" />
+                    <div className="space-y-3 flex-grow">
+                      <div className={`text-xs font-semibold uppercase tracking-widest ${feature.accent} opacity-80`}>
+                        {feature.subtitle}
+                      </div>
+                      <h3 className="font-display text-3xl text-foreground transition-colors group-hover:text-gold-light uppercase tracking-tight">
+                        {feature.title}
+                      </h3>
+                      <p className="font-body text-lg leading-relaxed text-muted-foreground/80 group-hover:text-foreground/90 transition-colors line-clamp-3">
+                        {feature.description}
+                      </p>
+                    </div>
 
-                <div className={`mb-8 self-start inline-flex p-5 rounded-2xl ${feature.bgColor} transition-all duration-700 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] relative z-20 pointer-events-none`}>
-                  <feature.icon className={`w-10 h-10 ${feature.iconColor} group-hover:animate-pulse`} />
-                </div>
+                    <div className="mt-8 pt-5 border-t border-gold/10 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-primary opacity-80 transition-all group-hover:translate-x-2 group-hover:opacity-100">
+                        <span className="font-display text-[10px] uppercase tracking-[0.2em] font-bold">Open chamber</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
 
-                <h3 className="font-display text-3xl text-foreground mb-3 uppercase tracking-wider group-hover:text-gold transition-colors duration-500 relative z-20 pointer-events-none">
-                  {feature.title}
-                </h3>
-                <div className={`text-[11px] font-bold ${feature.iconColor} mb-8 uppercase tracking-[0.3em] opacity-70 group-hover:opacity-100 transition-opacity relative z-20 pointer-events-none`}>
-                  {feature.subtitle}
-                </div>
-
-                <p className="font-body text-muted-foreground leading-relaxed text-lg group-hover:text-foreground transition-colors duration-500 relative z-20 pointer-events-none flex-grow">
-                  {feature.description}
-                </p>
-
-                {/* Shine Sweep Animation */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
-
-                {/* Bottom Accent */}
-                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-gradient-to-r from-gold to-transparent group-hover:w-full transition-all duration-700 pointer-events-none" />
+                  {/* Faint Background Icon */}
+                  <div className="absolute -bottom-6 -right-6 opacity-[0.02] grayscale transition-all duration-1000 group-hover:opacity-[0.08] group-hover:scale-110 group-hover:rotate-12 pointer-events-none">
+                    <feature.icon className="h-48 w-48" />
+                  </div>
+                </TiltCard>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Episode 3 Teaser */}
-      <section className="relative py-24 px-6 bg-lapis-deep/50">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="grid lg:grid-cols-2 gap-12 items-center"
+      {/* Legacy Showcase Section */}
+      <FeaturedShowcase />
+
+      {/* Built for Learning Section (Landscape Restoration) */}
+      <section className="px-6 py-20">
+        <div className="content-shell">
+          <TiltCard 
+            className="p-8 border-emerald-500/20 bg-emerald-950/40 hover:border-emerald-400/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group relative overflow-hidden"
+            containerClassName="w-full"
+            glowColor="rgba(52,211,153,0.15)"
+            tilt={true}
           >
-            <div className="flex-1 space-y-10">
-              <div className="flex items-center gap-4">
-                <div className="h-px w-12 bg-gold"></div>
-                <div className="text-gold font-bold tracking-[0.5em] text-[10px] uppercase">New Chapter Unveiled</div>
+            <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center relative z-20">
+              <div>
+                <div className="section-kicker mb-4 bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+                  <Brain className="h-4 w-4 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12" />
+                  Built for learning
+                </div>
+                <h2 className="font-display text-3xl text-foreground md:text-4xl">A sharper experience without losing the ancient soul.</h2>
+                <p className="mt-4 max-w-3xl font-body text-lg leading-relaxed text-muted-foreground/80 group-hover:text-muted-foreground transition-colors">
+                  Stories, games, and tools now share a stronger interface language: elegant surfaces, clearer hierarchy, and more confident movement.
+                </p>
               </div>
-
-              <h2 className="font-display text-5xl md:text-6xl lg:text-7xl text-foreground leading-tight">
-                EPISODE 3:<br />
-                <span className="text-gold-gradient">THE SCRIBE WHO LIED</span>
-              </h2>
-
-              <p className="font-body text-muted-foreground leading-relaxed text-xl max-w-2xl opacity-80">
-                In the sacred House of Life, where all knowledge is preserved, young scribe
-                Kiya discovers that her mentor has been falsifying royal records for decades.
-                The truth about the Battle of Kadesh—and the fate of Egypt—lies in her hands.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="flex items-center gap-4 group">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5 group-hover:bg-gold/20 transition-colors">
-                    <Check className="w-4 h-4 text-gold" />
-                  </div>
-                  <span className="font-body text-muted-foreground group-hover:text-foreground transition-colors text-lg">10 Illustrated Panels</span>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex items-center gap-4 group">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5 group-hover:bg-gold/20 transition-colors">
-                    <Check className="w-4 h-4 text-gold" />
-                  </div>
-                  <span className="font-body text-muted-foreground group-hover:text-foreground transition-colors text-lg">Branching Moral Choices</span>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }} className="flex items-center gap-4 group">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5 group-hover:bg-gold/20 transition-colors">
-                    <Check className="w-4 h-4 text-gold" />
-                  </div>
-                  <span className="font-body text-muted-foreground group-hover:text-foreground transition-colors text-lg">Cinematic Visual Lore</span>
-                </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }} className="flex items-center gap-4 group">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5 group-hover:bg-gold/20 transition-colors">
-                    <Check className="w-4 h-4 text-gold" />
-                  </div>
-                  <span className="font-body text-muted-foreground group-hover:text-foreground transition-colors text-lg">Multiple Secret Endings</span>
-                </motion.div>
-              </div>
-
-              <Link to="/storytelling">
-                <EgyptianButton variant="hero" size="xl" className="mt-6 h-14 px-12 text-lg uppercase tracking-[0.2em] transition-all duration-500 hover:shadow-[0_8px_40px_rgba(189,144,36,0.9)] group">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5" />
-                    <span>READ EPISODE 3</span>
-                  </div>
+              <Link to="/hieroglyphs">
+                <EgyptianButton variant="hero" size="lg" className="group/btn shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                  Study Symbols
+                  <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover/btn:translate-x-2" />
                 </EgyptianButton>
               </Link>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex-1 relative w-full perspective-[2000px] z-10"
-            >
-              <motion.div
-                animate={{ y: [-15, 15, -15] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative group w-full"
-              >
-                {/* Animated Brackets */}
-                <div className="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-gold z-20 pointer-events-none group-hover:-translate-x-2 group-hover:-translate-y-2 transition-transform duration-700" />
-                <div className="absolute -bottom-4 -right-4 w-24 h-24 border-b-2 border-r-2 border-gold z-20 pointer-events-none group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-700" />
-                <div className="absolute -top-4 -right-4 w-8 h-8 border-t-2 border-r-2 border-gold/20 z-20" />
-                <div className="absolute -bottom-4 -left-4 w-8 h-8 border-b-2 border-l-2 border-gold/20 z-20" />
-
-                {/* 3D Image Container */}
-                <div className="relative rounded-xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.9)] border border-white/20 group-hover:border-gold transition-all duration-1000 transform group-hover:rotate-x-[15deg] group-hover:-rotate-y-[15deg] group-hover:scale-[1.1] group-hover:-translate-y-6 preserve-3d group-hover:shadow-[40px_40px_100px_rgba(212,175,55,0.3),-40px_-40px_100px_rgba(0,0,0,0.7)] group-hover:z-50">
-                  <div className="aspect-[4/5] md:aspect-video w-full relative overflow-hidden transform-gpu">
-                    <img
-                      alt="Episode 3 Preview"
-                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-[1.15]"
-                      src={heroImage}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-1000" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_black_100%)] opacity-20 group-hover:opacity-10 transition-opacity duration-1000" />
-                  </div>
-
-                  <div className="absolute inset-0 flex flex-col items-center justify-end p-12 text-center transform translate-z-[80px]">
-                    <p className="font-display text-2xl md:text-3xl text-gold-gradient italic tracking-[0.05em] drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)] opacity-0 group-hover:opacity-100 transition-all duration-1000 translate-y-8 group-hover:translate-y-0 relative z-30">
-                      "Some truths are buried deeper than Pharaohs"
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
+            {/* Decorative Mint Accents */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-400/5 blur-[80px] pointer-events-none" />
+          </TiltCard>
         </div>
       </section>
 
