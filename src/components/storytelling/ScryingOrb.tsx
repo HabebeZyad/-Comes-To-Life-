@@ -4,9 +4,10 @@ import { Canvas } from '@react-three/fiber';
 import { Sphere, OrbitControls, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAssetUrl } from '@/lib/utils';
 
 const Viewer360 = ({ image }: { image: string }) => {
-    const textureUrl = (import.meta.env.BASE_URL || '/') + image;
+    const textureUrl = getAssetUrl(image.startsWith('/') ? image : `/${image}`);
     const texture = useTexture(textureUrl);
 
     useEffect(() => {

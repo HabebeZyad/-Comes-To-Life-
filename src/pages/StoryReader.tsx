@@ -12,16 +12,18 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { CelestialSimulation } from '@/components/effects/CelestialSimulation';
 import { useGame } from '@/contexts/GameContext';
+import { WestcarPapyrusHub } from '@/components/stories/WestcarPapyrusHub';
+import { ImageSequenceViewer } from '@/components/stories/ImageSequenceViewer';
 
 export default function StoryReader() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { 
-    profile, 
-    updateStoryProgress, 
-    addStoryChoice, 
-    unlockEnding, 
+  const {
+    profile,
+    updateStoryProgress,
+    addStoryChoice,
+    unlockEnding,
     incrementPuzzlesSolved,
     recordPlayTime,
     unlockAchievement
@@ -34,6 +36,7 @@ export default function StoryReader() {
   const [completedPuzzles, setCompletedPuzzles] = useState<Set<string>>(new Set());
   const [totalScore, setTotalScore] = useState(0);
   const [showSubtext, setShowSubtext] = useState(false);
+  const [showPrologue, setShowPrologue] = useState(false);
 
   const story = storyId ? getStoryById(storyId) : undefined;
   const [showIntro, setShowIntro] = useState(!!story?.coverImage);
@@ -119,7 +122,7 @@ export default function StoryReader() {
         updateStoryProgress({
           episodesCompleted: [...(profile?.storyProgress.episodesCompleted || []), episodeNum]
         });
-        
+
         // Record play time (rough estimate: 5 mins per story)
         recordPlayTime(5);
       }
@@ -190,7 +193,7 @@ export default function StoryReader() {
       // Otherwise proceed to next panel
       const nextIndex = currentPanelIndex + 1;
       setCurrentPanelIndex(nextIndex);
-      
+
       // Update progress
       updateStoryProgress({
         currentEpisode: parseInt(storyId.replace('ep', '')) || 1,
@@ -238,6 +241,21 @@ export default function StoryReader() {
           </div>
         </motion.div>
       </div>
+    );
+  }
+
+  if (storyId === 'westcar-papyrus' && !showPrologue) {
+    return <WestcarPapyrusHub onReadPrologue={() => setShowPrologue(true)} />;
+  }
+
+  if (storyId === 'eloquent-peasant' && !showIntro) {
+    const peasantImages = Array.from({ length: 32 }, (_, i) => encodeURI(`/The Eloquent Peasant/${i + 1}.jpg`));
+    return (
+      <ImageSequenceViewer
+        title="The Eloquent Peasant"
+        images={peasantImages}
+        onClose={() => navigate('/stories')}
+      />
     );
   }
 

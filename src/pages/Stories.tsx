@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Clock, MapPin, Sparkles, ChevronRight, Play, Filter, Brain, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 import { egyptianStories, type Story } from '@/data/egyptianStories';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
@@ -9,7 +9,7 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription } from '@/components/ui/EgyptianCard';
 import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
 import { SceneGenerator } from '@/components/ai/SceneGenerator';
-import { cn } from '@/lib/utils';
+import { cn, getAssetUrl } from '@/lib/utils';
 import { TiltCard } from '@/components/ui/TiltCard';
 
 type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
@@ -339,13 +339,18 @@ export default function Stories() {
 }
 
 function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => void }) {
+  const navigate = useNavigate();
   const periodIcon = egyptianPeriods.find(p => p.id === story.periodId)?.icon || '𓂀';
   const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
 
   return (
-    <TiltCard containerClassName="w-full" className="p-0 overflow-hidden group" tilt={false}>
-      <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
-      <div className="p-6 relative z-10">
+    <div 
+      className="cursor-pointer group block" 
+      onClick={() => navigate(`/stories/${story.id}`)}
+    >
+      <TiltCard containerClassName="w-full" className="p-0 overflow-hidden" tilt={false}>
+        <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
+        <div className="p-6 relative z-10">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Story Info */}
           <div className="flex-1 relative" style={{ transform: "translateZ(50px)" }}>
@@ -405,7 +410,7 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
               ))}
             </div>
 
-            <Link to={`/stories/${story.id}`}>
+            <Link to={`/stories/${story.id}`} className="relative z-40 inline-block" onClick={(e) => e.stopPropagation()}>
               <EgyptianButton variant="hero" size="lg" shimmer className="px-10 group">
                 <Play className="w-5 h-5 transition-transform group-hover:scale-125" />
                 Begin Story
@@ -414,23 +419,34 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
           </div>
 
           {/* Characters Preview */}
-          <div className="lg:w-72" style={{ transform: "translateZ(30px)" }}>
+          <div className="lg:w-72 flex flex-col" style={{ transform: "translateZ(30px)" }}>
             <h4 className="font-display text-[10px] font-bold mb-4 text-primary uppercase tracking-[0.3em]">
               Primary Characters
             </h4>
-            <div className="space-y-3">
-              {story.characters.slice(0, 3).map((char) => (
-                <div key={char.id} className="flex items-start gap-3 p-3 rounded-lg bg-gold/5 border border-gold/10 hover:border-gold/20 transition-all">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl border border-primary/20">
-                    𓀀
+            {story.id === 'eloquent-peasant' ? (
+              <div className="flex-1 rounded-lg overflow-hidden border border-gold/20 relative group">
+                <img 
+                  src={getAssetUrl('/The Eloquent Peasant/characters.jpg')} 
+                  alt="Characters of The Eloquent Peasant" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {story.characters.slice(0, 3).map((char) => (
+                  <div key={char.id} className="flex items-start gap-3 p-3 rounded-lg bg-gold/5 border border-gold/10 hover:border-gold/20 transition-all">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl border border-primary/20">
+                      𓀀
+                    </div>
+                    <div>
+                      <h5 className="font-display font-bold text-sm text-gold-light">{char.name}</h5>
+                      <p className="text-[10px] text-muted-foreground font-display tracking-wider uppercase mt-0.5">{char.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h5 className="font-display font-bold text-sm text-gold-light">{char.name}</h5>
-                    <p className="text-[10px] text-muted-foreground font-display tracking-wider uppercase mt-0.5">{char.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -440,19 +456,21 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
         <Sparkles className="h-96 w-96" />
       </div>
     </TiltCard>
+    </div>
   );
 }
 
 function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => void }) {
+  const navigate = useNavigate();
   const periodIcon = egyptianPeriods.find(p => p.id === story.periodId)?.icon || '𓂀';
-  const isSpecialStory = story.id === 'eloquent-peasant' || story.id === 'pyramid-builders' || story.id === 'ankhtifi-famine';
-  const periodColor = isSpecialStory ? 'from-gold to-gold-dark' : (egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark');
+  const periodColor = egyptianPeriods.find(p => p.id === story.periodId)?.color || 'from-gold to-gold-dark';
 
   return (
-    <div className="h-full">
-      <TiltCard className="p-0 overflow-hidden flex flex-col group" tilt={false}>
-        <Link to={`/stories/${story.id}`} className="absolute inset-0 z-30" />
-
+    <div 
+      className="h-full cursor-pointer group block"
+      onClick={() => navigate(`/stories/${story.id}`)}
+    >
+      <TiltCard className="p-0 overflow-hidden flex flex-col" tilt={false}>
         <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
         <div className="p-6 flex flex-col h-full relative z-10" style={{ transform: "translateZ(40px)" }}>
           <div className="flex items-center justify-between mb-4">

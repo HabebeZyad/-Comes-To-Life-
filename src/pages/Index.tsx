@@ -183,10 +183,10 @@ export default function Index() {
               >
                 <TiltCard className="p-0 overflow-hidden flex flex-col group" tilt={true}>
                   <Link to={feature.path} className="absolute inset-0 z-30" />
-                  
+
                   <div className={`h-1.5 bg-gradient-to-r ${feature.color} relative z-20`} />
-                  
-                  <div className="p-7 flex flex-col h-full relative z-10" style={{ transform: "translateZ(40px)" }}>
+
+                  <div className="p-7 flex flex-col h-full relative z-10 [transform:translateZ(40px)]">
                     <div className="flex items-center justify-between mb-6">
                       <div className={`inline-flex rounded-lg border border-white/10 bg-gradient-to-br ${feature.surface} p-3.5`}>
                         <feature.icon className={`h-7 w-7 ${feature.accent} transition-transform duration-500 group-hover:scale-125 group-hover:rotate-6`} />
@@ -233,34 +233,36 @@ export default function Index() {
       {/* Built for Learning Section (Landscape Restoration) */}
       <section className="px-6 py-20">
         <div className="content-shell">
-          <TiltCard 
-            className="p-8 border-emerald-500/20 bg-emerald-950/40 hover:border-emerald-400/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)] group relative overflow-hidden"
+          <TiltCard
+            className="p-8 border-lapis/30 bg-[#050814]/60 backdrop-blur-sm hover:border-gold/40 shadow-[0_20px_50px_rgba(0,0,0,0.6)] group relative overflow-hidden transition-all duration-700"
             containerClassName="w-full"
-            glowColor="rgba(52,211,153,0.15)"
+            glowColor="rgba(212,175,55,0.12)"
             tilt={true}
           >
             <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center relative z-20">
               <div>
-                <div className="section-kicker mb-4 bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
-                  <Brain className="h-4 w-4 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12" />
+                <div className="section-kicker mb-4 bg-lapis/20 border-lapis/40 text-gold-light shadow-[0_0_15px_rgba(30,58,138,0.3)]">
+                  <Brain className="h-4 w-4 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12 text-gold" />
                   Built for learning
                 </div>
-                <h2 className="font-display text-3xl text-foreground md:text-4xl">A sharper experience without losing the ancient soul.</h2>
-                <p className="mt-4 max-w-3xl font-body text-lg leading-relaxed text-muted-foreground/80 group-hover:text-muted-foreground transition-colors">
+                <h2 className="font-display text-3xl text-gold-gradient drop-shadow-md md:text-4xl">
+                  A sharper experience without losing the ancient soul.
+                </h2>
+                <p className="mt-4 max-w-3xl font-body text-lg leading-relaxed text-foreground/80 group-hover:text-gold-light/90 transition-colors duration-500">
                   Stories, games, and tools now share a stronger interface language: elegant surfaces, clearer hierarchy, and more confident movement.
                 </p>
               </div>
               <Link to="/hieroglyphs">
-                <EgyptianButton variant="hero" size="lg" className="group/btn shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                <EgyptianButton variant="hero" size="lg" className="group/btn shadow-[0_0_25px_rgba(30,58,138,0.4)] hover:shadow-[0_0_35px_rgba(212,175,55,0.4)]">
                   Study Symbols
                   <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover/btn:translate-x-2" />
                 </EgyptianButton>
               </Link>
             </div>
 
-            {/* Decorative Mint Accents */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[80px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-400/5 blur-[80px] pointer-events-none" />
+            {/* Decorative Royal Accents */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-lapis/10 blur-[100px] pointer-events-none group-hover:bg-gold/10 transition-colors duration-1000" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold/5 blur-[100px] pointer-events-none group-hover:bg-lapis/10 transition-colors duration-1000" />
           </TiltCard>
         </div>
       </section>

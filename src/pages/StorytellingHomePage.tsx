@@ -1,5 +1,3 @@
-import React from 'react';
-import { motion } from 'framer-motion';
 import { BookOpen, Play, Clock, BookOpen as BookIcon, MapPin, Sparkles, ChevronRight } from 'lucide-react';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
@@ -8,8 +6,13 @@ import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { TiltCard } from '@/components/ui/TiltCard';
 import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
 
 export default function StorytellingHomePage() {
+  const [isPanoOpen, setIsPanoOpen] = useState(false);
+
   const getAssetUrl = (path?: string) => {
     if (!path) return '';
     if (path.startsWith('http') || path.startsWith('data:')) return path;
@@ -86,7 +89,7 @@ export default function StorytellingHomePage() {
           </p>
         </motion.header>
 
-        {/* Vertical Stack of Featured Cards */}
+        {/* Story Cards */}
         <div className="space-y-12 max-w-6xl mx-auto">
           {storytellingEpisodes.map((story, index) => (
             <motion.div
@@ -112,7 +115,10 @@ export default function StorytellingHomePage() {
 
                       {/* Scrying Orb for Artifact Stories */}
                       {story.id === 'shipwrecked-sailor' && (
-                        <div className="absolute top-4 right-4 z-40 group/orb-trigger cursor-pointer">
+                        <div
+                          className="absolute top-4 right-4 z-40 group/orb-trigger cursor-pointer"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsPanoOpen(true); }}
+                        >
                           <div className="absolute right-full mr-4 whitespace-nowrap px-4 py-2 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-sm opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
                             See where The Papyrus is kept in Now
                           </div>
@@ -193,6 +199,51 @@ export default function StorytellingHomePage() {
           </div>
         </motion.footer>
       </div>
+
+      {/* Panorama Modal */}
+      <AnimatePresence>
+        {isPanoOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md overflow-y-auto"
+          >
+            <div className="min-h-full flex items-center justify-center p-4 sm:p-6 py-12">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="w-full max-w-7xl bg-[#0a0805] border-2 border-gold/30 rounded-[2rem] shadow-[0_0_50px_rgba(218,165,32,0.15)] relative flex flex-col overflow-hidden"
+              >
+                <button
+                  onClick={() => setIsPanoOpen(false)}
+                  className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-gold/20 text-gold rounded-full border border-gold/30 transition-colors"
+                  aria-label="Close viewer"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
+                  <ScryingOrb mode="viewer" image="panorama.jpg" />
+                </div>
+
+                <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
+                  <h3 className="text-2xl md:text-3xl font-display text-gold-gradient drop-shadow-md">
+                    Pushkin State Museum of Fine Arts
+                  </h3>
+                  <p className="text-gold/60 font-display tracking-widest text-sm uppercase mt-2">
+                    (Moscow, Russia)
+                  </p>
+                  <p className="text-white/40 font-body text-xs mt-4 max-w-lg mx-auto">
+                    Where the Papyrus Hermitage 1115 (The Shipwrecked Sailor) is digitally preserved and showcased for global heritage study.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

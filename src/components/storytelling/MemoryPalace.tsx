@@ -15,16 +15,17 @@ interface Chamber {
     image: string;
     path: string;
     color: string;
+    period?: string;
 }
 
 interface MemoryPalaceProps {
     chambers: Chamber[];
+    onOpenPano?: () => void;
 }
 
-export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
+export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers, onOpenPano }) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [direction, setDirection] = useState(0);
-    const [isPanoOpen, setIsPanoOpen] = useState(false);
 
     const nextChamber = () => {
         setDirection(1);
@@ -94,9 +95,12 @@ export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
                                 <div className="absolute inset-0 bg-gradient-to-t pointer-events-none from-black/90 via-black/20 to-transparent" />
 
                                 {activeChamber.id === 'shipwrecked-sailor' && (
-                                    <div
-                                        className="absolute top-3 right-3 md:top-6 md:right-6 z-40 group/orb-trigger cursor-pointer flex items-center"
-                                        onClick={() => setIsPanoOpen(true)}
+                                    <div 
+                                        className="absolute top-4 right-4 z-40 group/orb-trigger cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onOpenPano?.();
+                                        }}
                                     >
                                         <div className="absolute right-full mr-4 whitespace-nowrap px-4 py-2 bg-black/90 border border-gold/40 rounded-lg text-gold font-display text-xs md:text-sm opacity-0 group-hover/orb-trigger:opacity-100 transition-opacity duration-300 shadow-[0_0_20px_rgba(0,0,0,0.8)] pointer-events-none">
                                             See where The Papyrus is kept in Now
@@ -189,46 +193,6 @@ export const MemoryPalace: React.FC<MemoryPalaceProps> = ({ chambers }) => {
                     </div>
                 </div>
             </div>
-
-            <AnimatePresence>
-                {isPanoOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="w-full max-w-5xl bg-[#0a0805] border-2 border-gold/30 rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(218,165,32,0.15)] relative flex flex-col"
-                        >
-                            <button
-                                onClick={() => setIsPanoOpen(false)}
-                                className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-gold/20 text-gold rounded-full border border-gold/30 transition-colors"
-                                aria-label="Close viewer"
-                                title="Close"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-
-                            <div className="w-full h-[60vh] min-h-[400px] relative shrink-0">
-                                <ScryingOrb mode="viewer" />
-                            </div>
-
-                            <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
-                                <h3 className="text-2xl md:text-3xl font-display text-gold-gradient drop-shadow-md">
-                                    Pushkin State Museum of Fine Arts
-                                </h3>
-                                <p className="text-gold/60 font-display tracking-widest text-sm uppercase mt-2">
-                                    (Moscow, Russia)
-                                </p>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
