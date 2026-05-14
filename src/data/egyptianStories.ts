@@ -66,7 +66,7 @@ export const egyptianStories: Story[] = [
     puzzleIds: [],
     estimatedReadTime: 15,
     coverImage: '/shipwrecked-sailor.jpeg',
-    videoUrl: '/videos/shipwrecked-sailor.mp4',
+    videoUrl: '/The Shipwreck sailor video.mp4',
     subtitlesUrl: '/videos/shipwrecked-sailor.vtt',
     characters: [
       {

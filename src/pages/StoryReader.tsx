@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, BookOpen, MapPin, Trophy, Home, Volume2, VolumeX, Lightbulb, Puzzle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, MapPin, Trophy, Home, Volume2, VolumeX, Lightbulb, Puzzle, X } from 'lucide-react';
 import { getStoryById, egyptianStories, type Story, type StoryPanel, type AdventureChoice } from '@/data/egyptianStories';
 import { getStoryPuzzlesByStory, type StoryPuzzle } from '@/data/mapPuzzles';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
@@ -256,6 +256,84 @@ export default function StoryReader() {
         images={peasantImages}
         onClose={() => navigate('/stories')}
       />
+    );
+  }
+
+  if (storyId === 'shipwrecked-sailor' && !showIntro && story?.videoUrl) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#0c0806]/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden">
+        {/* Ancient Sandstorm / Ember effect */}
+        <DustParticles count={50} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none opacity-80" />
+        
+        {/* Ambient Fire/Torchlight Glow */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[80%] bg-[radial-gradient(ellipse_at_bottom,rgba(212,175,55,0.15)_0%,transparent_70%)] pointer-events-none" />
+
+        {/* Cinematic Title on a Museum Plaque */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="relative z-30 mb-8 flex flex-col items-center"
+        >
+          <div className="px-10 py-4 border-y border-gold/30 bg-black/60 backdrop-blur-xl flex flex-col items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
+            <span className="text-gold font-display text-xs tracking-[0.5em] uppercase opacity-80">Historical Archive</span>
+            <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
+              {story.title}
+            </h2>
+          </div>
+        </motion.div>
+
+        {/* The Stepped Temple Architectural Frame */}
+        <motion.div 
+          className="relative w-full max-w-5xl z-20"
+          initial={{ opacity: 0, scale: 0.9, rotateX: 15 }}
+          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+        >
+          {/* Outer Courtyard Step */}
+          <div className="p-2 md:p-4 bg-[#1a110a]/80 border border-gold/20 rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] backdrop-blur-md">
+            {/* Middle Sanctuary Step */}
+            <div className="p-2 md:p-3 bg-[#0a0604]/90 border border-gold/30 rounded-lg">
+              {/* Inner Sanctum & Video */}
+              <div className="relative border-2 border-gold/50 rounded-md overflow-hidden bg-black shadow-[inset_0_0_50px_rgba(212,175,55,0.05)]">
+                <video
+                  src={getAssetUrl(encodeURI(story.videoUrl))}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="w-full h-full aspect-video object-contain bg-black relative z-10"
+                />
+                
+                {/* Floating Corner Runes */}
+                <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-gold/60 z-20 pointer-events-none transition-all duration-700" />
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-gold/60 z-20 pointer-events-none transition-all duration-700" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-gold/60 z-20 pointer-events-none transition-all duration-700" />
+                <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-gold/60 z-20 pointer-events-none transition-all duration-700" />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Elegant Minimalist Return */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="relative z-30 mt-10"
+        >
+          <button
+            onClick={() => navigate('/stories')}
+            className="group flex flex-col items-center gap-3 text-gold/60 hover:text-gold transition-colors duration-500"
+          >
+            <span className="font-display text-sm md:text-base tracking-[0.4em] uppercase">Close Vision</span>
+            {/* Animated Underline */}
+            <div className="w-16 h-[1px] bg-gold/20 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full bg-gold -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-in-out" />
+            </div>
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
