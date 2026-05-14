@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, BookOpen, ScrollText, Sparkles, Lock } from 'lucide-react';
+import { ChevronLeft, BookOpen, ScrollText, Sparkles, Lock, Scroll } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { TiltCard } from '@/components/ui/TiltCard';
@@ -19,7 +19,7 @@ interface WestcarPapyrusHubProps {
 }
 
 export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
-  const [activeTale, setActiveTale] = useState<'tale-one' | 'tale-two' | 'tale-three' | null>(null);
+  const [activeTale, setActiveTale] = useState<'tale-one' | 'tale-two' | 'tale-three' | 'tale-four' | 'tale-five' | null>(null);
   const story = getStoryById('westcar-papyrus');
 
   if (!story) return null;

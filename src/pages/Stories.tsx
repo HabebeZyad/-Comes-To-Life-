@@ -353,7 +353,7 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
         <div className="p-6 relative z-10">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Story Info */}
-          <div className="flex-1 relative" style={{ transform: "translateZ(50px)" }}>
+          <div className="flex-1 relative [transform:translateZ(50px)]">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-3xl text-gold-light drop-shadow-glow">{periodIcon}</span>
               <span className="text-xs font-display text-primary uppercase tracking-[0.2em] font-bold">
@@ -419,7 +419,7 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
           </div>
 
           {/* Characters Preview */}
-          <div className="lg:w-72 flex flex-col" style={{ transform: "translateZ(30px)" }}>
+          <div className="lg:w-72 flex flex-col [transform:translateZ(30px)]">
             <h4 className="font-display text-[10px] font-bold mb-4 text-primary uppercase tracking-[0.3em]">
               Primary Characters
             </h4>
@@ -472,7 +472,7 @@ function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => voi
     >
       <TiltCard className="p-0 overflow-hidden flex flex-col" tilt={false}>
         <div className={`h-1.5 bg-gradient-to-r ${periodColor} relative z-20`} />
-        <div className="p-6 flex flex-col h-full relative z-10" style={{ transform: "translateZ(40px)" }}>
+        <div className="p-6 flex flex-col h-full relative z-10 [transform:translateZ(40px)]">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl text-gold-light group-hover:animate-glow-pulse">{periodIcon}</span>
