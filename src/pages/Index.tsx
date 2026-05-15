@@ -182,7 +182,11 @@ export default function Index() {
                 className="h-full"
               >
                 <TiltCard className="p-0 overflow-hidden flex flex-col group" tilt={true}>
-                  <Link to={feature.path} className="absolute inset-0 z-30" />
+                  <Link 
+                    to={feature.path} 
+                    className="absolute inset-0 z-[100] [transform:translateZ(100px)] cursor-pointer" 
+                    aria-label={`Open ${feature.title} chamber`}
+                  />
 
                   <div className={`h-1.5 bg-gradient-to-r ${feature.color} relative z-20`} />
 
