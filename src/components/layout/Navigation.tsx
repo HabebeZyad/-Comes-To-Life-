@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Search, User, Menu, X, Volume2, VolumeX, ScrollText, Gamepad2, Eye } from 'lucide-react';
+import { Sparkles, Search, User, Menu, X, Volume2, VolumeX, ScrollText, Gamepad2, LogIn, LogOut } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGame } from '@/contexts/GameContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -16,8 +17,25 @@ const navItems = [
 
 export function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { audioEnabled, setAudioEnabled, isMuseumMode } = useGame();
+  const { user, isAuthenticated, signOut } = useAuth();
+  const displayName = user?.name?.split(' ')[0] || 'Profile';
+  const isImageAvatar = Boolean(user?.avatar?.startsWith('data:image'));
+  const items = navItems.map((item) =>
+    item.path === '/profile' && !isAuthenticated
+      ? { ...item, path: '/auth', label: 'Login', icon: LogIn }
+      : item
+  );
+
+  const handleSignOut = () => {
+    signOut();
+    setIsOpen(false);
+    if (location.pathname === '/profile') {
+      navigate('/auth');
+    }
+  };
 
   if (isMuseumMode) {
     return null;
@@ -39,7 +57,7 @@ export function Navigation() {
               </Link>
 
               <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/25 p-1">
-                {navItems.map((item) => {
+                {items.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
 
@@ -74,7 +92,34 @@ export function Navigation() {
                 >
                   {audioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                 </button>
+
+                {isAuthenticated && (
+                  <button
+                    onClick={handleSignOut}
+                    aria-label="Sign out"
+                    title="Sign out"
+                    className="rounded-lg border border-transparent p-2 text-muted-foreground transition-all hover:border-gold/20 hover:bg-gold/10 hover:text-foreground"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </button>
+                )}
               </div>
+
+              {isAuthenticated && (
+                <Link
+                  to="/profile"
+                  className="hidden xl:flex items-center gap-2 rounded-xl border border-gold/25 bg-gold/10 px-3 py-2 font-display text-xs text-gold-light transition-all hover:bg-gold/15"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/30 text-[11px] font-bold">
+                    {isImageAvatar ? (
+                      <img src={user?.avatar} alt="" className="h-full w-full rounded-lg object-cover" />
+                    ) : (
+                      user?.avatar || 'CT'
+                    )}
+                  </span>
+                  <span className="max-w-[9rem] truncate">{displayName}</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -118,7 +163,7 @@ export function Navigation() {
               </Link>
 
               <div className="flex flex-col gap-2">
-                {navItems.map((item) => {
+                {items.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
 
@@ -144,6 +189,16 @@ export function Navigation() {
                   );
                 })}
               </div>
+
+              {isAuthenticated && (
+                <button
+                  onClick={handleSignOut}
+                  className="mt-6 flex w-full items-center gap-3 rounded-lg border border-gold/20 px-4 py-3 font-display text-sm text-muted-foreground transition-all hover:bg-gold/10 hover:text-foreground"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Sign Out
+                </button>
+              )}
             </div>
           </motion.div>
         )}
@@ -151,7 +206,7 @@ export function Navigation() {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gold/20 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-16px_42px_rgba(0,0,0,0.46)] backdrop-blur-xl md:hidden">
         <div className="flex h-16 items-center justify-around px-2 sm:px-4">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
 

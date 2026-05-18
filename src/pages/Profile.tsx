@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Trophy, Book, Clock, RotateCcw, Edit2, Check,
   Flame, Star, Zap, Shield, Scroll, Eye, Sparkles,
-  ChevronRight, TrendingUp, Award, Target, Upload, X
+  ChevronRight, TrendingUp, Award, Target, Upload, X,
+  LogOut, Mail, CalendarDays, ShieldCheck
 } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground';
 import { useGame } from '@/contexts/GameContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { achievements as achievementData } from '@/data/achievements';
@@ -148,6 +151,8 @@ type TabId = 'overview' | 'achievements' | 'history';
 
 export default function Profile() {
   const { profile, setProfile, resetProgress } = useGame();
+  const { user, signOut, updateUser } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile?.name || 'Explorer');
@@ -200,11 +205,24 @@ export default function Profile() {
     return achievementData.filter(a => profile.achievements.find(pa => pa.id === a.id && pa.unlockedAt)).length;
   }, [profile]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (profile) {
-      setProfile({ ...profile, name: editName, avatar: editAvatar });
+      const nextName = editName.trim() || 'Explorer';
+      setProfile({ ...profile, name: nextName, avatar: editAvatar });
+      try {
+        await updateUser({ name: nextName, avatar: editAvatar });
+        toast({ title: 'Profile updated', description: 'Your account and explorer profile now match.' });
+      } catch {
+        toast({ title: 'Profile saved locally', description: 'Account details could not be updated.', variant: 'destructive' });
+      }
     }
     setIsEditing(false);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    toast({ title: 'Signed out', description: 'Your profile vault is closed.' });
+    navigate('/auth');
   };
 
   const handleReset = () => {
@@ -406,6 +424,9 @@ export default function Profile() {
                       <EgyptianButton variant="danger" size="sm" onClick={() => setShowResetConfirm(true)}>
                         <RotateCcw className="w-4 h-4" />
                       </EgyptianButton>
+                      <EgyptianButton variant="ghost" size="sm" onClick={handleSignOut}>
+                        <LogOut className="w-4 h-4" />
+                      </EgyptianButton>
                     </>
                   )}
                 </div>
@@ -471,6 +492,36 @@ export default function Profile() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.3 }}
             >
+              {user && (
+                <EgyptianCard className="p-5 mb-8">
+                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold-light shadow-gold-glow">
+                        <ShieldCheck className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-display text-lg font-semibold text-gold-gradient">Account Vault</h3>
+                        <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-primary" />
+                            {user.email}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4 text-turquoise" />
+                            Joined {new Date(user.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <EgyptianButton variant="outline" size="sm" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </EgyptianButton>
+                  </div>
+                </EgyptianCard>
+              )}
+
               {/* Stat Cards Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <StatCard icon={Book} label="Episodes" value={profile.storyProgress.episodesCompleted.length} color="bg-gold" delay={0} />

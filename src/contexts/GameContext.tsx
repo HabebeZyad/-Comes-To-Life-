@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PlayerProfile, EpisodeProgress, TombProgress, StoryChoice, Achievement, MuseumSettings } from '@/types/game';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { PlayerProfile, EpisodeProgress, TombProgress, StoryChoice, MuseumSettings } from '@/types/game';
+import type { AuthUser } from '@/types/auth';
 import { achievements as achievementData } from '@/data/achievements';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GameContextType {
   profile: PlayerProfile | null;
@@ -29,10 +31,18 @@ interface GameContextType {
   setNarrationEnabled: (enabled: boolean) => void;
 }
 
-const defaultProfile: PlayerProfile = {
-  id: crypto.randomUUID(),
-  name: 'Explorer',
-  avatar: '🏺',
+const LEGACY_PROFILE_KEY = 'comesToLife_profile';
+const GUEST_PROFILE_KEY = 'comesToLife_profile_guest';
+
+const getProfileStorageKey = (userId?: string) =>
+  userId ? `comesToLife_profile_${userId}` : GUEST_PROFILE_KEY;
+
+const createDefaultProfile = (user?: AuthUser | null): PlayerProfile => ({
+  id: user?.id || crypto.randomUUID(),
+  authUserId: user?.id,
+  email: user?.email,
+  name: user?.name || 'Explorer',
+  avatar: user?.avatar || 'CT',
   createdAt: new Date(),
   lastPlayed: new Date(),
   storyProgress: {
@@ -54,6 +64,46 @@ const defaultProfile: PlayerProfile = {
   totalPlayTime: 0,
   hieroglyphsScanned: 0,
   puzzlesSolved: 0,
+});
+
+const parseStoredProfile = (value: string | null) => {
+  if (!value) return null;
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (parsed.mangaProgress && !parsed.storyProgress) {
+      parsed.storyProgress = parsed.mangaProgress;
+      delete parsed.mangaProgress;
+    }
+
+    return {
+      ...parsed,
+      createdAt: new Date(parsed.createdAt),
+      lastPlayed: new Date(parsed.lastPlayed),
+      storyProgress: {
+        episodesCompleted: parsed.storyProgress?.episodesCompleted || [],
+        currentEpisode: parsed.storyProgress?.currentEpisode || 1,
+        currentPanel: parsed.storyProgress?.currentPanel || 0,
+        choicesMade: parsed.storyProgress?.choicesMade || {},
+      },
+      tombProgress: {
+        tombsExplored: parsed.tombProgress?.tombsExplored || [],
+        tombsCompleted: parsed.tombProgress?.tombsCompleted || [],
+        currentTomb: parsed.tombProgress?.currentTomb || null,
+        coopSessions: parsed.tombProgress?.coopSessions || 0,
+        puzzlesSolved: parsed.tombProgress?.puzzlesSolved || 0,
+      },
+      achievements: parsed.achievements || [],
+      storyChoices: parsed.storyChoices || [],
+      endingsUnlocked: parsed.endingsUnlocked || [],
+      totalPlayTime: parsed.totalPlayTime || 0,
+      hieroglyphsScanned: parsed.hieroglyphsScanned || 0,
+      puzzlesSolved: parsed.puzzlesSolved || 0,
+    } as PlayerProfile;
+  } catch {
+    return null;
+  }
 };
 
 const defaultMuseumSettings: MuseumSettings = {
@@ -71,6 +121,7 @@ const defaultMuseumSettings: MuseumSettings = {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const { user, isLoading: authLoading } = useAuth();
   const [profile, setProfileState] = useState<PlayerProfile | null>(null);
   const [museumSettings, setMuseumSettingsState] = useState<MuseumSettings>(defaultMuseumSettings);
   const [isMuseumMode, setIsMuseumMode] = useState(false);
@@ -78,45 +129,63 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [narrationEnabled, setNarrationEnabled] = useState(false);
   const { toast } = useToast();
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem('comesToLife_profile');
+    if (authLoading) return;
+
+    const storageKey = getProfileStorageKey(user?.id);
+    const savedProfile = parseStoredProfile(localStorage.getItem(storageKey));
+    const legacyProfile = parseStoredProfile(localStorage.getItem(LEGACY_PROFILE_KEY));
+    const guestProfile = user ? parseStoredProfile(localStorage.getItem(GUEST_PROFILE_KEY)) : null;
     const savedMuseumSettings = localStorage.getItem('comesToLife_museumSettings');
 
     if (savedProfile) {
-      const parsed = JSON.parse(savedProfile);
-
-      // Migration: legacy progress -> storyProgress
-      if (parsed.mangaProgress && !parsed.storyProgress) {
-        parsed.storyProgress = parsed.mangaProgress;
-        delete parsed.mangaProgress;
-      }
-
-      parsed.createdAt = new Date(parsed.createdAt);
-      parsed.lastPlayed = new Date(parsed.lastPlayed);
-      setProfileState(parsed);
+      setProfileState({
+        ...savedProfile,
+        id: user?.id || savedProfile.id,
+        authUserId: user?.id,
+        email: user?.email || savedProfile.email,
+        name: user?.name || savedProfile.name,
+        avatar: user?.avatar || savedProfile.avatar,
+      });
+    } else if (user && guestProfile) {
+      setProfileState({
+        ...guestProfile,
+        id: user.id,
+        authUserId: user.id,
+        email: user.email,
+        name: user.name || guestProfile.name,
+        avatar: user.avatar || guestProfile.avatar,
+        lastPlayed: new Date(),
+      });
+    } else if (!user && legacyProfile) {
+      setProfileState(legacyProfile);
     } else {
-      setProfileState(defaultProfile);
+      setProfileState(createDefaultProfile(user));
     }
 
     if (savedMuseumSettings) {
       setMuseumSettingsState(JSON.parse(savedMuseumSettings));
     }
-  }, []);
+  }, [authLoading, user]);
 
-  // Save to localStorage on changes
   useEffect(() => {
-    if (profile) {
-      localStorage.setItem('comesToLife_profile', JSON.stringify(profile));
+    if (profile && !authLoading) {
+      localStorage.setItem(getProfileStorageKey(user?.id), JSON.stringify(profile));
     }
-  }, [profile]);
+  }, [authLoading, profile, user?.id]);
 
   useEffect(() => {
     localStorage.setItem('comesToLife_museumSettings', JSON.stringify(museumSettings));
   }, [museumSettings]);
 
   const setProfile = (newProfile: PlayerProfile) => {
-    setProfileState({ ...newProfile, lastPlayed: new Date() });
+    setProfileState({
+      ...newProfile,
+      id: user?.id || newProfile.id,
+      authUserId: user?.id,
+      email: user?.email || newProfile.email,
+      lastPlayed: new Date(),
+    });
   };
 
   const updateStoryProgress = (progress: Partial<EpisodeProgress>) => {
@@ -151,14 +220,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const unlockAchievement = (achievementId: string) => {
     if (profile) {
-      const alreadyUnlocked = profile.achievements.find(a => a.id === achievementId && a.unlockedAt);
+      const alreadyUnlocked = profile.achievements.find((achievement) => achievement.id === achievementId && achievement.unlockedAt);
       if (alreadyUnlocked) return;
 
-      const achievement = achievementData.find(a => a.id === achievementId);
+      const achievement = achievementData.find((entry) => entry.id === achievementId);
       if (!achievement) return;
 
       const updatedAchievements = [
-        ...profile.achievements.filter(a => a.id !== achievementId),
+        ...profile.achievements.filter((entry) => entry.id !== achievementId),
         { ...achievement, unlockedAt: new Date() }
       ];
 
@@ -169,7 +238,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
 
       toast({
-        title: "Achievement Unlocked! 🏆",
+        title: 'Achievement Unlocked',
         description: achievement.title,
       });
     }
@@ -182,9 +251,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         endingsUnlocked: [...profile.endingsUnlocked, endingId],
         lastPlayed: new Date(),
       });
-      
+
       toast({
-        title: "New Ending Unlocked! ✨",
+        title: 'New Ending Unlocked',
         description: `You've discovered: ${endingId}`,
       });
 
@@ -203,7 +272,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         lastPlayed: new Date(),
       });
 
-      if (newCount === 1) unlockAchievement('hieroglyph-master'); // Or a smaller one
+      if (newCount === 1) unlockAchievement('hieroglyph-master');
       if (newCount === 20) unlockAchievement('hieroglyph-master');
     }
   };
@@ -212,7 +281,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (profile) {
       const newCount = (profile.puzzlesSolved || 0) + 1;
       const newTombPuzzles = (profile.tombProgress.puzzlesSolved || 0) + 1;
-      
+
       setProfileState({
         ...profile,
         puzzlesSolved: newCount,
@@ -239,15 +308,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const resetProgress = () => {
-    setProfileState({ ...defaultProfile, id: crypto.randomUUID() });
+    setProfileState(createDefaultProfile(user));
   };
 
   const setMuseumSettings = (settings: Partial<MuseumSettings>) => {
-    setMuseumSettingsState(prev => ({ ...prev, ...settings }));
+    setMuseumSettingsState((previous) => ({ ...previous, ...settings }));
   };
 
   const toggleMuseumMode = () => {
-    setIsMuseumMode(prev => !prev);
+    setIsMuseumMode((previous) => !previous);
   };
 
   return (
@@ -284,3 +353,4 @@ export function useGame() {
   }
   return context;
 }
+

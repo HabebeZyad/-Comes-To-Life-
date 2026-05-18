@@ -1,5 +1,7 @@
 export interface PlayerProfile {
   id: string;
+  authUserId?: string;
+  email?: string;
   name: string;
   avatar: string;
   createdAt: Date;
