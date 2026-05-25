@@ -1,6 +1,8 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import styles from './CelestialSimulation.module.css';
 
 interface Star {
     id: number;
@@ -8,6 +10,7 @@ interface Star {
     y: number;
     size: number;
     opacity: number;
+    duration: string;
     isSpecial?: boolean;
 }
 
@@ -16,7 +19,7 @@ interface CelestialSimulationProps {
     showOrion?: boolean;
 }
 
-export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
+const CelestialSimulationComponent: React.FC<CelestialSimulationProps> = ({
     timeOfDay = 'night',
     showOrion = true
 }) => {
@@ -29,6 +32,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                 y: Math.random() * 100,
                 size: Math.random() * 2 + 1,
                 opacity: Math.random() * 0.7 + 0.3,
+                duration: `${Math.random() * 3 + 2}s`,
             });
         }
         return s;
@@ -58,24 +62,16 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                     className="absolute inset-0"
                 >
                     {stars.map((star) => (
-                        <motion.div
+                        <div
                             key={star.id}
-                            className="absolute bg-white rounded-full"
+                            className={cn("absolute bg-white rounded-full", styles.star)}
                             style={{
-                                left: `${star.x}%`,
-                                top: `${star.y}%`,
-                                width: `${star.size}px`,
-                                height: `${star.size}px`,
-                                opacity: star.opacity,
-                            }}
-                            animate={{
-                                opacity: [star.opacity, star.opacity * 0.3, star.opacity],
-                            }}
-                            transition={{
-                                duration: Math.random() * 3 + 2,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                            }}
+                                '--x': star.x,
+                                '--y': star.y,
+                                '--size': star.size,
+                                '--opacity': star.opacity,
+                                '--duration': star.duration,
+                            } as React.CSSProperties}
                         />
                     ))}
 
@@ -123,6 +119,4 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
     );
 };
 
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(' ');
-}
+export const CelestialSimulation = memo(CelestialSimulationComponent);
