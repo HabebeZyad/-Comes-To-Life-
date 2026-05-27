@@ -106,6 +106,21 @@ export const MehenGame: React.FC<MehenGameProps> = ({ onBack }) => {
 
   const legalMoves = gameState.throwResult > 0 ? MehenEngine.getLegalMoves(gameState, gameState.throwResult, settings.boardSize) : [];
 
+  // Auto-skip turn for player 1 if they have no legal moves after throwing
+  useEffect(() => {
+    if (gameState.currentPlayer === 'player1' && gameState.throwResult > 0 && legalMoves.length === 0) {
+      const timer = setTimeout(() => {
+        setGameState(prev => ({
+          ...prev,
+          currentPlayer: getNextPlayer(prev.currentPlayer, settings.playersCount),
+          throwResult: 0,
+          moveLog: ['No legal moves available.', ...prev.moveLog]
+        }));
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.currentPlayer, gameState.throwResult, legalMoves.length, settings.playersCount]);
+
   return (
     <div className="min-h-screen bg-obsidian text-foreground overflow-hidden flex flex-col">
       {/* HUD Header */}

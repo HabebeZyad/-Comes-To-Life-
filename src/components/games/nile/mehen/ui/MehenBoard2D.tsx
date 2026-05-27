@@ -118,8 +118,34 @@ export const MehenBoard2D: React.FC<MehenBoard2DProps> = ({
 
       {/* Pieces */}
       <AnimatePresence>
-        {gameState.pieces.map((piece) => {
-          const point = spiralPoints[piece.position];
+        {gameState.pieces.map((piece, index) => {
+          const basePoint = spiralPoints[piece.position];
+
+          // Calculate offset for overlapping pieces on the same space
+          const piecesOnSameSpace = gameState.pieces.filter(p => p.position === piece.position);
+          const idxOnSpace = piecesOnSameSpace.findIndex(p => p.id === piece.id);
+
+          let offsetX = 0;
+          let offsetY = 0;
+
+          if (piecesOnSameSpace.length > 1 && piece.position > 0 && piece.position < boardSize) {
+            const angleOffset = (Math.PI * 2 / piecesOnSameSpace.length) * idxOnSpace;
+            const spreadRadius = 15; // Spread radius
+            offsetX = Math.cos(angleOffset) * spreadRadius;
+            offsetY = Math.sin(angleOffset) * spreadRadius;
+          } else if (piece.position === 0) {
+            // Home position spread
+            const row = Math.floor(idxOnSpace / 6);
+            const col = idxOnSpace % 6;
+            offsetX = (col - 2.5) * 20;
+            offsetY = (row - 1.5) * 20 + 30; // Offset home pieces below the tail
+          }
+
+          const point = {
+            x: basePoint.x + offsetX,
+            y: basePoint.y + offsetY
+          };
+
           const isLegal = legalMoves.includes(piece.id);
           const isSelected = selectedPieceId === piece.id;
           
