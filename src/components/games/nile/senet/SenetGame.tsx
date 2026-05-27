@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, HelpCircle, Box, Grid, ChevronLeft } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { useHighScores } from '@/hooks/useHighScores';
 import { SenetEngine } from './engine/SenetEngine';
 import { SenetAI } from './engine/SenetAI';
 import { GameState, Player, SenetSettings } from './engine/types';
@@ -12,14 +13,29 @@ interface SenetGameProps {
   onBack: () => void;
 }
 
+const LEVELS = [
+  { level: 1, name: "Apprentice of Thoth", difficulty: "beginner" as const },
+  { level: 2, name: "Priest of Ra", difficulty: "normal" as const },
+  { level: 3, name: "Master of the Two Lands", difficulty: "pro" as const },
+];
+
 export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
+  const levelData = LEVELS[currentLevelIndex];
+
   const [gameState, setGameState] = useState<GameState>(SenetEngine.createInitialState());
   const [settings, setSettings] = useState<SenetSettings>({
     ruleMode: 'modern',
-    aiDifficulty: 'normal',
+    aiDifficulty: levelData.difficulty,
     is3D: false,
   });
   const [isThrowing, setIsThrowing] = useState(false);
+  const { addScore } = useHighScores();
+  useEffect(() => {
+    if (gameState.isGameOver && gameState.winner === 'player1') {
+      addScore({ playerName: 'Pharaoh', score: (currentLevelIndex + 1) * 1000, game: 'senet', difficulty: levelData.difficulty, details: 'Level ' + (currentLevelIndex + 1) });
+    }
+  }, [gameState.isGameOver, gameState.winner, currentLevelIndex, levelData, addScore]);
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
@@ -80,7 +96,35 @@ export const SenetGame: React.FC<SenetGameProps> = ({ onBack }) => {
               </motion.div>
             ) : <div className="text-gold/60 font-display">3D MODE COMING SOON</div>}
           </AnimatePresence>
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4">
+                <div className="flex gap-2">
+                  {gameState.sticks.map((stick, i) => (
+                    <motion.div
+                      key={`${gameState.turnCount}-${i}`}
+                      initial={{ rotateX: 0, y: -20, opacity: 0 }}
+                      animate={{
+                        rotateX: isThrowing ? [0, 360, 720, stick ? 180 : 0] : (stick ? 180 : 0),
+                        y: isThrowing ? [-20, -50, 0] : 0,
+                        opacity: 1
+                      }}
+                      transition={{ duration: 0.6, delay: i * 0.05 }}
+                      className={`w-4 h-16 sm:w-6 sm:h-20 rounded-full border-2 ${stick ? 'bg-primary border-gold shadow-gold-glow' : 'bg-black/80 border-white/20'}`}
+                    />
+                  ))}
+                </div>
+                {gameState.throwResult > 0 && !isThrowing && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-2xl font-display text-gold-light bg-black/60 px-6 py-2 rounded-full border border-gold/30 backdrop-blur-sm"
+                  >
+                    {gameState.throwResult}
+                  </motion.div>
+                )}
+              </div>
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+
             <EgyptianButton
               variant="default"
               size="lg"
