@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, RotateCcw, HelpCircle, Box, Grid, ChevronLeft, Info } from 'lucide-react';
 import { EgyptianCard, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardContent } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
+import { useHighScores } from '@/hooks/useHighScores';
 import { MehenEngine } from './engine/MehenEngine';
 import { MehenAI } from './engine/MehenAI';
 import { GameState, MehenSettings, Player } from './engine/types';
@@ -13,18 +14,33 @@ interface MehenGameProps {
   onBack: () => void;
 }
 
+const LEVELS = [
+  { level: 1, name: "The Serpent's Tail", aiLevel: "beginner" as const, boardSize: 60 as const },
+  { level: 2, name: "The Coiled Path", aiLevel: "normal" as const, boardSize: 72 as const },
+  { level: 3, name: "The Inner Circles", aiLevel: "pro" as const, boardSize: 96 as const },
+];
+
 export const MehenGame: React.FC<MehenGameProps> = ({ onBack }) => {
+  const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
+  const levelData = LEVELS[currentLevelIndex];
+
   const [settings, setSettings] = useState<MehenSettings>({
-    boardSize: 72,
+    boardSize: levelData.boardSize,
     playersCount: 4,
     ruleMode: 'strategic',
-    aiDifficulty: 'normal',
+    aiDifficulty: levelData.aiLevel,
     is3D: false,
   });
 
   const [gameState, setGameState] = useState<GameState>(MehenEngine.createInitialState(settings));
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
   const [isThrowing, setIsThrowing] = useState(false);
+  const { addScore } = useHighScores();
+  useEffect(() => {
+    if (gameState.isGameOver && gameState.winner === 'player1') {
+      addScore({ playerName: 'Pharaoh', score: (currentLevelIndex + 1) * 1000, game: 'mehen', difficulty: levelData.aiLevel, details: 'Level ' + (currentLevelIndex + 1) });
+    }
+  }, [gameState.isGameOver, gameState.winner, currentLevelIndex, levelData, addScore]);
   const [showTutorial, setShowTutorial] = useState(false);
 
   // AI Turn Logic
@@ -150,7 +166,35 @@ export const MehenGame: React.FC<MehenGameProps> = ({ onBack }) => {
           </AnimatePresence>
 
           {/* Controls Overlay */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4">
+                <div className="flex gap-2">
+                  {gameState.sticks.map((stick, i) => (
+                    <motion.div
+                      key={`${gameState.turnNumber}-${i}`}
+                      initial={{ rotateX: 0, y: -20, opacity: 0 }}
+                      animate={{
+                        rotateX: isThrowing ? [0, 360, 720, stick ? 180 : 0] : (stick ? 180 : 0),
+                        y: isThrowing ? [-20, -50, 0] : 0,
+                        opacity: 1
+                      }}
+                      transition={{ duration: 0.6, delay: i * 0.05 }}
+                      className={`w-4 h-16 sm:w-6 sm:h-20 rounded-full border-2 ${stick ? 'bg-primary border-gold shadow-gold-glow' : 'bg-black/80 border-white/20'}`}
+                    />
+                  ))}
+                </div>
+                {gameState.throwResult > 0 && !isThrowing && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-2xl font-display text-gold-light bg-black/60 px-6 py-2 rounded-full border border-gold/30 backdrop-blur-sm"
+                  >
+                    {gameState.throwResult}
+                  </motion.div>
+                )}
+              </div>
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+
             <div className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl border border-gold/30 shadow-gold-glow flex flex-col items-center gap-4">
               <div className="flex gap-3 h-12 items-center">
                 {gameState.sticks.map((isWhite, i) => (
