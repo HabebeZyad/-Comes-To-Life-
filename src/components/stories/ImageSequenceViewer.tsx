@@ -67,7 +67,7 @@ function BookPage({ image, pageNumber, side, title }: BookPageProps) {
             <div className="flex h-full w-full items-center justify-center text-center">
               <div>
                 <BookOpen className="mx-auto mb-4 h-12 w-12 text-[#8a642f]/50" />
-                <p className="font-display text-sm uppercase tracking-[0.22em] text-[#7b572d]/70">End of Volume</p>
+                <p className="font-display text-sm uppercase tracking-[0.22em] text-[#7b572d]/70">Scroll Concluded</p>
               </div>
             </div>
           )}
@@ -101,34 +101,39 @@ export function ImageSequenceViewer({
       return {
         header: 'First Scroll Deciphered',
         subtext: 'The wonders of the ancient Sage Imhotep are inscribed in the House of Life. Prepare to unroll the next chronicle of magic.',
-        action: 'UNROLL THE SECOND SCROLL'
+        action: 'UNROLL THE SECOND SCROLL',
+        buttonText: 'Seal the First Scroll'
       };
     }
     if (lowercaseTitle.includes('second')) {
       return {
         header: 'Second Scroll Deciphered',
         subtext: 'The wax crocodile has executed divine justice upon the trespasser. The pharaoh demands the next account.',
-        action: 'UNROLL THE THIRD SCROLL'
+        action: 'UNROLL THE THIRD SCROLL',
+        buttonText: 'Seal the Second Scroll'
       };
     }
     if (lowercaseTitle.includes('third')) {
       return {
         header: 'Third Scroll Deciphered',
         subtext: 'The green jasper amulet is recovered from the lake, and the oarswomen sing of Sneferu. Let us seek deeper wisdom.',
-        action: 'UNROLL THE FOURTH SCROLL'
+        action: 'UNROLL THE FOURTH SCROLL',
+        buttonText: 'Seal the Third Scroll'
       };
     }
     if (lowercaseTitle.includes('fourth')) {
       return {
         header: 'Fourth Scroll Deciphered',
         subtext: 'The magician Djedi has foretold the birth of the royal triplets. The thread of destiny leads to the temple of Re.',
-        action: 'UNROLL THE FINAL SCROLL'
+        action: 'UNROLL THE FINAL SCROLL',
+        buttonText: 'Seal the Fourth Scroll'
       };
     }
     return {
       header: 'Westcar Papyrus Deciphered',
       subtext: 'The royal children of Re have ascended. The great chronicles of Khufu’s court are fully sealed in your memory.',
-      action: 'RETURN TO TEMPLE ARCHIVES'
+      action: 'RETURN TO TEMPLE ARCHIVES',
+      buttonText: 'Seal the Papyrus'
     };
   }, [title]);
 
@@ -378,7 +383,7 @@ export function ImageSequenceViewer({
             disabled={currentIndex === maxIndex && showEndOverlay}
             className={cn(currentIndex === maxIndex && !showEndOverlay && "animate-pulse shadow-gold-glow")}
           >
-            {currentIndex === maxIndex ? 'Finish Volume' : 'Next'}
+            {currentIndex === maxIndex ? literaryTheme.buttonText : 'Next'}
             <ChevronRight className="h-4 w-4" />
           </EgyptianButton>
         </div>
