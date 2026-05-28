@@ -18,7 +18,7 @@ export interface Piece {
 }
 
 export interface MehenSettings {
-  boardSize: 60 | 72 | 96;
+  boardSize: number;
   playersCount: number;
   ruleMode: RuleMode;
   aiDifficulty: AIDifficulty;

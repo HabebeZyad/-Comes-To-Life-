@@ -34,7 +34,7 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
     is3D: false,
   });
 
-  const createInitialStateCustom = useCallback(() => {
+  const createInitialStateCustom = useCallback((): GameState => {
     const pCount = pegCount !== undefined ? pegCount : 5;
     const pegs: Peg[] = [];
     

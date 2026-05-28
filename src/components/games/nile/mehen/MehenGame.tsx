@@ -41,7 +41,7 @@ export const MehenGame: React.FC<MehenGameProps> = ({
     is3D: false,
   });
 
-  const createInitialStateCustom = useCallback(() => {
+  const createInitialStateCustom = useCallback((): GameState => {
     const pCount = marblesCount !== undefined ? marblesCount : 3;
     const lCount = lionCount !== undefined ? lionCount : 1;
     
