@@ -1,0 +1,36 @@
+@keyframes twinkle {
+  0%, 100% { opacity: var(--opacity); }
+  50% { opacity: calc(var(--opacity) * 0.3); }
+}
+
+@keyframes orionGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+.star {
+  position: absolute;
+  background-color: white;
+  border-radius: 50%;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: calc(var(--size) * 1px);
+  height: calc(var(--size) * 1px);
+  opacity: var(--opacity);
+  animation: twinkle var(--duration) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.orionStar {
+  position: absolute;
+  background-color: hsl(var(--gold));
+  border-radius: 50%;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: 4px;
+  height: 4px;
+  box-shadow: 0 0 10px rgba(189, 144, 36, 0.8);
+  z-index: 10;
+  animation: orionGlow 2s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
