@@ -102,7 +102,7 @@ export function ImageSequenceViewer({
         header: 'First Scroll Deciphered',
         subtext: 'The wonders of the ancient Sage Imhotep are inscribed in the House of Life. Prepare to unroll the next chronicle of magic.',
         action: 'UNROLL THE SECOND SCROLL',
-        buttonText: 'Seal the First Scroll'
+        buttonText: 'Roll to Next Scroll'
       };
     }
     if (lowercaseTitle.includes('second')) {
@@ -110,7 +110,7 @@ export function ImageSequenceViewer({
         header: 'Second Scroll Deciphered',
         subtext: 'The wax crocodile has executed divine justice upon the trespasser. The pharaoh demands the next account.',
         action: 'UNROLL THE THIRD SCROLL',
-        buttonText: 'Seal the Second Scroll'
+        buttonText: 'Roll to Next Scroll'
       };
     }
     if (lowercaseTitle.includes('third')) {
@@ -118,7 +118,7 @@ export function ImageSequenceViewer({
         header: 'Third Scroll Deciphered',
         subtext: 'The green jasper amulet is recovered from the lake, and the oarswomen sing of Sneferu. Let us seek deeper wisdom.',
         action: 'UNROLL THE FOURTH SCROLL',
-        buttonText: 'Seal the Third Scroll'
+        buttonText: 'Roll to Next Scroll'
       };
     }
     if (lowercaseTitle.includes('fourth')) {
@@ -126,7 +126,7 @@ export function ImageSequenceViewer({
         header: 'Fourth Scroll Deciphered',
         subtext: 'The magician Djedi has foretold the birth of the royal triplets. The thread of destiny leads to the temple of Re.',
         action: 'UNROLL THE FINAL SCROLL',
-        buttonText: 'Seal the Fourth Scroll'
+        buttonText: 'Roll to Next Scroll'
       };
     }
     return {
@@ -142,10 +142,15 @@ export function ImageSequenceViewer({
       playTransitionSound();
       setDirection(1);
       setCurrentIndex((previous) => Math.min(previous + 1, maxIndex));
-    } else if (currentIndex === maxIndex && !showEndOverlay) {
-      setShowEndOverlay(true);
+    } else if (currentIndex === maxIndex) {
+      if (onNextTale) {
+        playTransitionSound();
+        onNextTale();
+      } else {
+        onClose();
+      }
     }
-  }, [currentIndex, maxIndex, showEndOverlay]);
+  }, [currentIndex, maxIndex, onNextTale, onClose]);
 
   const goToPrev = useCallback(() => {
     if (showEndOverlay) {
