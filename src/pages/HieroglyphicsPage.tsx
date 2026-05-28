@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, Book, Sparkles, Info, X, Search, Grid, List, ChevronDown, Trophy } from 'lucide-react';
+import { Volume2, Book, Sparkles, Info, X, Search, Grid, List, ChevronDown, Trophy, Languages } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { HieroglyphQuiz } from '@/components/quiz/HieroglyphQuiz';
+import { HieroglyphTranslator } from '@/components/HieroglyphTranslator';
 import { useGame } from '@/contexts/GameContext';
 import {
   hieroglyphDatabase,
@@ -15,7 +16,7 @@ import {
   totalHieroglyphs
 } from '@/data/hieroglyphDatabase';
 
-type ViewMode = 'dictionary' | 'quiz';
+type ViewMode = 'dictionary' | 'translator' | 'quiz';
 
 export default function HieroglyphicsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -40,7 +41,7 @@ export default function HieroglyphicsPage() {
   };
 
   useEffect(() => {
-    if (viewMode === 'quiz') {
+    if (viewMode !== 'dictionary') {
       setSelectedGlyph(null);
       setShowHieroglyphDetail(false);
     }
@@ -92,8 +93,15 @@ export default function HieroglyphicsPage() {
             variant={viewMode === 'dictionary' ? 'hero' : 'outline'}
             onClick={() => setViewMode('dictionary')}
           >
-            < Book className="w-4 h-4" />
+            <Book className="w-4 h-4" />
             Dictionary
+          </EgyptianButton>
+          <EgyptianButton
+            variant={viewMode === 'translator' ? 'hero' : 'outline'}
+            onClick={() => { setViewMode('translator'); setSelectedGlyph(null); setShowHieroglyphDetail(false); }}
+          >
+            <Languages className="w-4 h-4" />
+            Translator
           </EgyptianButton>
           <EgyptianButton
             variant={viewMode === 'quiz' ? 'hero' : 'outline'}
@@ -217,6 +225,15 @@ export default function HieroglyphicsPage() {
               </div>
             )}
 
+          </motion.div>
+        )}
+
+        {viewMode === 'translator' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <HieroglyphTranslator />
           </motion.div>
         )}
 

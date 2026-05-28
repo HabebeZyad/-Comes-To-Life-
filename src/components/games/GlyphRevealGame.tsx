@@ -4,6 +4,7 @@ import { ArrowLeft, Trophy, Image as ImageIcon, RotateCcw } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { useGameAudio } from '@/hooks/useGameAudio';
+import { useHighScores } from '@/hooks/useHighScores';
 import { GameOverlay } from './GameOverlay';
 import { hieroglyphDatabase } from '@/data/hieroglyphDatabase';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ export function GlyphRevealGame({ onBack }: GlyphRevealGameProps) {
   const [hintPath, setHintPath] = useState<number[] | null>(null);
 
   const { playSound, startAmbientMusic, stopAmbientMusic } = useGameAudio();
+  const { addScore } = useHighScores();
 
   const level = LEVELS[currentLevelIdx];
 
@@ -187,6 +189,13 @@ export function GlyphRevealGame({ onBack }: GlyphRevealGameProps) {
       setGameState('levelUp');
     } else {
       setGameState('victory');
+      addScore({
+        playerName: 'Grand Revealer',
+        score: score,
+        game: 'glyph-reveal',
+        difficulty: 'Medium',
+        details: 'Uncovered all hidden pharaohs'
+      });
     }
   };
 

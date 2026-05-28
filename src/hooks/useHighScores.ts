@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface HighScoreEntry {
   playerName: string;
@@ -33,6 +34,14 @@ const STORAGE_KEY = 'comesToLife_highScores';
 const MAX_SCORES_PER_GAME = 12;
 
 const isBrowser = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
+const DEFAULT_SCORES: HighScoreEntry[] = [
+  { playerName: 'Imhotep', score: 450, game: 'great-minds', difficulty: 'Expert', date: '2026-05-15T12:00:00.000Z', details: 'Completed Old Kingdom perfectly' },
+  { playerName: 'Scribe Ani', score: 380, game: 'scribal-crosswords', difficulty: 'Medium', date: '2026-05-16T14:30:00.000Z', details: 'Mastered the Papyrus of Ani' },
+  { playerName: 'Pharaoh Ahmose', score: 500, game: 'temple-escape', difficulty: 'Expert', date: '2026-05-18T09:15:00.000Z', details: 'Escaped Apepi\'s trap chambers' },
+  { playerName: 'Vizier Ptahhotep', score: 320, game: 'memory', difficulty: 'Medium', date: '2026-05-20T16:00:00.000Z', details: 'Flawless recall of wisdom' },
+  { playerName: 'Navigator Harkhuf', score: 420, game: 'nile-navigator', difficulty: 'Hard', date: '2026-05-22T11:45:00.000Z', details: 'Navigated the south rapids' },
+];
 
 function isValidScore(entry: unknown): entry is HighScoreEntry {
   if (!entry || typeof entry !== 'object') return false;
@@ -79,10 +88,23 @@ function loadScores(): HighScoreEntry[] {
 
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : [];
-    return Array.isArray(parsed) ? trimScores(parsed.filter(isValidScore)) : [];
+    if (!stored) {
+      saveScores(DEFAULT_SCORES);
+      return DEFAULT_SCORES;
+    }
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      const valid = parsed.filter(isValidScore);
+      if (valid.length === 0) {
+        saveScores(DEFAULT_SCORES);
+        return DEFAULT_SCORES;
+      }
+      return trimScores(valid);
+    }
+    saveScores(DEFAULT_SCORES);
+    return DEFAULT_SCORES;
   } catch {
-    return [];
+    return DEFAULT_SCORES;
   }
 }
 
@@ -91,22 +113,57 @@ function saveScores(scores: HighScoreEntry[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
 }
 
+// Module-level state & listener registry to sync hook instances across the whole app
+let globalScores: HighScoreEntry[] = [];
+let listeners: Array<(scores: HighScoreEntry[]) => void> = [];
+
+if (isBrowser()) {
+  globalScores = loadScores();
+}
+
+function notifyListeners() {
+  listeners.forEach(l => {
+    try {
+      l(globalScores);
+    } catch (e) {
+      console.error('Error notifying hook listener:', e);
+    }
+  });
+}
+
 export function useHighScores() {
-  const [scores, setScores] = useState<HighScoreEntry[]>(loadScores);
+  const [scores, setScores] = useState<HighScoreEntry[]>(globalScores);
+  
+  let user: any = null;
+  try {
+    const auth = useAuth();
+    user = auth?.user;
+  } catch (e) {
+    // Graceful fallback if hook is used outside AuthProvider
+  }
+
+  useEffect(() => {
+    listeners.push(setScores);
+    return () => {
+      listeners = listeners.filter(l => l !== setScores);
+    };
+  }, []);
 
   const addScore = useCallback((entry: Omit<HighScoreEntry, 'date'>) => {
+    const resolvedName = user?.name || entry.playerName.trim() || 'Explorer';
     const newEntry: HighScoreEntry = {
       ...entry,
-      playerName: entry.playerName.trim() || 'Explorer',
+      playerName: resolvedName,
       score: Math.max(0, Math.round(entry.score)),
       date: new Date().toISOString(),
     };
-    const trimmed = trimScores([...loadScores(), newEntry]);
-
-    saveScores(trimmed);
-    setScores(trimmed);
+    
+    const fresh = trimScores([...loadScores(), newEntry]);
+    saveScores(fresh);
+    globalScores = fresh;
+    notifyListeners();
     return newEntry;
-  }, []);
+  }, [user]);
 
   const getGameScores = useCallback((game: string) => {
     return sortScores(scores.filter(s => s.game === game));
@@ -163,10 +220,11 @@ export function useHighScores() {
   }, [getRecentScores, scores]);
 
   const clearScores = useCallback((game?: string) => {
-    const updated = game ? scores.filter(score => score.game !== game) : [];
-    saveScores(updated);
-    setScores(updated);
-  }, [scores]);
+    const fresh = game ? loadScores().filter(score => score.game !== game) : [];
+    saveScores(fresh);
+    globalScores = fresh;
+    notifyListeners();
+  }, []);
 
   return {
     scores,

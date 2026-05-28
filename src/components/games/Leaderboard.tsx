@@ -24,6 +24,8 @@ const GAME_NAMES: Record<string, { label: string; code: string }> = {
   'glyph-reveal': { label: 'Hidden Pharaoh', code: 'HP' },
   'nile-games': { label: 'Games of the Nile', code: 'GN' },
   senet: { label: 'Senet', code: 'SN' },
+  mehen: { label: 'Mehen', code: 'MH' },
+  hounds: { label: 'Hounds & Jackals', code: 'HJ' },
 };
 
 const filters = [

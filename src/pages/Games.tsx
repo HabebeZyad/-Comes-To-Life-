@@ -22,11 +22,13 @@ import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
 import { GlyphRevealGame } from '@/components/games/GlyphRevealGame';
 import { Leaderboard } from '@/components/games/Leaderboard';
 import { GamesOfTheNile } from '@/components/games/nile/GamesOfTheNile';
+import { ScribalCrosswordsGame } from '@/components/games/ScribalCrosswordsGame';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { useHighScores } from '@/hooks/useHighScores';
 import { TiltCard } from '@/components/ui/TiltCard';
 
-type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal' | 'nile-games';
+
+type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal' | 'nile-games' | 'scribal-crosswords';
 type CategoryFilter = 'All' | 'Wisdom' | 'Action' | 'History';
 type DifficultyFilter = 'All' | 'Easy' | 'Medium' | 'Hard' | 'Expert';
 
@@ -47,6 +49,7 @@ interface Game {
 }
 
 const games: Game[] = [
+  { id: 'scribal-crosswords', title: 'Scribal Crosswords', tagline: 'Ancient literature arrowords', description: 'Decipher Swedish-style crossword grids packed with wisdom from ancient texts, legendary kings, and divine sagas.', icon: BookOpen, color: 'from-gold-dark via-primary to-lapis', emoji: '𓏏', category: 'Wisdom', difficulty: 'Medium', duration: '4-8 min', mode: 'Puzzle', isNew: true, isFeatured: true },
   { id: 'nile-games', title: 'Games of the Nile', tagline: 'Ancient board game collection', description: 'Play Senet now and preview Mehen plus Hounds and Jackals in a premium board-game suite.', icon: Gamepad2, color: 'from-gold-dark via-primary to-lapis', emoji: '𓏏', category: 'Wisdom', difficulty: 'Expert', duration: '8-15 min', mode: 'Board', isNew: true, isFeatured: true },
   { id: 'glyph-reveal', title: 'Hidden Pharaoh', tagline: 'Image reveal strategy', description: 'Cross out identical sacred symbols to reveal the ancient images hidden beneath.', icon: Puzzle, color: 'from-obsidian to-primary', emoji: '🖼️', category: 'Wisdom', difficulty: 'Easy', duration: '3-5 min', mode: 'Puzzle', isNew: true },
   { id: 'tomb-explorer', title: 'Tomb Explorer', tagline: 'Tactical chamber survival', description: 'Navigate dark chambers, avoid traps, and recover lost treasures.', icon: Map, color: 'from-terracotta to-gold-dark', emoji: '𓊖', category: 'Action', difficulty: 'Hard', duration: '4-6 min', mode: 'Arcade', isNew: true },
@@ -62,7 +65,7 @@ const games: Game[] = [
   { id: 'nile-navigator', title: 'Nile Navigator', tagline: 'River reflex expedition', description: 'Sail 5 dangerous reaches of the Nile to prove your navigation.', icon: Sailboat, color: 'from-lapis to-turquoise', emoji: '⛵', category: 'Action', difficulty: 'Hard', duration: '3-5 min', mode: 'Arcade' },
   { id: 'pyramid-trail', title: 'The Pyramid Trail', tagline: 'Map-based royal route', description: 'Embark on a 3-region cartographic expedition across the royal necropolis.', icon: Map, color: 'from-gold to-amber-600', emoji: '📍', category: 'History', difficulty: 'Hard', duration: '5 min', mode: 'History' },
   { id: 'order-builders', title: 'Chronicles of the Nile', tagline: 'Timeline reconstruction', description: 'Reconstruct the 3-era broken timeline of the Pharaohs through the ages.', icon: Clock, color: 'from-primary to-gold-dark', emoji: '⏳', category: 'History', difficulty: 'Expert', duration: '6 min', mode: 'History' },
-  { id: 'great-minds', title: 'Hall of Records', tagline: 'Historical wisdom saga', description: 'Investigate the deeds and wisdom of history in a 2-volume saga.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Hard', duration: '5 min', mode: 'History' },
+  { id: 'great-minds', title: 'The Great Minds', tagline: 'Historical wisdom saga', description: 'Investigate the deeds and wisdom of history in a 2-volume saga.', icon: Users, color: 'from-lapis to-primary', emoji: '🧠', category: 'History', difficulty: 'Hard', duration: '5 min', mode: 'History' },
   { id: 'scribes-journal', title: "Scribe's Journal", tagline: 'Fragmented archive mystery', description: "Piece together historical events from fragmented journal entries.", icon: BookOpen, color: 'from-emerald-500 to-teal-700', emoji: '📓', category: 'History', difficulty: 'Medium', duration: '5 min', mode: 'History' },
 ];
 
@@ -85,6 +88,7 @@ const gameComponents: Record<GameType, React.FC<{ onBack: () => void }> | null> 
   'hieroglyph-match': HieroglyphMatchGame,
   'glyph-reveal': GlyphRevealGame,
   'nile-games': GamesOfTheNile,
+  'scribal-crosswords': ScribalCrosswordsGame,
 };
 
 const categoryFilters: CategoryFilter[] = ['All', 'Wisdom', 'Action', 'History'];
@@ -247,7 +251,23 @@ export default function Games() {
         <div className="grid md:grid-cols-2 gap-8">
           <AnimatePresence mode="popLayout">
             {filteredGames.map((game, index) => {
-              const summary = getGameSummary(game.id);
+              let summary = getGameSummary(game.id);
+              if (game.id === 'nile-games') {
+                const senetSum = getGameSummary('senet');
+                const mehenSum = getGameSummary('mehen');
+                const houndsSum = getGameSummary('hounds');
+                
+                const summaries = [senetSum, mehenSum, houndsSum].filter(Boolean);
+                if (summaries.length > 0) {
+                  summary = {
+                    game: 'nile-games',
+                    plays: summaries.reduce((sum, s) => sum + s.plays, 0),
+                    bestScore: Math.max(...summaries.map(s => s.bestScore)),
+                    averageScore: Math.round(summaries.reduce((sum, s) => sum + s.averageScore, 0) / summaries.length),
+                    latestScore: summaries[0].latestScore,
+                  };
+                }
+              }
               return (
                 <motion.div
                   layout

@@ -9,10 +9,10 @@ async def run():
         page = await context.new_page()
         
         # Log console messages
-        page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.type}: {msg.text}"))
+        page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.type}: {msg.text}".encode('ascii', 'ignore').decode('ascii')))
         page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
 
-        base_url = "http://127.0.0.1:8080/-Comes-To-Life-/"
+        base_url = "http://127.0.0.1:8081/-Comes-To-Life-/"
         
         print(f"Navigating to {base_url}games...")
         try:

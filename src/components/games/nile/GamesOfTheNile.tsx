@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Lock, Gamepad2, Trophy, Info, Sparkles, Star, Timer, ChevronRight, Zap, Target } from 'lucide-react';
+import { ChevronLeft, Lock, Gamepad2, Trophy, Sparkles, Star, Timer, ChevronRight, Zap, Target, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { TiltCard } from '@/components/ui/TiltCard';
@@ -12,7 +12,7 @@ interface GamesOfTheNileProps {
   onBack: () => void;
 }
 
-type SubGame = 'hub' | 'senet' | 'mehen' | 'hounds';
+type SubGame = 'hub' | 'level-select' | 'senet' | 'mehen' | 'hounds';
 
 const difficultyValue: Record<string, number> = {
   Easy: 1,
@@ -21,24 +21,205 @@ const difficultyValue: Record<string, number> = {
   Expert: 4,
 };
 
+export const GAME_LEVELS = {
+  senet: [
+    {
+      name: "Scribe's Initiation",
+      description: "Learn the paths of Senet. Easy AI, and you start with only 3 pieces to escape, while the AI has 5. Complete this to advance.",
+      aiDifficulty: 'beginner' as const,
+      playerPieces: 3,
+      aiPieces: 5,
+    },
+    {
+      name: "Court Duel",
+      description: "Challenge an apprentice scribe in a standard duel. Standard rules apply.",
+      aiDifficulty: 'beginner' as const,
+      playerPieces: 5,
+      aiPieces: 5,
+    },
+    {
+      name: "Temple of Thoth",
+      description: "Challenge the Temple Priest. The AI is smarter and makes strategic blocks.",
+      aiDifficulty: 'normal' as const,
+      playerPieces: 5,
+      aiPieces: 5,
+    },
+    {
+      name: "Vizier's Passage",
+      description: "Engage the Grand Vizier. AI is aggressive and will actively target your vulnerable pieces.",
+      aiDifficulty: 'pro' as const,
+      playerPieces: 5,
+      aiPieces: 5,
+    },
+    {
+      name: "Rebirth of Pharaoh",
+      description: "The ultimate trial. Battle the spirit of the Pharaoh. AI is extremely smart and plans turns ahead.",
+      aiDifficulty: 'pro' as const,
+      playerPieces: 5,
+      aiPieces: 5,
+    }
+  ],
+  mehen: [
+    {
+      name: "The Tail Spiral",
+      description: "A short spiral course (30 spaces). Race 2 marbles to the center snake head. No lions active.",
+      boardSize: 30,
+      marblesCount: 2,
+      lionCount: 0,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "Lapis Journey",
+      description: "A medium-sized spiral (50 spaces) with 3 marbles. Take advantage of early pathways.",
+      boardSize: 50,
+      marblesCount: 3,
+      lionCount: 0,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "The Serpent's Heart",
+      description: "Full coiled board (72 spaces). Watch out! 1 hungry Hunter Lion is now active in the spiral.",
+      boardSize: 72,
+      marblesCount: 3,
+      lionCount: 1,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "Sandstone Gates",
+      description: "Full board (72 spaces). The AI plays aggressively, hunting your marbles with its lion.",
+      boardSize: 72,
+      marblesCount: 3,
+      lionCount: 1,
+      aiDifficulty: 'pro' as const,
+    },
+    {
+      name: "Crown of Mehen",
+      description: "The ultimate coiled race. Command 4 marbles and 1 lion against the smartest spirits of the Nile.",
+      boardSize: 72,
+      marblesCount: 4,
+      lionCount: 1,
+      aiDifficulty: 'pro' as const,
+    }
+  ],
+  hounds: [
+    {
+      name: "Desert Run",
+      description: "A short, fast sprint to the tomb. Race only 2 animal pegs to the finish line.",
+      pegCount: 2,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "Oasis Sprint",
+      description: "Increase coordination. Race 3 animal pegs using the central shortcuts.",
+      pegCount: 3,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "The Double Valley",
+      description: "A tactical race with 4 pegs. Keep an eye on trap spaces that penalize movement.",
+      pegCount: 4,
+      aiDifficulty: 'beginner' as const,
+    },
+    {
+      name: "Tomb Shadows",
+      description: "Challenge the Desert Jackals. A full 5-peg race with aggressive AI move scoring.",
+      pegCount: 5,
+      aiDifficulty: 'pro' as const,
+    },
+    {
+      name: "Jackal's Lair",
+      description: "The ultimate desert race. 5 pegs on a highly competitive course against the master Jackal AI.",
+      pegCount: 5,
+      aiDifficulty: 'pro' as const,
+    }
+  ]
+};
+
 export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
   const [view, setView] = useState<SubGame>('hub');
+  const [selectedGameId, setSelectedGameId] = useState<'senet' | 'mehen' | 'hounds' | null>(null);
+  const [activeLevelIdx, setActiveLevelIdx] = useState<number | null>(null);
+  
+  // Progression: { senet: highestUnlockedLevel, mehen: highestUnlockedLevel, hounds: highestUnlockedLevel }
+  const [progression, setProgression] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('comesToLife_nile_progression');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            senet: typeof parsed.senet === 'number' ? parsed.senet : 1,
+            mehen: typeof parsed.mehen === 'number' ? parsed.mehen : 1,
+            hounds: typeof parsed.hounds === 'number' ? parsed.hounds : 1
+          };
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return { senet: 1, mehen: 1, hounds: 1 };
+  });
 
-  if (view === 'senet') {
-    return <SenetGame onBack={() => setView('hub')} />;
+  const handleLevelComplete = (gameId: 'senet' | 'mehen' | 'hounds', completedIdx: number) => {
+    const currentUnlocked = progression[gameId] || 1;
+    // If completing the currently unlocked level, unlock the next one!
+    if (completedIdx + 1 === currentUnlocked && currentUnlocked < 5) {
+      const newProg = { ...progression, [gameId]: currentUnlocked + 1 };
+      setProgression(newProg);
+      localStorage.setItem('comesToLife_nile_progression', JSON.stringify(newProg));
+    }
+    setView('level-select');
+    setActiveLevelIdx(null);
+  };
+
+  if (view === 'senet' && selectedGameId === 'senet' && activeLevelIdx !== null) {
+    const lvl = GAME_LEVELS.senet[activeLevelIdx];
+    return (
+      <SenetGame 
+        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        levelIndex={activeLevelIdx}
+        levelName={lvl.name}
+        aiDifficulty={lvl.aiDifficulty}
+        playerPieces={lvl.playerPieces}
+        aiPieces={lvl.aiPieces}
+        onComplete={() => handleLevelComplete('senet', activeLevelIdx)}
+      />
+    );
   }
 
-  if (view === 'mehen') {
-    return <MehenGame onBack={() => setView('hub')} />;
+  if (view === 'mehen' && selectedGameId === 'mehen' && activeLevelIdx !== null) {
+    const lvl = GAME_LEVELS.mehen[activeLevelIdx];
+    return (
+      <MehenGame 
+        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        levelIndex={activeLevelIdx}
+        levelName={lvl.name}
+        aiDifficulty={lvl.aiDifficulty}
+        boardSize={lvl.boardSize}
+        marblesCount={lvl.marblesCount}
+        lionCount={lvl.lionCount}
+        onComplete={() => handleLevelComplete('mehen', activeLevelIdx)}
+      />
+    );
   }
 
-  if (view === 'hounds') {
-    return <HoundsGame onBack={() => setView('hub')} />;
+  if (view === 'hounds' && selectedGameId === 'hounds' && activeLevelIdx !== null) {
+    const lvl = GAME_LEVELS.hounds[activeLevelIdx];
+    return (
+      <HoundsGame 
+        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        levelIndex={activeLevelIdx}
+        levelName={lvl.name}
+        aiDifficulty={lvl.aiDifficulty}
+        pegCount={lvl.pegCount}
+        onComplete={() => handleLevelComplete('hounds', activeLevelIdx)}
+      />
+    );
   }
 
   const subGames = [
     {
-      id: 'senet',
+      id: 'senet' as const,
       title: 'Senet',
       tagline: 'Game of Passage',
       description: 'The sacred "Game of Passage". Navigate your pieces through the underworld squares to achieve rebirth and eternal life.',
@@ -51,7 +232,7 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
       mode: 'Board'
     },
     {
-      id: 'mehen',
+      id: 'mehen' as const,
       title: 'Mehen',
       tagline: 'The Coiled Serpent',
       description: 'A mysterious race through the spirals of the snake god Mehen. Protect your tokens as you journey from tail to head.',
@@ -64,7 +245,7 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
       mode: 'Board'
     },
     {
-      id: 'hounds',
+      id: 'hounds' as const,
       title: 'Hounds & Jackals',
       tagline: 'The 58 Holes',
       description: 'A fast-paced tactical race game with animal pegs. Move your sacred animal pegs across the desert board to reach the goal.',
@@ -77,6 +258,119 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
       mode: 'Board'
     }
   ];
+
+  if (view === 'level-select' && selectedGameId) {
+    const levels = GAME_LEVELS[selectedGameId];
+    const unlockedLevel = progression[selectedGameId] || 1;
+    const gameMeta = subGames.find(g => g.id === selectedGameId)!;
+
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-6 bg-hero-gradient relative overflow-hidden">
+        <div className="max-w-4xl mx-auto relative z-10">
+          <EgyptianButton variant="ghost" onClick={() => setView('hub')} className="-ml-4 mb-8 text-muted-foreground hover:text-white transition-colors">
+            <ChevronLeft className="mr-2" /> Back to Collection
+          </EgyptianButton>
+
+          <div className="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                <gameMeta.icon className="text-primary w-8 h-8" />
+                <h1 className="text-4xl md:text-5xl font-display text-gold-gradient uppercase">{gameMeta.title} Campaign</h1>
+              </div>
+              <p className="text-muted-foreground font-body text-base max-w-xl">
+                Conquer the 5 progressive trials of the Nile to gain divine rank in the Hall of Records.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-black/40 border border-gold/25 rounded-xl backdrop-blur-md flex items-center gap-3 w-fit mx-auto md:mx-0">
+              <ShieldCheck className="text-primary w-6 h-6 animate-pulse" />
+              <div>
+                <p className="text-[9px] font-display text-gold/50 tracking-widest uppercase">PROGRESSION</p>
+                <p className="text-sm font-display text-white">{unlockedLevel}/5 Trials Unlocked</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {levels.map((lvl, index) => {
+              const isLvlLocked = index + 1 > unlockedLevel;
+              const isCompleted = index + 1 < unlockedLevel;
+              const isActive = index + 1 === unlockedLevel;
+
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <EgyptianCard 
+                    variant={isLvlLocked ? "default" : isActive ? "tomb" : "default"}
+                    className={`p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all ${
+                      isLvlLocked 
+                        ? 'opacity-40 grayscale pointer-events-none' 
+                        : isActive 
+                          ? 'border-gold border-2 shadow-[0_0_15px_rgba(var(--primary-rgb),0.15)] bg-gold/5' 
+                          : 'hover:bg-white/5 cursor-pointer'
+                    }`}
+                    onClick={() => {
+                      if (!isLvlLocked) {
+                        setActiveLevelIdx(index);
+                        setView(selectedGameId);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border font-display text-lg font-bold ${
+                        isCompleted 
+                          ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' 
+                          : isActive 
+                            ? 'bg-primary/20 border-primary/40 text-primary shadow-gold-glow animate-pulse' 
+                            : 'bg-black/35 border-white/10 text-muted-foreground'
+                      }`}>
+                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className={`font-display text-xl uppercase ${isActive ? 'text-gold' : 'text-white'}`}>{lvl.name}</h3>
+                          <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${
+                            lvl.aiDifficulty === 'beginner' 
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                              : lvl.aiDifficulty === 'normal'
+                                ? 'bg-sky-500/10 border-sky-500/20 text-sky-400'
+                                : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                          }`}>
+                            AI: {lvl.aiDifficulty}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground font-body text-sm leading-relaxed max-w-2xl">{lvl.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex items-center justify-end">
+                      {isLvlLocked ? (
+                        <div className="flex items-center gap-2 text-muted-foreground text-xs font-display uppercase tracking-widest">
+                          <Lock className="w-4 h-4" /> Locked
+                        </div>
+                      ) : isCompleted ? (
+                        <EgyptianButton variant="ghost" className="text-emerald-400 hover:text-emerald-300">
+                          Replay <ChevronRight className="ml-1 w-4 h-4" />
+                        </EgyptianButton>
+                      ) : (
+                        <EgyptianButton variant="lapis" shadow="gold" className="w-full md:w-auto font-display font-bold uppercase tracking-wider">
+                          Enter Trial <ChevronRight className="ml-1 w-4 h-4 animate-bounce" />
+                        </EgyptianButton>
+                      )}
+                    </div>
+                  </EgyptianCard>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6 bg-hero-gradient relative overflow-hidden">
@@ -124,7 +418,12 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
               >
                 <div 
                   className="flex flex-col h-full w-full relative z-20"
-                  onClick={() => !game.isLocked && setView(game.id as SubGame)}
+                  onClick={() => {
+                    if (!game.isLocked) {
+                      setSelectedGameId(game.id);
+                      setView('level-select');
+                    }
+                  }}
                 >
                   {/* Top Icon Section */}
                   <div className={`w-full h-48 shrink-0 bg-gradient-to-br ${game.color} flex items-center justify-center relative overflow-hidden`}>
@@ -172,7 +471,7 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
                         </div>
                       </div>
                       <div className="text-gold-light group-hover:translate-x-2 transition-transform flex items-center text-[10px] font-bold uppercase tracking-widest">
-                        {game.isLocked ? 'Locked' : 'Play Trial'} <ChevronRight size={14} className="ml-1" />
+                        {game.isLocked ? 'Locked' : 'Open Campaign'} <ChevronRight size={14} className="ml-1" />
                       </div>
                     </div>
                   </div>

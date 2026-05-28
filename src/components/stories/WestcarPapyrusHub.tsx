@@ -13,6 +13,11 @@ import { getAssetUrl } from '@/lib/utils';
 const TALE_ONE_IMAGES = Array.from({ length: 9 }, (_, i) => encodeURI(`/First Tale/Page ${i + 1}.jpg`));
 const TALE_TWO_IMAGES = Array.from({ length: 17 }, (_, i) => encodeURI(`/Second Tale/${i + 1}.jpg`));
 const TALE_THREE_IMAGES = Array.from({ length: 19 }, (_, i) => encodeURI(`/Third Tale/${i + 1}.jpg`));
+const TALE_FOUR_IMAGES = Array.from({ length: 16 }, (_, i) => encodeURI(`/fouth tale/${i + 1}.jpg`));
+const TALE_FIVE_IMAGES = [
+  encodeURI('/the fifth tale/begining.jpg'),
+  ...Array.from({ length: 23 }, (_, i) => encodeURI(`/the fifth tale/${i + 1}.jpg`))
+];
 
 interface WestcarPapyrusHubProps {
   onReadPrologue: () => void;
@@ -66,24 +71,24 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       title: 'The Fourth Tale',
       subtitle: 'Djedi the Magician',
       description: 'Follow the incredible visual story of Djedi, the 110-year-old sage.',
-      icon: Lock,
-      color: 'from-slate-500 to-slate-700',
-      accent: 'text-slate-400',
-      action: () => {},
-      image: '/tale-four-cover.jpg',
-      locked: true
+      icon: Sparkles,
+      color: 'from-purple-500 to-purple-700',
+      accent: 'text-purple-400',
+      action: () => setActiveTale('tale-four'),
+      image: '/Charachters of the Fourth tale.jpg',
+      locked: false
     },
     {
       id: 'tale-five',
       title: 'The Fifth Tale',
       subtitle: 'The Royal Children',
       description: 'The prophecy of the birth of the kings of the Fifth Dynasty.',
-      icon: Lock,
-      color: 'from-slate-500 to-slate-700',
-      accent: 'text-slate-400',
-      action: () => {},
-      image: '/tale-five-cover.jpg',
-      locked: true
+      icon: BookOpen,
+      color: 'from-amber-500 to-amber-700',
+      accent: 'text-amber-400',
+      action: () => setActiveTale('tale-five'),
+      image: '/Charachters of the Fifth tale.jpg',
+      locked: false
     }
   ];
 
@@ -197,6 +202,8 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
             title="The First Tale: The Wonder of Imhotep"
             images={TALE_ONE_IMAGES}
             onClose={() => setActiveTale(null)}
+            onNextTale={() => setActiveTale('tale-two')}
+            nextTaleTitle="The Second Tale: The Wax Crocodile"
           />
         )}
         {activeTale === 'tale-two' && (
@@ -204,12 +211,32 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
             title="The Second Tale: The Wax Crocodile"
             images={TALE_TWO_IMAGES}
             onClose={() => setActiveTale(null)}
+            onNextTale={() => setActiveTale('tale-three')}
+            nextTaleTitle="The Third Tale: The Wonder of King Sneferu"
           />
         )}
         {activeTale === 'tale-three' && (
           <ImageSequenceViewer 
             title="The Third Tale: The Wonder of King Sneferu"
             images={TALE_THREE_IMAGES}
+            onClose={() => setActiveTale(null)}
+            onNextTale={() => setActiveTale('tale-four')}
+            nextTaleTitle="The Fourth Tale: Djedi the Magician"
+          />
+        )}
+        {activeTale === 'tale-four' && (
+          <ImageSequenceViewer 
+            title="The Fourth Tale: Djedi the Magician"
+            images={TALE_FOUR_IMAGES}
+            onClose={() => setActiveTale(null)}
+            onNextTale={() => setActiveTale('tale-five')}
+            nextTaleTitle="The Fifth Tale: The Royal Children"
+          />
+        )}
+        {activeTale === 'tale-five' && (
+          <ImageSequenceViewer 
+            title="The Fifth Tale: The Royal Children"
+            images={TALE_FIVE_IMAGES}
             onClose={() => setActiveTale(null)}
           />
         )}

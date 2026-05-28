@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, Bookmark, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react';
+import { BookOpen, Bookmark, ChevronLeft, ChevronRight, Maximize2, Minimize2, X, ArrowRight } from 'lucide-react';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { cn, getAssetUrl } from '@/lib/utils';
 
@@ -8,6 +8,8 @@ interface ImageSequenceViewerProps {
   title: string;
   images: string[];
   onClose: () => void;
+  onNextTale?: () => void;
+  nextTaleTitle?: string;
 }
 
 interface BookPageProps {
@@ -75,8 +77,15 @@ function BookPage({ image, pageNumber, side, title }: BookPageProps) {
   );
 }
 
-export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceViewerProps) {
+export function ImageSequenceViewer({ 
+  title, 
+  images, 
+  onClose,
+  onNextTale,
+  nextTaleTitle
+}: ImageSequenceViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showEndOverlay, setShowEndOverlay] = useState(false);
   const [direction, setDirection] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const maxIndex = Math.max(images.length - 1, 0);
@@ -86,27 +95,71 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
     return ((currentIndex + 1) / images.length) * 100;
   }, [currentIndex, images.length]);
 
+  const literaryTheme = useMemo(() => {
+    const lowercaseTitle = title.toLowerCase();
+    if (lowercaseTitle.includes('first')) {
+      return {
+        header: 'First Scroll Deciphered',
+        subtext: 'The wonders of the ancient Sage Imhotep are inscribed in the House of Life. Prepare to unroll the next chronicle of magic.',
+        action: 'UNROLL THE SECOND SCROLL'
+      };
+    }
+    if (lowercaseTitle.includes('second')) {
+      return {
+        header: 'Second Scroll Deciphered',
+        subtext: 'The wax crocodile has executed divine justice upon the trespasser. The pharaoh demands the next account.',
+        action: 'UNROLL THE THIRD SCROLL'
+      };
+    }
+    if (lowercaseTitle.includes('third')) {
+      return {
+        header: 'Third Scroll Deciphered',
+        subtext: 'The green jasper amulet is recovered from the lake, and the oarswomen sing of Sneferu. Let us seek deeper wisdom.',
+        action: 'UNROLL THE FOURTH SCROLL'
+      };
+    }
+    if (lowercaseTitle.includes('fourth')) {
+      return {
+        header: 'Fourth Scroll Deciphered',
+        subtext: 'The magician Djedi has foretold the birth of the royal triplets. The thread of destiny leads to the temple of Re.',
+        action: 'UNROLL THE FINAL SCROLL'
+      };
+    }
+    return {
+      header: 'Westcar Papyrus Deciphered',
+      subtext: 'The royal children of Re have ascended. The great chronicles of Khufu’s court are fully sealed in your memory.',
+      action: 'RETURN TO TEMPLE ARCHIVES'
+    };
+  }, [title]);
+
   const goToNext = useCallback(() => {
     if (currentIndex < maxIndex) {
       playTransitionSound();
       setDirection(1);
       setCurrentIndex((previous) => Math.min(previous + 1, maxIndex));
+    } else if (currentIndex === maxIndex && !showEndOverlay) {
+      setShowEndOverlay(true);
     }
-  }, [currentIndex, maxIndex]);
+  }, [currentIndex, maxIndex, showEndOverlay]);
 
   const goToPrev = useCallback(() => {
+    if (showEndOverlay) {
+      setShowEndOverlay(false);
+      return;
+    }
     if (currentIndex > 0) {
       playTransitionSound();
       setDirection(-1);
       setCurrentIndex((previous) => Math.max(previous - 1, 0));
     }
-  }, [currentIndex]);
+  }, [currentIndex, showEndOverlay]);
 
   const goToPage = (index: number) => {
     if (index === currentIndex) return;
     playTransitionSound();
     setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
+    setShowEndOverlay(false);
   };
 
   const toggleFullscreen = () => {
@@ -142,6 +195,12 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // Reset page index back to 0 (the first page) whenever a new tale is loaded
+  useEffect(() => {
+    setCurrentIndex(0);
+    setShowEndOverlay(false);
+  }, [title, images]);
 
   const spreadVariants = {
     enter: (turnDirection: number) => ({
@@ -231,6 +290,58 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
               className="relative h-full overflow-hidden rounded-xl border border-gold/30 bg-[#7d572b] p-2 shadow-[0_30px_80px_rgba(0,0,0,0.65),0_0_60px_rgba(212,175,55,0.12)] [transform-style:preserve-3d]"
             >
               <BookPage image={images[currentIndex]} pageNumber={currentIndex + 1} side="single" title={title} />
+
+              {/* Cinematic Next Tale Overlay inside the page */}
+              {showEndOverlay && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0 bg-black/98 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-6 text-center border-2 border-gold/40 rounded-xl"
+                >
+                  <div className="absolute inset-0 papyrus-texture opacity-30 pointer-events-none" />
+                  <div className="max-w-md space-y-6 relative z-10">
+                    <span className="text-5xl inline-block animate-bounce mb-2">📜</span>
+                    <p className="text-[#d4af37] font-display text-sm uppercase tracking-[0.25em] font-extrabold">{literaryTheme.header}</p>
+                    <h3 className="text-2xl font-display text-white uppercase tracking-wider leading-tight font-extrabold">{title}</h3>
+                    <p className="text-zinc-200 font-body text-xs italic leading-relaxed px-4">
+                      "{literaryTheme.subtext}"
+                    </p>
+                    
+                    <div className="h-px bg-[#d4af37]/35 my-4" />
+                    
+                    {onNextTale ? (
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <p className="text-[#00e5ff] text-xs uppercase tracking-widest font-extrabold">Next Scroll</p>
+                          <h4 className="text-xl font-display text-[#f9e7b9] uppercase leading-tight font-bold">{nextTaleTitle || 'The Next Tale'}</h4>
+                        </div>
+
+                        <EgyptianButton 
+                          variant="hero" 
+                          size="lg" 
+                          onClick={onNextTale}
+                          className="w-full mt-4 font-display font-bold tracking-widest text-xs shadow-gold-glow animate-pulse border border-[#d4af37]/50"
+                        >
+                          {literaryTheme.action} <ArrowRight className="inline ml-1.5 w-4 h-4" />
+                        </EgyptianButton>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-emerald-400 text-xs uppercase tracking-widest font-extrabold">Temple Scribe Initiated</p>
+                        <EgyptianButton 
+                          variant="gold" 
+                          size="lg" 
+                          onClick={onClose}
+                          className="w-full mt-4 font-display font-bold tracking-widest text-xs border border-[#d4af37]/40 shadow-gold-glow"
+                        >
+                          {literaryTheme.action}
+                        </EgyptianButton>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -242,7 +353,7 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
 
         <button
           onClick={goToNext}
-          disabled={currentIndex >= maxIndex}
+          disabled={currentIndex === maxIndex && showEndOverlay}
           className="absolute right-3 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-gold/20 bg-black/55 text-gold backdrop-blur-md transition-all hover:border-gold/50 hover:bg-black/80 disabled:pointer-events-none disabled:opacity-0 sm:right-6"
           aria-label="Next page"
         >
@@ -252,7 +363,7 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
 
       <footer className="relative z-20 flex flex-shrink-0 flex-col gap-3 border-t border-gold/15 bg-background/70 px-3 py-3 backdrop-blur-xl sm:px-5">
         <div className="flex items-center justify-center gap-3">
-          <EgyptianButton variant="outline" size="sm" onClick={goToPrev} disabled={currentIndex === 0}>
+          <EgyptianButton variant="outline" size="sm" onClick={goToPrev} disabled={currentIndex === 0 && !showEndOverlay}>
             <ChevronLeft className="h-4 w-4" />
             Previous
           </EgyptianButton>
@@ -260,8 +371,14 @@ export function ImageSequenceViewer({ title, images, onClose }: ImageSequenceVie
             <BookOpen className="h-4 w-4 text-gold" />
             {currentIndex + 1} / {images.length}
           </div>
-          <EgyptianButton variant="hero" size="sm" onClick={goToNext} disabled={currentIndex >= maxIndex}>
-            Next
+          <EgyptianButton 
+            variant="hero" 
+            size="sm" 
+            onClick={goToNext}
+            disabled={currentIndex === maxIndex && showEndOverlay}
+            className={cn(currentIndex === maxIndex && !showEndOverlay && "animate-pulse shadow-gold-glow")}
+          >
+            {currentIndex === maxIndex ? 'Finish Volume' : 'Next'}
             <ChevronRight className="h-4 w-4" />
           </EgyptianButton>
         </div>
