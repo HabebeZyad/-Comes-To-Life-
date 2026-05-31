@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Clock, MapPin, Sparkles, ChevronRight, Play, Filter, Brain, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
+import { PageLoader } from '@/components/layout/PageLoader';
 import { egyptianStories, type Story } from '@/data/egyptianStories';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
@@ -11,6 +11,9 @@ import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
 import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn, getAssetUrl } from '@/lib/utils';
 import { TiltCard } from '@/components/ui/TiltCard';
+
+// Performance Optimization: Lazy-load ScryingOrb to defer loading heavy Three.js dependencies (approx 1MB).
+const ScryingOrb = lazy(() => import('@/components/storytelling/ScryingOrb').then(m => ({ default: m.ScryingOrb })));
 
 type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
 type PeriodFilter = 'all' | string;
@@ -285,7 +288,9 @@ export default function Stories() {
               {panoStory === 'westcar-papyrus' ? (
                 <>
                   <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
-                    <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                    <Suspense fallback={<PageLoader className="min-h-0 h-full" />}>
+                      <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                    </Suspense>
                   </div>
 
                   <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
@@ -302,7 +307,9 @@ export default function Stories() {
                   {/* Panel 1: Berlin */}
                   <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gold/30 relative">
                     <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
-                      <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                      <Suspense fallback={<PageLoader className="min-h-0 h-full" />}>
+                        <ScryingOrb mode="viewer" image="panorama_westcar.jpg" />
+                      </Suspense>
                     </div>
                     <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
                       <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
@@ -317,7 +324,9 @@ export default function Stories() {
                   {/* Panel 2: British Museum */}
                   <div className="flex-1 flex flex-col relative">
                     <div className="flex-1 relative shrink-0 min-h-[250px] lg:min-h-[400px]">
-                      <ScryingOrb mode="viewer" image="panorama_british.jpg" />
+                      <Suspense fallback={<PageLoader className="min-h-0 h-full" />}>
+                        <ScryingOrb mode="viewer" image="panorama_british.jpg" />
+                      </Suspense>
                     </div>
                     <div className="p-4 md:p-6 text-center bg-gradient-to-b from-black/60 to-black/90 shrink-0 h-[140px] flex flex-col justify-center border-t-2 border-gold/20">
                       <h3 className="text-xl md:text-2xl font-display text-gold-gradient drop-shadow-md">
@@ -370,7 +379,9 @@ function FeaturedStoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: (
                   {story.id === 'westcar-papyrus' ? 'See where The Papyrus is kept in Now' : 'See where The Papyri are kept Now'}
                 </div>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] transition-all duration-300 hover:border-gold hover:shadow-[0_0_30px_rgba(218,165,32,0.6)] bg-black/80">
-                  <ScryingOrb mode="globe" />
+                  <Suspense fallback={<div className="w-full h-full animate-pulse bg-gold/10" />}>
+                    <ScryingOrb mode="globe" />
+                  </Suspense>
                 </div>
               </div>
             )}
@@ -490,7 +501,9 @@ function StoryCard({ story, onOpenPano }: { story: Story, onOpenPano?: () => voi
                   See where The Papyrus is kept in Now
                 </div>
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gold/40 shadow-inner bg-black/60 transition-all group-hover:border-gold group-hover:shadow-gold-glow">
-                  <ScryingOrb mode="globe" />
+                  <Suspense fallback={<div className="w-full h-full animate-pulse bg-gold/10" />}>
+                    <ScryingOrb mode="globe" />
+                  </Suspense>
                 </div>
               </div>
             )}
