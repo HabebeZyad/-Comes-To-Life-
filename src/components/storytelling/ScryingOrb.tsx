@@ -1,6 +1,5 @@
-/// <reference types="@react-three/fiber" />
 import React, { useEffect, Suspense } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Sphere, OrbitControls, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,7 +38,7 @@ const Viewer360 = ({ image }: { image: string }) => {
         }
     });
 
-    const handleDoubleClick = (e: any) => {
+    const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
         const nextStage = (zoomStage + 1) % 3;
         setZoomStage(nextStage);
