@@ -357,7 +357,8 @@ export default function StorytellingHomePage() {
                   {/* Inner Sanctum & Video */}
                   <div className="relative border-2 border-gold/50 rounded-md overflow-hidden bg-black shadow-[inset_0_0_50px_rgba(212,175,55,0.05)]">
                     <video
-                      src=""
+                      src={getAssetUrl('/Capture of Joppa video.MP4')}
+                      autoPlay
                       controls
                       playsInline
                       className="w-full h-full aspect-video object-contain bg-black relative z-10"
