@@ -4,11 +4,15 @@ import { HieroglyphBackground } from '@/components/effects/HieroglyphBackground'
 import { CelestialSimulation } from '@/components/effects/CelestialSimulation';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { TiltCard } from '@/components/ui/TiltCard';
-import { ScryingOrb } from '@/components/storytelling/ScryingOrb';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+
+// Lazy load heavy 3D components
+// Performance: Defers loading of ~1MB Three.js bundle until ScryingOrb is rendered
+const ScryingOrb = lazy(() => import('@/components/storytelling/ScryingOrb').then(m => ({ default: m.ScryingOrb })));
+
 export default function StorytellingHomePage() {
   const navigate = useNavigate();
   const [activePano, setActivePano] = useState<{ image: string, title: string, location: string, description: string } | null>(null);
@@ -134,7 +138,9 @@ export default function StorytellingHomePage() {
                             See where The Papyrus is kept in Now
                           </div>
                           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] bg-black/80">
-                            <ScryingOrb mode="globe" />
+                            <Suspense fallback={<div className="w-full h-full bg-black/40 animate-pulse" />}>
+                              <ScryingOrb mode="globe" />
+                            </Suspense>
                           </div>
                         </div>
                       )}
@@ -159,7 +165,9 @@ export default function StorytellingHomePage() {
                               See where The Papyrus is kept Now
                             </div>
                             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] bg-black/80">
-                              <ScryingOrb mode="globe" />
+                              <Suspense fallback={<div className="w-full h-full bg-black/40 animate-pulse" />}>
+                                <ScryingOrb mode="globe" />
+                              </Suspense>
                             </div>
                           </div>
 
@@ -180,7 +188,9 @@ export default function StorytellingHomePage() {
                               See where it was discovered
                             </div>
                             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold/60 shadow-[0_0_20px_rgba(218,165,32,0.4)] bg-black/80">
-                              <ScryingOrb mode="globe" />
+                              <Suspense fallback={<div className="w-full h-full bg-black/40 animate-pulse" />}>
+                                <ScryingOrb mode="globe" />
+                              </Suspense>
                             </div>
                           </div>
                         </div>
@@ -420,7 +430,13 @@ export default function StorytellingHomePage() {
                 </button>
 
                 <div className="w-full h-[65vh] min-h-[400px] relative shrink-0">
-                  <ScryingOrb mode="viewer" image={activePano.image} />
+                  <Suspense fallback={
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-12 h-12 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
+                    </div>
+                  }>
+                    <ScryingOrb mode="viewer" image={activePano.image} />
+                  </Suspense>
                 </div>
 
                 <div className="p-6 md:p-8 text-center border-t-2 border-gold/20 bg-gradient-to-b from-black/60 to-black/90 flex flex-col justify-center shrink-0">
