@@ -21,6 +21,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Stories = lazy(() => import("./pages/Stories"));
 const StoryReader = lazy(() => import("./pages/StoryReader"));
+const StoryCardGenerator = lazy(() => import("./pages/StoryCardGenerator"));
 const Games = lazy(() => import("./pages/Games"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/hieroglyphs" element={<HieroglyphsPage />} />
                 <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
                 <Route path="/stories" element={<Stories />} />
+                <Route path="/stories/generator" element={<StoryCardGenerator />} />
                 <Route path="/stories/:storyId" element={<StoryReader />} />
                 <Route path="/games" element={<Games />} />
                 <Route path="*" element={<NotFound />} />

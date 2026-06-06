@@ -221,8 +221,12 @@ export default function StorytellingHomePage() {
                         </div>
                       </div>
 
-                      {story.id === 'capture-of-joppa' ? (
-                        <div onClick={() => setActiveIntro({ id: story.id, introImage: "/Harris Papyrus.jpg", path: story.path })}>
+                      {story.id === 'capture-of-joppa' || story.id === 'shipwrecked-sailor' ? (
+                        <div onClick={() => setActiveIntro({
+                          id: story.id,
+                          introImage: story.id === 'capture-of-joppa' ? "/Harris Papyrus.jpg" : "/LP-Shipwrecked-Sailor-Papyrus-PS.jpg",
+                          path: story.path
+                        })}>
                           <EgyptianButton variant="hero" size="lg" shimmer className="px-12 group h-14 cursor-pointer">
                             <Play className="w-5 h-5 transition-transform group-hover:scale-125" />
                             Begin Journey
@@ -281,7 +285,7 @@ export default function StorytellingHomePage() {
               setActiveIntro(null); 
               new Audio(getAssetUrl('/sounds/paper-transition.mp3')).play().catch(() => {});
               
-              if (introId === 'capture-of-joppa') {
+              if (introId === 'capture-of-joppa' || introId === 'shipwrecked-sailor') {
                 setActiveVideo(introId);
               } else if (path && path !== '#') {
                 navigate(path);
@@ -312,9 +316,9 @@ export default function StorytellingHomePage() {
         )}
       </AnimatePresence>
 
-      {/* Cinematic Video Modal for Joppa */}
+      {/* Cinematic Video Modal for Joppa and Shipwrecked Sailor */}
       <AnimatePresence>
-        {activeVideo === 'capture-of-joppa' && (
+        {activeVideo && (activeVideo === 'capture-of-joppa' || activeVideo === 'shipwrecked-sailor') && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -338,7 +342,7 @@ export default function StorytellingHomePage() {
               <div className="px-10 py-4 border-y border-gold/30 bg-black/60 backdrop-blur-xl flex flex-col items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.5)]">
                 <span className="text-gold font-display text-xs tracking-[0.5em] uppercase opacity-80">Historical Archive</span>
                 <h2 className="font-display text-3xl md:text-5xl text-gold-gradient tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
-                  The Capture Of Joppa
+                  {activeVideo === 'capture-of-joppa' ? 'The Capture Of Joppa' : 'The Shipwrecked Sailor'}
                 </h2>
               </div>
             </motion.div>
@@ -357,7 +361,7 @@ export default function StorytellingHomePage() {
                   {/* Inner Sanctum & Video */}
                   <div className="relative border-2 border-gold/50 rounded-md overflow-hidden bg-black shadow-[inset_0_0_50px_rgba(212,175,55,0.05)]">
                     <video
-                      src={getAssetUrl('/Capture of Joppa video.MP4')}
+                      src={getAssetUrl(activeVideo === 'capture-of-joppa' ? '/Capture of Joppa video.MP4' : '/The Shipwreck sailor video.mp4')}
                       autoPlay
                       controls
                       playsInline

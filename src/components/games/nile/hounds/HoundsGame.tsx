@@ -169,7 +169,7 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
   const legalMoves = gameState.throwResult > 0 ? HoundsEngine.getLegalMoves(gameState, gameState.throwResult) : [];
 
   return (
-    <div className="min-h-screen bg-obsidian text-foreground overflow-hidden flex flex-col relative">
+    <div className="min-h-screen bg-obsidian text-foreground flex flex-col relative overflow-y-auto lg:overflow-y-hidden lg:max-h-screen">
       
       {/* Alert toast for no legal moves */}
       <AnimatePresence>
@@ -211,7 +211,7 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
 
       <div className="flex-1 flex flex-col lg:flex-row relative">
         {/* Game Board Area with height-based responsive containment */}
-        <div className="flex-1 relative flex items-center justify-center p-4 md:p-8">
+        <div className="flex-1 relative flex flex-col items-center justify-center p-4 md:p-8">
           <AnimatePresence mode="wait">
             {!settings.is3D ? (
               <motion.div
@@ -246,27 +246,27 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
           </AnimatePresence>
 
           {/* Premium Visual Sticks Controls */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-            <div className="bg-black/75 backdrop-blur-xl p-4 rounded-2xl border border-gold/30 shadow-gold-glow flex flex-col items-center gap-4 min-w-[220px]">
-              <div className="flex gap-4 h-16 items-center">
+          <div className="relative mt-4 mb-2 z-20">
+            <div className="bg-black/75 backdrop-blur-xl p-2.5 px-4 rounded-xl border border-gold/20 shadow-[0_0_15px_rgba(212,175,55,0.08)] flex items-center gap-5">
+              <div className="flex gap-2 h-12 items-center">
                 {gameState.sticks.map((isWhite, i) => (
                   <motion.div
                     key={i}
                     animate={isThrowing ? { 
                       rotateX: [0, 180, 360, 540, 720],
-                      y: [0, -20, 0]
+                      y: [0, -15, 0]
                     } : { 
                       rotateX: isWhite ? 0 : 180,
                       y: 0
                     }}
                     transition={{ duration: 0.6, delay: i * 0.08 }}
                     style={{
-                      width: '18px',
-                      height: '64px',
-                      borderRadius: '8px',
+                      width: '12px',
+                      height: '44px',
+                      borderRadius: '4px',
                       perspective: '1000px',
                       transformStyle: 'preserve-3d',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
                     }}
                     className="relative"
                   >
@@ -275,20 +275,20 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        borderRadius: '8px',
+                        borderRadius: '4px',
                         background: 'linear-gradient(to bottom, #faebd7, #dfba7c)',
-                        border: '2px solid #b8860b',
+                        border: '1px solid #b8860b',
                         backfaceVisibility: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '6px 0',
+                        padding: '2px 0',
                       }}
                     >
-                      <div className="w-1 h-3 bg-amber-900/30 rounded-full" />
-                      <div className="text-[12px] text-amber-900/60 font-bold select-none pointer-events-none font-display">🌵</div>
-                      <div className="w-1 h-3 bg-amber-900/30 rounded-full" />
+                      <div className="w-0.5 h-1.5 bg-amber-900/30 rounded-full" />
+                      <div className="text-[8px] text-amber-900/60 font-bold select-none pointer-events-none font-display">🌵</div>
+                      <div className="w-0.5 h-1.5 bg-amber-900/30 rounded-full" />
                     </div>
 
                     {/* Face Down (Dark charcoal wood) */}
@@ -296,37 +296,40 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        borderRadius: '8px',
+                        borderRadius: '4px',
                         background: 'linear-gradient(to bottom, #2b241f, #120e0a)',
-                        border: '2px solid #4a3c31',
+                        border: '1px solid #4a3c31',
                         transform: 'rotateX(180deg)',
                         backfaceVisibility: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '6px 0',
+                        padding: '2px 0',
                       }}
                     >
-                      <div className="w-1 h-3 bg-black/40 rounded-full" />
+                      <div className="w-0.5 h-1.5 bg-black/40 rounded-full" />
                       <div className="w-1.5 h-1.5 rounded-full bg-red-950/40" />
-                      <div className="w-1 h-3 bg-black/40 rounded-full" />
+                      <div className="w-0.5 h-1.5 bg-black/40 rounded-full" />
                     </div>
                   </motion.div>
                 ))}
               </div>
+
+              {/* Divider */}
+              <div className="w-[1px] h-8 bg-gold/20" />
               
-              <div className="flex items-center gap-6 pt-1">
-                <div className="text-center">
-                  <p className="text-[9px] text-gold/60 uppercase font-bold tracking-widest">Throw</p>
-                  <p className="text-3xl font-display text-gold-gradient">{gameState.throwResult || '?'}</p>
+              <div className="flex items-center gap-4">
+                <div className="text-center min-w-[36px]">
+                  <p className="text-[8px] text-gold/60 uppercase font-bold tracking-widest leading-none mb-0.5">Throw</p>
+                  <p className="text-xl font-display text-gold-gradient leading-none">{gameState.throwResult || '?'}</p>
                 </div>
                 <EgyptianButton 
                   variant="gold" 
-                  size="lg" 
+                  size="sm" 
                   disabled={isThrowing || gameState.throwResult > 0 || gameState.isGameOver || gameState.currentPlayer !== 'hounds'}
                   onClick={handleThrow}
-                  className="font-bold tracking-widest"
+                  className="font-bold tracking-wider text-xs py-1.5 px-3"
                 >
                   THROW
                 </EgyptianButton>
@@ -335,7 +338,7 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
           </div>
         </div>
 
-        <div className="w-full lg:w-80 bg-black/40 border-l border-gold/10 backdrop-blur-md p-6 flex flex-col gap-6 z-30">
+        <div className="w-full lg:w-80 bg-black/40 border-t lg:border-t-0 lg:border-l border-gold/10 backdrop-blur-md p-6 flex flex-col gap-6 z-30 lg:overflow-y-auto">
           <div className="bg-lapis-deep/40 rounded-xl p-5 border border-lapis-light/20 text-center">
              <p className="text-xs text-turquoise font-bold uppercase mb-1">Turn</p>
              <h3 className={`text-2xl font-display uppercase ${gameState.currentPlayer === 'hounds' ? 'text-primary animate-pulse' : 'text-secondary/75'}`}>

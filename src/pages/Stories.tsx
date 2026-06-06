@@ -116,6 +116,14 @@ export default function Stories() {
                 <Brain className="w-4 h-4" />
                 AI Features
               </button>
+
+              <Link
+                to="/stories/generator"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg font-display text-sm border border-gold/30 hover:border-gold hover:bg-gold/15 text-gold-light transition-all"
+              >
+                <Sparkles className="w-4 h-4 text-gold" />
+                Quote Exporter
+              </Link>
             </div>
           </div>
         </div>

@@ -125,7 +125,7 @@ export class MehenEngine {
     }
 
     // Determine next player
-    const players: Player[] = (['player1', 'player2', 'player3', 'player4', 'player5', 'player6'] as Player[]).slice(0, state.pieces.length / 4);
+    const players = Array.from(new Set(state.pieces.map(p => p.owner)));
     const currentIndex = players.indexOf(state.currentPlayer);
     const nextPlayer = players[(currentIndex + 1) % players.length];
 
