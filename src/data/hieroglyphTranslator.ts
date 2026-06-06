@@ -163,24 +163,715 @@ export function englishToTranslit(input: string): string {
   return s;
 }
 
+export interface DictionaryEntry {
+  english: string[];      // Keywords/synonyms that map to this word/phrase (lowercase)
+  hiero: string;          // Actual hieroglyphic spelling
+  translit: string;       // Egyptological transliteration (e.g. "ꜥnḫ", "nfr")
+  pronunciation: string;  // Approximate readable pronunciation (e.g. "ankh", "nefer")
+  meaning: string;        // Meaning/definition
+  type: 'word' | 'phrase';
+  notes?: string;         // Historical or grammatical note
+}
+
+export const DICTIONARY: DictionaryEntry[] = [
+  // PHRASES
+  {
+    english: ['life prosperity health', 'life prosperity and health', 'ankh wedja seneb'],
+    hiero: '𓋹𓍘𓎛',
+    translit: 'ꜥnḫ wḏꜣ snb',
+    pronunciation: 'ankh wedja seneb',
+    meaning: 'Life, Prosperity, and Health (standard blessing formula after names or titles)',
+    type: 'phrase',
+    notes: 'Often abbreviated in hieroglyphic inscriptions as 𓋹𓍘𓎛.'
+  },
+  {
+    english: ['lord of life'],
+    hiero: '𓎟𓋹',
+    translit: 'nb ꜥnḫ',
+    pronunciation: 'neb ankh',
+    meaning: 'Lord of Life',
+    type: 'phrase',
+    notes: 'Common epithet of Osiris, Ra, or the pharaoh.'
+  },
+  {
+    english: ['lord of the two lands'],
+    hiero: '𓎟𓇿𓇿',
+    translit: 'nb tꜣwy',
+    pronunciation: 'neb tawy',
+    meaning: 'Lord of the Two Lands (Upper and Lower Egypt)',
+    type: 'phrase',
+    notes: 'The standard title of the pharaoh, indicating sovereign control over Egypt.'
+  },
+  {
+    english: ['king of upper and lower egypt', 'nsw-bity'],
+    hiero: '𓇓𓏏𓆤',
+    translit: 'nsw-bity',
+    pronunciation: 'nisut-bity',
+    meaning: 'King of Upper and Lower Egypt (He of the Sedge and Bee)',
+    type: 'phrase',
+    notes: 'The prenomen royal title which links the King with the sacred plants/insects of the two regions.'
+  },
+  {
+    english: ['son of ra', 'son of re'],
+    hiero: '𓅭𓇳',
+    translit: 'sꜣ rꜥ',
+    pronunciation: 'sa ra',
+    meaning: 'Son of Ra',
+    type: 'phrase',
+    notes: 'The nomen title of the pharaoh, signifying divine parentage.'
+  },
+  {
+    english: ['true of voice', 'justified', 'ma kheru'],
+    hiero: '𓐙𓊤',
+    translit: 'mꜣꜥ-ḫrw',
+    pronunciation: 'ma-kheru',
+    meaning: 'True of Voice / Justified (epithet given to the deceased who passed the judgment)',
+    type: 'phrase',
+    notes: 'Equivalent to "Rest in Peace" - meaning the deceased\'s heart was weighed and found truthful.'
+  },
+  {
+    english: ['given life forever', 'given life for ever'],
+    hiero: '𓏙𓋹𓆓𓏏𓇿',
+    translit: 'di ꜥnḫ ḏt',
+    pronunciation: 'di ankh djet',
+    meaning: 'Given Life Forever',
+    type: 'phrase',
+    notes: 'A formula frequently appended to royal names in cartouches.'
+  },
+  {
+    english: ['great god'],
+    hiero: '𓊹𓅨',
+    translit: 'nṯr ꜥꜣ',
+    pronunciation: 'netjer aa',
+    meaning: 'Great God',
+    type: 'phrase',
+    notes: 'Typically refers to Osiris, Ra, or the deceased king.'
+  },
+  {
+    english: ['beloved of amun', 'beloved of amen'],
+    hiero: '𓌻𓇋𓇋𓇋𓏠𓈖𓀭',
+    translit: 'mry imn',
+    pronunciation: 'mery amen',
+    meaning: 'Beloved of Amun',
+    type: 'phrase',
+    notes: 'Common epithet incorporated into royal names like Ramesses (Meryamun).'
+  },
+  {
+    english: ['house of gold'],
+    hiero: '𓉐𓋞',
+    translit: 'pr nbw',
+    pronunciation: 'per nebu',
+    meaning: 'House of Gold (sculpture workshop or sarcophagus chamber)',
+    type: 'phrase',
+    notes: 'Term used for the inner chambers of tombs or temples where gold statues were crafted/kept.'
+  },
+  {
+    english: ['lord of abydos'],
+    hiero: '𓎟𓊌𓏤',
+    translit: 'nb ꜣbḏw',
+    pronunciation: 'neb abdjw',
+    meaning: 'Lord of Abydos (Osiris)',
+    type: 'phrase',
+    notes: 'Abydos was the primary cult center of the god Osiris.'
+  },
+  {
+    english: ['ruler of heliopolis'],
+    hiero: '𓋾𓉺𓏤',
+    translit: 'ḥqꜣ iwnw',
+    pronunciation: 'heqa iunu',
+    meaning: 'Ruler of Heliopolis',
+    type: 'phrase',
+    notes: 'Heliopolis (Iunu) was the ancient city of solar worship.'
+  },
+
+  // WORDS
+  {
+    english: ['life', 'live', 'living'],
+    hiero: '𓋹𓈖𓐍',
+    translit: 'ꜥnḫ',
+    pronunciation: 'ankh',
+    meaning: 'Life / to live / living',
+    type: 'word',
+    notes: 'The mirror-like sign 𓋹 represents a sandal strap or tie, representing life.'
+  },
+  {
+    english: ['beautiful', 'good', 'perfect'],
+    hiero: '𓄤𓆑𓂋',
+    translit: 'nfr',
+    pronunciation: 'nefer',
+    meaning: 'Beautiful, good, pleasant, perfect',
+    type: 'word',
+    notes: 'Depicts a heart and windpipe (𓄣), representing physical wellness and beauty.'
+  },
+  {
+    english: ['sun', 'day'],
+    hiero: '𓇳𓏤',
+    translit: 'rꜥ',
+    pronunciation: 'ra',
+    meaning: 'Sun / day',
+    type: 'word',
+    notes: 'The circle with a dot represents the sun disk, and the stroke represents an ideogram.'
+  },
+  {
+    english: ['peace', 'offering', 'contentment', 'satisfied'],
+    hiero: '𓊵𓏏𓊪',
+    translit: 'ḥtp',
+    pronunciation: 'hetep',
+    meaning: 'Peace, offering, contentment, to be pleased',
+    type: 'word',
+    notes: 'Depicts a loaf of bread on a reed mat (𓊵), the ultimate symbol of peace and offering.'
+  },
+  {
+    english: ['love', 'beloved', 'to love'],
+    hiero: '𓌻𓂋𓇋',
+    translit: 'mr / mry',
+    pronunciation: 'meri',
+    meaning: 'To love / beloved',
+    type: 'word',
+    notes: 'The sign 𓌻 depicts a hoe or digging tool, which phonetically spells out "mr".'
+  },
+  {
+    english: ['lord', 'master', 'owner'],
+    hiero: '𓎟',
+    translit: 'nb',
+    pronunciation: 'neb',
+    meaning: 'Lord, master, owner',
+    type: 'word',
+    notes: 'A wicker basket (𓎟) meaning "lord" or "all/every".'
+  },
+  {
+    english: ['lady', 'mistress'],
+    hiero: '𓎟𓏏',
+    translit: 'nbt',
+    pronunciation: 'nebet',
+    meaning: 'Lady, mistress (feminine form of neb)',
+    type: 'word'
+  },
+  {
+    english: ['all', 'every'],
+    hiero: '𓎟',
+    translit: 'nb',
+    pronunciation: 'neb',
+    meaning: 'All, every, each',
+    type: 'word'
+  },
+  {
+    english: ['god', 'deity'],
+    hiero: '𓊹',
+    translit: 'nṯr',
+    pronunciation: 'netjer',
+    meaning: 'God, deity, divine',
+    type: 'word',
+    notes: 'The sign 𓊹 represents a cloth wrapped on a pole, symbol of divinity.'
+  },
+  {
+    english: ['goddess'],
+    hiero: '𓊹𓏏𓁐',
+    translit: 'nṯrt',
+    pronunciation: 'netjeret',
+    meaning: 'Goddess',
+    type: 'word'
+  },
+  {
+    english: ['king', 'monarch'],
+    hiero: '𓇓𓏏𓈖',
+    translit: 'nsw',
+    pronunciation: 'nisut',
+    meaning: 'King, ruler',
+    type: 'word',
+    notes: 'Represented by the sedge plant (𓇓), symbol of Upper Egypt.'
+  },
+  {
+    english: ['ruler', 'prince'],
+    hiero: '𓋾𓂝',
+    translit: 'ḥqꜣ',
+    pronunciation: 'heqa',
+    meaning: 'Ruler, prince, leader',
+    type: 'word',
+    notes: 'Depicts a crook scepter (𓋾), the symbol of governance and ruling.'
+  },
+  {
+    english: ['scribe', 'writer'],
+    hiero: '𓏟',
+    translit: 'sš',
+    pronunciation: 'sesh',
+    meaning: 'Scribe / writer / to write',
+    type: 'word',
+    notes: 'Shows a palette with ink wells, a water jar, and a pen case (𓏟).'
+  },
+  {
+    english: ['write', 'writing'],
+    hiero: '𓏟',
+    translit: 'sš',
+    pronunciation: 'sesh',
+    meaning: 'To write / writing',
+    type: 'word'
+  },
+  {
+    english: ['house', 'estate'],
+    hiero: '𓉐𓏤',
+    translit: 'pr',
+    pronunciation: 'per',
+    meaning: 'House, estate',
+    type: 'word',
+    notes: 'Depicts a simple house floor plan (𓉐).'
+  },
+  {
+    english: ['temple'],
+    hiero: '𓉡𓊹',
+    translit: 'ḥwt-nṯr',
+    pronunciation: 'hut-netjer',
+    meaning: 'Temple (literally: mansion of the god)',
+    type: 'word'
+  },
+  {
+    english: ['soul', 'personality'],
+    hiero: '𓅟',
+    translit: 'bꜣ',
+    pronunciation: 'ba',
+    meaning: 'Ba (the traveling soul, represented as a human-headed bird)',
+    type: 'word'
+  },
+  {
+    english: ['spirit', 'life force'],
+    hiero: '𓂓',
+    translit: 'kꜣ',
+    pronunciation: 'ka',
+    meaning: 'Ka (the spiritual double or life-force, represented by upraised arms)',
+    type: 'word'
+  },
+  {
+    english: ['glorified spirit', 'ancestor'],
+    hiero: '𓅜',
+    translit: 'ꜣḫ',
+    pronunciation: 'akh',
+    meaning: 'Akh (the transfigured, glowing spirit of the deceased)',
+    type: 'word'
+  },
+  {
+    english: ['heart', 'mind', 'will'],
+    hiero: '𓄣𓏤',
+    translit: 'ib',
+    pronunciation: 'ib',
+    meaning: 'Heart, mind, seat of thoughts and feelings',
+    type: 'word',
+    notes: 'The physical heart (𓄣) was believed to be the center of intelligence and character.'
+  },
+  {
+    english: ['truth', 'justice', 'balance', 'cosmic order'],
+    hiero: '𓐙𓏏𓁣',
+    translit: 'mꜣꜥt',
+    pronunciation: 'maat',
+    meaning: 'Truth, justice, cosmic balance and order',
+    type: 'word',
+    notes: 'Represented by a pedestal of justice (𓐙) and the goddess Maat with her ostrich feather.'
+  },
+  {
+    english: ['gold'],
+    hiero: '𓋞𓏤',
+    translit: 'nbw',
+    pronunciation: 'nebu',
+    meaning: 'Gold (the flesh of the gods)',
+    type: 'word',
+    notes: 'Gold was believed to be indestructible and represented divine skin.'
+  },
+  {
+    english: ['silver'],
+    hiero: '𓋝𓏤',
+    translit: 'ḥḏ',
+    pronunciation: 'hedj',
+    meaning: 'Silver (the bones of the gods)',
+    type: 'word',
+    notes: 'Silver was rarer than gold in early Egypt and represented divine bones.'
+  },
+  {
+    english: ['great', 'large', 'elder'],
+    hiero: '𓅨',
+    translit: 'wr',
+    pronunciation: 'wer',
+    meaning: 'Great, large, senior',
+    type: 'word',
+    notes: 'The swallow sign 𓅨 stands for "great".'
+  },
+  {
+    english: ['water'],
+    hiero: '𓈗',
+    translit: 'mw',
+    pronunciation: 'mu',
+    meaning: 'Water',
+    type: 'word',
+    notes: 'Depicts three water ripples (𓈗).'
+  },
+  {
+    english: ['land', 'earth', 'country'],
+    hiero: '𓇏𓏤',
+    translit: 'tꜣ',
+    pronunciation: 'ta',
+    meaning: 'Land, earth, ground',
+    type: 'word'
+  },
+  {
+    english: ['star'],
+    hiero: '𓇼',
+    translit: 'sbꜣ',
+    pronunciation: 'seba',
+    meaning: 'Star / to teach',
+    type: 'word',
+    notes: 'The star glyph 𓇼 was also used in words for learning or instructing.'
+  },
+  {
+    english: ['sky', 'heaven'],
+    hiero: '𓇯',
+    translit: 'pt',
+    pronunciation: 'pet',
+    meaning: 'Sky, heaven',
+    type: 'word',
+    notes: 'Depicts the vault of the sky 𓇯.'
+  },
+  {
+    english: ['eternity', 'eternal'],
+    hiero: '𓆎𓎛𓎛𓇳',
+    translit: 'nḥḥ',
+    pronunciation: 'neheh',
+    meaning: 'Eternity (associated with cyclical time, like the sun\'s daily cycle)',
+    type: 'word',
+    notes: 'Often contrasted with djet (static eternity).'
+  },
+  {
+    english: ['infinite time', 'duration', 'everlastingness'],
+    hiero: '𓆓𓏏𓇿',
+    translit: 'ḏt',
+    pronunciation: 'djet',
+    meaning: 'Eternity / everlastingness (associated with static time, like the afterlife)',
+    type: 'word'
+  },
+  {
+    english: ['name'],
+    hiero: '𓂋𓈖𓏤',
+    translit: 'rn',
+    pronunciation: 'ren',
+    meaning: 'Name',
+    type: 'word',
+    notes: 'One of the five crucial parts of the soul; erasing a name caused complete non-existence.'
+  },
+  {
+    english: ['cat'],
+    hiero: '𓅓𓇋𓏲𓃠',
+    translit: 'miw',
+    pronunciation: 'miu',
+    meaning: 'Cat',
+    type: 'word',
+    notes: 'Onomatopoetic word, sounding like "meow".'
+  },
+  {
+    english: ['dog'],
+    hiero: '𓋿𓃡',
+    translit: 'ṯsm',
+    pronunciation: 'tsem',
+    meaning: 'Dog (typically sighthounds/tesem)',
+    type: 'word'
+  },
+  {
+    english: ['mother'],
+    hiero: '𓅐',
+    translit: 'mwt',
+    pronunciation: 'mut',
+    meaning: 'Mother',
+    type: 'word',
+    notes: 'Written with the vulture sign, sacred to the mother goddess Mut.'
+  },
+  {
+    english: ['father'],
+    hiero: '𓇋𓏏𓆑',
+    translit: 'it',
+    pronunciation: 'it',
+    meaning: 'Father',
+    type: 'word'
+  },
+  {
+    english: ['son'],
+    hiero: '𓅭',
+    translit: 'sꜣ',
+    pronunciation: 'sa',
+    meaning: 'Son',
+    type: 'word',
+    notes: 'Written with the pintail duck sign.'
+  },
+  {
+    english: ['daughter'],
+    hiero: '𓅭𓏏',
+    translit: 'sꜣt',
+    pronunciation: 'sat',
+    meaning: 'Daughter',
+    type: 'word'
+  },
+  {
+    english: ['brother'],
+    hiero: '𓈖𓃒',
+    translit: 'sn',
+    pronunciation: 'sen',
+    meaning: 'Brother',
+    type: 'word'
+  },
+  {
+    english: ['sister'],
+    hiero: '𓈖𓏏𓁐',
+    translit: 'snt',
+    pronunciation: 'senet',
+    meaning: 'Sister',
+    type: 'word'
+  },
+  {
+    english: ['man', 'person'],
+    hiero: '𓀀',
+    translit: 'z / s',
+    pronunciation: 'se',
+    meaning: 'Man / person',
+    type: 'word'
+  },
+  {
+    english: ['woman'],
+    hiero: '𓁐',
+    translit: 'st',
+    pronunciation: 'set',
+    meaning: 'Woman',
+    type: 'word'
+  },
+  {
+    english: ['child', 'youth'],
+    hiero: '𓀐',
+    translit: 'ẖrd',
+    pronunciation: 'khered',
+    meaning: 'Child / youth',
+    type: 'word'
+  },
+  {
+    english: ['strength', 'power', 'mighty'],
+    hiero: '𓂧𓆱',
+    translit: 'wsr',
+    pronunciation: 'weser',
+    meaning: 'Strength, power, mighty',
+    type: 'word'
+  },
+  {
+    english: ['stability', 'endurance', 'djed'],
+    hiero: '𓊽',
+    translit: 'ḏd',
+    pronunciation: 'djed',
+    meaning: 'Stability, endurance, duration',
+    type: 'word',
+    notes: 'Depicted as a pillar representing the backbone of Osiris.'
+  },
+  {
+    english: ['health', 'wellness'],
+    hiero: '𓋴𓈖𓃀',
+    translit: 'snb',
+    pronunciation: 'seneb',
+    meaning: 'Health, wellness',
+    type: 'word'
+  },
+  {
+    english: ['city', 'town'],
+    hiero: '𓊖𓏤',
+    translit: 'niwt',
+    pronunciation: 'niwt',
+    meaning: 'City, town, settlement',
+    type: 'word',
+    notes: 'The circle with crossing roads represents a walled city crossroads.'
+  },
+  {
+    english: ['soldier', 'army'],
+    hiero: '𓀜',
+    translit: 'mšꜥ',
+    pronunciation: 'mesha',
+    meaning: 'Soldier / army / expedition',
+    type: 'word'
+  },
+  {
+    english: ['voice', 'sound'],
+    hiero: '𓊤𓏤',
+    translit: 'ḫrw',
+    pronunciation: 'kheru',
+    meaning: 'Voice, sound',
+    type: 'word'
+  },
+  {
+    english: ['hear', 'listen', 'obey'],
+    hiero: '𓄓𓈖𓅓',
+    translit: 'sḏm',
+    pronunciation: 'sedjem',
+    meaning: 'To hear, listen, obey',
+    type: 'word'
+  },
+  {
+    english: ['breath', 'wind', 'air'],
+    hiero: '𓊴𓏤',
+    translit: 'ṯꜣw',
+    pronunciation: 'tjau',
+    meaning: 'Breath, wind, air',
+    type: 'word',
+    notes: 'Represented by a sail filled with wind.'
+  },
+  {
+    english: ['west', 'western'],
+    hiero: '𓊿',
+    translit: 'imnt',
+    pronunciation: 'iment',
+    meaning: 'West, western (associated with the realm of the dead)',
+    type: 'word'
+  },
+  {
+    english: ['east', 'eastern'],
+    hiero: '𓋁',
+    translit: 'iꜣbt',
+    pronunciation: 'iabet',
+    meaning: 'East, eastern',
+    type: 'word'
+  },
+  {
+    english: ['south', 'southern'],
+    hiero: '𓄿𓏜',
+    translit: 'rsy',
+    pronunciation: 'resy',
+    meaning: 'South, southern',
+    type: 'word'
+  },
+  {
+    english: ['north', 'northern'],
+    hiero: '𓎕',
+    translit: 'mḥty',
+    pronunciation: 'mehty',
+    meaning: 'North, northern',
+    type: 'word'
+  },
+  {
+    english: ['horus'],
+    hiero: '𓅃',
+    translit: 'ḥrw',
+    pronunciation: 'heru',
+    meaning: 'Horus (The Sky God, patron of kingship)',
+    type: 'word'
+  },
+  {
+    english: ['osiris'],
+    hiero: '𓊨𓁹',
+    translit: 'wsir',
+    pronunciation: 'wesir',
+    meaning: 'Osiris (God of the underworld, rebirth, and agriculture)',
+    type: 'word'
+  },
+  {
+    english: ['isis'],
+    hiero: '𓊨𓏏𓁐',
+    translit: 'ꜣst',
+    pronunciation: 'aset',
+    meaning: 'Isis (Goddess of magic, motherhood, and healing)',
+    type: 'word'
+  },
+  {
+    english: ['anubis'],
+    hiero: '𓇋𓈖𓊪𓅱𓃥',
+    translit: 'inpw',
+    pronunciation: 'anubis',
+    meaning: 'Anubis (God of mummification and guide to the afterlife)',
+    type: 'word'
+  },
+  {
+    english: ['amun', 'amen'],
+    hiero: '𓇋𓏠𓈖𓀭',
+    translit: 'imn',
+    pronunciation: 'amun',
+    meaning: 'Amun (The Hidden One, King of the Gods)',
+    type: 'word'
+  },
+  {
+    english: ['thoth'],
+    hiero: '𓲓𓏏𓏭𓀭',
+    translit: 'ḏḥwty',
+    pronunciation: 'djehuty',
+    meaning: 'Thoth (God of wisdom, writing, and the moon)',
+    type: 'word'
+  }
+];
+
+export interface TranslateWordResult {
+  word: string;
+  glyphs: string;
+  translit: string;
+  pronunciation: string;
+  meaning: string;
+  type: 'semantic-phrase' | 'semantic-word' | 'phonetic';
+  notes?: string;
+  signs?: SignEntry[];
+}
+
 export interface TranslationResult {
   translit: string;
   hieroglyphs: string;
-  perWord: { word: string; translit: string; glyphs: string; signs: SignEntry[] }[];
+  perWord: TranslateWordResult[];
 }
 
 /** English → Hieroglyphs (phonetic transliteration). */
 export function translateEnglishToHiero(text: string): TranslationResult {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const perWord = words.map((word) => {
-    const translit = englishToTranslit(word.replace(/[^A-Za-z]/g, ''));
-    const { glyphs, signs } = tokenToGlyphs(translit);
-    return { word, translit, glyphs, signs };
-  });
+  // Clean punctuation but keep spaces
+  const cleanedText = text.replace(/[,.!?;:]/g, ' ');
+  const words = cleanedText.trim().split(/\s+/).filter(Boolean);
+  
+  const perWord: TranslateWordResult[] = [];
+  let i = 0;
+  
+  while (i < words.length) {
+    let matched = false;
+    
+    // Try matching phrases/words of descending length, from max possible words down to 1
+    for (let len = Math.min(8, words.length - i); len >= 1; len--) {
+      const slice = words.slice(i, i + len).join(' ').toLowerCase();
+      
+      // Look up in DICTIONARY
+      const found = DICTIONARY.find(entry => 
+        entry.english.includes(slice)
+      );
+      
+      if (found) {
+        perWord.push({
+          word: words.slice(i, i + len).join(' '),
+          glyphs: found.hiero,
+          translit: found.translit,
+          pronunciation: found.pronunciation,
+          meaning: found.meaning,
+          type: found.type === 'phrase' ? 'semantic-phrase' : 'semantic-word',
+          notes: found.notes
+        });
+        i += len;
+        matched = true;
+        break;
+      }
+    }
+    
+    if (!matched) {
+      // Fallback: translate the single word phonetically
+      const word = words[i];
+      const translit = englishToTranslit(word.replace(/[^A-Za-z]/g, ''));
+      const { glyphs, signs } = tokenToGlyphs(translit);
+      
+      perWord.push({
+        word: word,
+        glyphs: glyphs,
+        translit: translit,
+        pronunciation: word,
+        meaning: 'Phonetic Spelling (Approximation)',
+        type: 'phonetic',
+        notes: 'This word is not in the Middle Egyptian dictionary. It was spelled phonetically using the uniliteral/multiliteral signs.',
+        signs: signs
+      });
+      i += 1;
+    }
+  }
+  
   return {
-    translit: perWord.map((w) => w.translit).join(' '),
-    hieroglyphs: perWord.map((w) => w.glyphs).join(' '),
-    perWord,
+    translit: perWord.map(w => w.translit).join(' '),
+    hieroglyphs: perWord.map(w => w.glyphs).join(' '),
+    perWord
   };
 }
 
@@ -190,6 +881,8 @@ export interface HieroReadingPart {
   meaning: string;
   gardiner: string;
   known: boolean;
+  type?: 'semantic-phrase' | 'semantic-word' | 'sign';
+  notes?: string;
 }
 
 /** Hieroglyphs → transliteration + English gloss. */
@@ -198,37 +891,88 @@ export function translateHieroToEnglish(text: string): {
   translit: string;
   gloss: string;
 } {
+  const chars = Array.from(text);
   const parts: HieroReadingPart[] = [];
-  // Iterate Unicode code points (hieroglyphs are surrogate pairs).
-  for (const ch of Array.from(text)) {
-    if (/\s/.test(ch)) {
-      parts.push({ glyph: ' ', translit: ' ', meaning: '', gardiner: '', known: true });
+  let i = 0;
+  
+  while (i < chars.length) {
+    const char = chars[i];
+    if (/\s/.test(char)) {
+      parts.push({ glyph: ' ', translit: ' ', meaning: '', gardiner: '', known: true, type: 'sign' });
+      i += 1;
       continue;
     }
-    const entry = GLYPH_INDEX.get(ch);
-    if (entry) {
-      parts.push({
-        glyph: ch,
-        translit: entry.translit,
-        meaning: entry.meaning,
-        gardiner: entry.gardiner,
-        known: true,
-      });
-    } else {
-      parts.push({
-        glyph: ch,
-        translit: '?',
-        meaning: 'unknown sign',
-        gardiner: '',
-        known: false,
-      });
+    
+    let matched = false;
+    
+    // Try matching dictionary entries (longest hiero string first)
+    // We sort DICTIONARY entries by hiero length descending
+    const sortedDict = [...DICTIONARY].sort((a, b) => b.hiero.length - a.hiero.length);
+    
+    for (const entry of sortedDict) {
+      const entryLen = Array.from(entry.hiero).length;
+      if (i + entryLen <= chars.length) {
+        const slice = chars.slice(i, i + entryLen).join('');
+        if (slice === entry.hiero) {
+          parts.push({
+            glyph: entry.hiero,
+            translit: entry.translit,
+            meaning: entry.meaning,
+            gardiner: '', // Dictionary entries might contain multiple signs so Gardiner code is omitted or composite
+            known: true,
+            type: entry.type === 'phrase' ? 'semantic-phrase' : 'semantic-word',
+            notes: entry.notes
+          });
+          i += entryLen;
+          matched = true;
+          break;
+        }
+      }
+    }
+    
+    if (!matched) {
+      // Fallback to individual sign lookup
+      const entry = GLYPH_INDEX.get(char);
+      if (entry) {
+        parts.push({
+          glyph: char,
+          translit: entry.translit,
+          meaning: entry.meaning,
+          gardiner: entry.gardiner,
+          known: true,
+          type: 'sign'
+        });
+      } else {
+        parts.push({
+          glyph: char,
+          translit: '?',
+          meaning: 'unknown sign',
+          gardiner: '',
+          known: false
+        });
+      }
+      i += 1;
     }
   }
-  const translit = parts.map((p) => p.translit).join('').replace(/\s+/g, ' ').trim();
+  
+  const translit = parts
+    .map(p => p.translit)
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+    
   const gloss = parts
-    .filter((p) => p.known && p.meaning)
-    .map((p) => p.meaning.split(' – ')[1] || p.meaning.split(' (')[0])
+    .filter(p => p.known && p.meaning)
+    .map(p => {
+      if (p.type === 'semantic-phrase' || p.type === 'semantic-word') {
+        // Use full meaning for semantically parsed chunks
+        return p.meaning;
+      }
+      // For signs, extract simple gloss
+      return p.meaning.split(' – ')[1] || p.meaning.split(' (')[0];
+    })
     .join(' · ');
+    
   return { parts, translit, gloss };
 }
 
