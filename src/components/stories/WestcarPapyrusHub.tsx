@@ -27,12 +27,6 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
   const [activeTale, setActiveTale] = useState<'tale-one' | 'tale-two' | 'tale-three' | 'tale-four' | 'tale-five' | null>(null);
   const story = getStoryById('westcar-papyrus');
 
-  const playHoverSound = () => {
-    const audio = new Audio(getAssetUrl('/sounds/paper-transition.mp3'));
-    audio.volume = 0.05;
-    audio.play().catch(() => {});
-  };
-
   if (!story) return null;
 
   const tales = [
@@ -42,13 +36,11 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       subtitle: 'The Wonder of Imhotep',
       description: 'The legendary story of the architect Imhotep and the wonder he performed for King Djoser.',
       icon: Sparkles,
-      color: 'from-[#b8860b] to-[#8a642f]',
-      accent: 'text-amber-800',
+      color: 'from-gold to-gold-dark',
+      accent: 'text-gold',
       action: () => setActiveTale('tale-one'),
       image: '/charcahters of the first tale.jpg',
-      locked: false,
-      pages: 9,
-      num: 'I'
+      locked: false
     },
     {
       id: 'tale-two',
@@ -56,13 +48,11 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       subtitle: 'The Wax Crocodile',
       description: 'The magical tale of the priest Ubaoner and the retribution of his wax crocodile.',
       icon: BookOpen,
-      color: 'from-emerald-600 to-emerald-800',
-      accent: 'text-emerald-800',
+      color: 'from-emerald-500 to-emerald-700',
+      accent: 'text-emerald-500',
       action: () => setActiveTale('tale-two'),
       image: '/Charachters of The second tale.jpg',
-      locked: false,
-      pages: 17,
-      num: 'II'
+      locked: false
     },
     {
       id: 'tale-three',
@@ -70,13 +60,11 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       subtitle: 'The Wonder of King Sneferu',
       description: 'The famous tale of the magician Djadjaemankh parting the waters for King Sneferu.',
       icon: Sparkles,
-      color: 'from-blue-600 to-blue-800',
-      accent: 'text-blue-800',
+      color: 'from-blue-500 to-blue-700',
+      accent: 'text-blue-400',
       action: () => setActiveTale('tale-three'),
       image: '/Charachters of the third tale.jpg',
-      locked: false,
-      pages: 19,
-      num: 'III'
+      locked: false
     },
     {
       id: 'tale-four',
@@ -84,13 +72,11 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       subtitle: 'Djedi the Magician',
       description: 'Follow the incredible visual story of Djedi, the 110-year-old sage.',
       icon: Sparkles,
-      color: 'from-purple-600 to-purple-800',
-      accent: 'text-purple-800',
+      color: 'from-purple-500 to-purple-700',
+      accent: 'text-purple-400',
       action: () => setActiveTale('tale-four'),
       image: '/Charachters of the Fourth tale.jpg',
-      locked: false,
-      pages: 16,
-      num: 'IV'
+      locked: false
     },
     {
       id: 'tale-five',
@@ -98,20 +84,18 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       subtitle: 'The Royal Children',
       description: 'The prophecy of the birth of the kings of the Fifth Dynasty.',
       icon: BookOpen,
-      color: 'from-amber-600 to-amber-800',
-      accent: 'text-amber-800',
+      color: 'from-amber-500 to-amber-700',
+      accent: 'text-amber-400',
       action: () => setActiveTale('tale-five'),
       image: '/Charachters of the Fifth tale.jpg',
-      locked: false,
-      pages: 24,
-      num: 'V'
+      locked: false
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background relative flex flex-col pb-16">
-      <DustParticles count={30} />
-      
+    <div className="min-h-screen bg-background relative flex flex-col">
+      <DustParticles count={25} />
+
       {/* Dynamic Background Pattern */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
@@ -128,7 +112,7 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Link to="/stories">
               <EgyptianButton variant="ghost" size="sm" className="hover:bg-white/5">
                 <ChevronLeft className="w-4 h-4 mr-2" />
@@ -140,130 +124,81 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col pt-24 px-6 max-w-6xl mx-auto w-full z-10">
-        <motion.div 
+      <main className="flex-1 flex flex-col pt-24 pb-12 px-6 max-w-6xl mx-auto w-full z-10">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
           <span className="text-4xl mb-4 inline-block animate-glow-pulse">📜</span>
           <h1 className="font-display text-5xl md:text-6xl font-bold text-gold-gradient mb-6 tracking-wide uppercase">
             The Westcar Papyrus
           </h1>
-          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-6">
+          <p className="font-body text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Journey through the ancient Westcar Papyrus, a collection of magical tales from the Old Kingdom. Experience these legendary wonders through vividly illustrated adaptations.
           </p>
-
-          <div className="flex justify-center">
-            <EgyptianButton 
-              variant="interactive"
-              size="lg"
-              onClick={onReadPrologue}
-              className="font-display font-extrabold tracking-widest text-xs px-8 py-3.5 border border-gold/40 shadow-gold-glow animate-pulse"
-            >
-              𓂀 DECIPHER ROYAL PROLOGUE
-            </EgyptianButton>
-          </div>
         </motion.div>
 
-        {/* The Papyrus Scroll Display Board */}
-        <div className="relative my-8 p-6 md:p-10 bg-[#f4ebd0] border-2 border-[#b8860b]/40 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.85),inset_0_0_80px_rgba(139,94,26,0.2)] max-w-5xl mx-auto w-full">
-          {/* Decorative Papyrus Fiber Texture Overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(139,94,26,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(139,94,26,0.03)_1px,transparent_1px)] bg-[size:16px_16px] rounded-3xl pointer-events-none" />
-          
-          {/* Left Wooden Roller */}
-          <div className="absolute top-[-8px] bottom-[-8px] left-[-16px] w-6 bg-gradient-to-r from-[#2a1708] via-[#42220f] to-[#1e1005] rounded-full shadow-[5px_0_15px_rgba(0,0,0,0.5)] z-20 hidden lg:block">
-            {/* Top Gold Knob */}
-            <div className="absolute top-[-14px] left-[-3px] right-[-3px] h-6 bg-gradient-to-r from-gold via-gold-light to-gold-dark rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.3)] border border-gold/45" />
-            {/* Bottom Gold Knob */}
-            <div className="absolute bottom-[-14px] left-[-3px] right-[-3px] h-6 bg-gradient-to-r from-gold via-gold-light to-gold-dark rounded-full shadow-[0_-2px_5px_rgba(0,0,0,0.3)] border border-gold/45" />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {tales.map((tale, index) => (
+            <motion.div
+              key={tale.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.6 }}
+              className="h-full"
+            >
+              <div onClick={tale.locked ? undefined : tale.action} className="h-full cursor-pointer">
+                <TiltCard className={`p-0 overflow-hidden flex flex-col group h-full border-white/5 ${tale.locked ? 'bg-background/20 opacity-70 grayscale' : 'bg-background/40 hover:bg-background/60'}`} tilt={!tale.locked}>
+                  <div className="relative h-48 overflow-hidden">
+                    <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/20 transition-colors duration-500" />
+                    <img
+                      src={getAssetUrl(tale.image)}
+                      alt={tale.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => { e.currentTarget.src = '/westcar.jpg'; }}
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-20" />
+                  </div>
 
-          {/* Right Wooden Roller */}
-          <div className="absolute top-[-8px] bottom-[-8px] right-[-16px] w-6 bg-gradient-to-r from-[#1e1005] via-[#42220f] to-[#2a1708] rounded-full shadow-[-5px_0_15px_rgba(0,0,0,0.5)] z-20 hidden lg:block">
-            {/* Top Gold Knob */}
-            <div className="absolute top-[-14px] left-[-3px] right-[-3px] h-6 bg-gradient-to-r from-gold via-gold-light to-gold-dark rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.3)] border border-gold/45" />
-            {/* Bottom Gold Knob */}
-            <div className="absolute bottom-[-14px] left-[-3px] right-[-3px] h-6 bg-gradient-to-r from-gold via-gold-light to-gold-dark rounded-full shadow-[0_-2px_5px_rgba(0,0,0,0.3)] border border-gold/45" />
-          </div>
+                  <div className={`h-1 bg-gradient-to-r ${tale.color} relative z-30`} />
 
-          {/* Ornate Gold Border Line */}
-          <div className="absolute inset-4 border border-[#b8860b]/25 rounded-2xl pointer-events-none z-10" />
-
-          {/* Grid of Tales */}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tales.map((tale, index) => (
-              <motion.div
-                key={tale.id}
-                initial={{ opacity: 0, y: 35 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, duration: 0.6, ease: "easeOut" }}
-                className="h-full"
-              >
-                <div 
-                  onClick={tale.locked ? undefined : tale.action} 
-                  onMouseEnter={playHoverSound}
-                  className="h-full cursor-pointer"
-                >
-                  <TiltCard 
-                    className={`p-0 overflow-hidden flex flex-col group h-full !border-[#8a642f]/35 !bg-[#faebd7] shadow-[0_12px_24px_rgba(64,39,18,0.15)] hover:shadow-[0_20px_35px_rgba(64,39,18,0.25)] transition-all duration-500`} 
-                    tilt={!tale.locked}
-                  >
-                    <div className="relative h-44 overflow-hidden bg-stone-900">
-                      <div className="absolute inset-0 bg-black/25 z-10 group-hover:bg-transparent transition-colors duration-500" />
-                      <img 
-                        src={getAssetUrl(tale.image)} 
-                        alt={tale.title} 
-                        className="w-full h-full object-cover sepia-[35%] contrast-[105%] transition-all duration-700 group-hover:scale-105 group-hover:sepia-0"
-                        onError={(e) => { e.currentTarget.src = '/westcar.jpg'; }}
-                      />
-                      {/* Glowing diagonal sheen sweep */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out z-20" />
-                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#faebd7] to-transparent z-15" />
-                    </div>
-                    
-                    <div className={`h-[3px] bg-gradient-to-r ${tale.color} relative z-30`} />
-                    
-                    <div className="p-5 flex flex-col flex-grow relative z-30 transform-gpu [transform:translateZ(30px)]">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-display font-extrabold uppercase tracking-widest text-[#b22222] bg-[#b22222]/5 px-2 py-0.5 rounded border border-[#b22222]/15">
-                          Scroll {tale.num}
-                        </span>
-                        <span className="text-[10px] font-display font-extrabold uppercase tracking-widest text-[#8a642f] bg-[#8a642f]/5 px-2 py-0.5 rounded border border-[#8a642f]/15">
-                          {tale.pages} Pages
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-1.5 flex-grow">
-                        <div className="text-[11px] font-display font-bold uppercase tracking-widest text-[#8a642f]/90 leading-tight">
-                          {tale.subtitle}
-                        </div>
-                        <h3 className="font-display text-xl text-stone-900 group-hover:text-amber-800 transition-colors uppercase tracking-tight font-extrabold">
-                          {tale.title}
-                        </h3>
-                        <p className="font-body text-xs text-stone-700/95 leading-relaxed pt-2">
-                          {tale.description}
-                        </p>
-                      </div>
-                      
-                      <div className="mt-5 pt-3 border-t border-[#8a642f]/10">
-                        <span className="text-xs font-display uppercase tracking-widest font-extrabold flex items-center text-amber-700 group-hover:text-amber-900 transition-all duration-300">
-                          Unroll Scroll <ChevronLeft className="w-4 h-4 ml-1 rotate-180 group-hover:translate-x-1 transition-transform" />
-                        </span>
+                  <div className="p-6 flex flex-col flex-grow relative z-30 transform-gpu [transform:translateZ(30px)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`p-2.5 rounded-lg bg-black/40 border border-white/10`}>
+                        <tale.icon className={`w-5 h-5 ${tale.accent}`} />
                       </div>
                     </div>
-                  </TiltCard>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+
+                    <div className="space-y-2 flex-grow">
+                      <div className={`text-xs font-bold uppercase tracking-widest ${tale.accent} opacity-80`}>
+                        {tale.subtitle}
+                      </div>
+                      <h3 className="font-display text-2xl text-foreground group-hover:text-gold-light transition-colors uppercase tracking-tight">
+                        {tale.title}
+                      </h3>
+                      <p className="font-body text-sm text-muted-foreground/80 leading-relaxed pt-2">
+                        {tale.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-white/5">
+                      <span className={`text-xs font-display uppercase tracking-widest font-bold flex items-center ${tale.locked ? 'text-slate-500' : `${tale.accent} group-hover:pl-2 transition-all duration-300`}`}>
+                        {tale.locked ? 'Coming Soon' : 'Read Tale'} {!tale.locked && <ChevronLeft className="w-4 h-4 ml-1 rotate-180" />}
+                      </span>
+                    </div>
+                  </div>
+                </TiltCard>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </main>
 
       {/* Image Sequence Modals */}
       <AnimatePresence>
         {activeTale === 'tale-one' && (
-          <ImageSequenceViewer 
+          <ImageSequenceViewer
             title="The First Tale: The Wonder of Imhotep"
             images={TALE_ONE_IMAGES}
             onClose={() => setActiveTale(null)}
@@ -272,7 +207,7 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
           />
         )}
         {activeTale === 'tale-two' && (
-          <ImageSequenceViewer 
+          <ImageSequenceViewer
             title="The Second Tale: The Wax Crocodile"
             images={TALE_TWO_IMAGES}
             onClose={() => setActiveTale(null)}
@@ -281,7 +216,7 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
           />
         )}
         {activeTale === 'tale-three' && (
-          <ImageSequenceViewer 
+          <ImageSequenceViewer
             title="The Third Tale: The Wonder of King Sneferu"
             images={TALE_THREE_IMAGES}
             onClose={() => setActiveTale(null)}
@@ -290,7 +225,7 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
           />
         )}
         {activeTale === 'tale-four' && (
-          <ImageSequenceViewer 
+          <ImageSequenceViewer
             title="The Fourth Tale: Djedi the Magician"
             images={TALE_FOUR_IMAGES}
             onClose={() => setActiveTale(null)}
@@ -299,7 +234,7 @@ export function WestcarPapyrusHub({ onReadPrologue }: WestcarPapyrusHubProps) {
           />
         )}
         {activeTale === 'tale-five' && (
-          <ImageSequenceViewer 
+          <ImageSequenceViewer
             title="The Fifth Tale: The Royal Children"
             images={TALE_FIVE_IMAGES}
             onClose={() => setActiveTale(null)}

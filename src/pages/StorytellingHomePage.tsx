@@ -44,7 +44,7 @@ export default function StorytellingHomePage() {
       title: "The Capture Of Joppa",
       subtitle: "The First Trojan Horse",
       description: "A brilliant military strategy involving cunning soldiers hidden inside large baskets, leading to the surrender of the rebel city of Joppa. A precursor to the legendary Trojan Horse.",
-      image: getAssetUrl("/images/stories/joppa_baskets.png"),
+      image: getAssetUrl("/Capture of Joppa.jpeg"),
       path: "#",
       color: "from-sandstone to-sandstone-dark",
       period: "New Kingdom",
