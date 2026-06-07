@@ -254,7 +254,13 @@ export default function StoryReader() {
       <ImageSequenceViewer
         title="The Eloquent Peasant"
         images={peasantImages}
-        onClose={() => navigate('/stories')}
+        onClose={() => {
+          if (window.history.state && window.history.state.idx > 0) {
+            navigate(-1);
+          } else {
+            navigate('/stories');
+          }
+        }}
       />
     );
   }
@@ -323,7 +329,13 @@ export default function StoryReader() {
           className="relative z-30 mt-10"
         >
           <button
-            onClick={() => navigate('/stories')}
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/stories');
+              }
+            }}
             className="group flex flex-col items-center gap-3 text-gold/60 hover:text-gold transition-colors duration-500"
           >
             <span className="font-display text-sm md:text-base tracking-[0.4em] uppercase">Close Vision</span>
@@ -347,12 +359,20 @@ export default function StoryReader() {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link to="/stories">
-                  <EgyptianButton variant="ghost" size="sm">
-                    <ChevronLeft className="w-4 h-4" />
-                    Stories
-                  </EgyptianButton>
-                </Link>
+                <EgyptianButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (window.history.state && window.history.state.idx > 0) {
+                      navigate(-1);
+                    } else {
+                      navigate('/stories');
+                    }
+                  }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Stories
+                </EgyptianButton>
                 <div className="hidden sm:block">
                   <h1 className="font-display text-sm font-semibold text-foreground">
                     {story.title}
@@ -387,12 +407,20 @@ export default function StoryReader() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/stories">
-                <EgyptianButton variant="ghost" size="sm">
-                  <ChevronLeft className="w-4 h-4" />
-                  Stories
-                </EgyptianButton>
-              </Link>
+              <EgyptianButton
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate('/stories');
+                  }
+                }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Stories
+              </EgyptianButton>
               <div className="hidden sm:block">
                 <h1 className="font-display text-sm font-semibold text-foreground">
                   {story.title}

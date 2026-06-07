@@ -29,6 +29,55 @@ export function Navigation() {
       : item
   );
 
+  // Tab active status check based on path prefixes
+  const isTabActive = (itemPath: string) => {
+    const p = location.pathname;
+    if (itemPath === '/profile' || itemPath === '/auth') {
+      return p.startsWith('/profile') || p.startsWith('/auth');
+    }
+    return p.startsWith(itemPath);
+  };
+
+  // Tab target path tracking
+  const currentFullPath = location.pathname + location.search + location.hash;
+  React.useEffect(() => {
+    const p = location.pathname;
+    if (p.startsWith('/storytelling')) {
+      sessionStorage.setItem('last_tab_/storytelling', currentFullPath);
+    } else if (p.startsWith('/stories')) {
+      sessionStorage.setItem('last_tab_/stories', currentFullPath);
+    } else if (p.startsWith('/games')) {
+      sessionStorage.setItem('last_tab_/games', currentFullPath);
+    } else if (p.startsWith('/hieroglyphs')) {
+      sessionStorage.setItem('last_tab_/hieroglyphs', currentFullPath);
+    } else if (p.startsWith('/profile') || p.startsWith('/auth')) {
+      sessionStorage.setItem('last_tab_/profile', currentFullPath);
+    }
+  }, [currentFullPath, location.pathname]);
+
+  const getTargetTabPath = (itemPath: string) => {
+    const isProfileOrAuth = itemPath === '/profile' || itemPath === '/auth';
+    const isActive = isTabActive(itemPath);
+
+    if (isActive) {
+      return itemPath;
+    }
+
+    const saved = sessionStorage.getItem('last_tab_' + (isProfileOrAuth ? '/profile' : itemPath));
+    if (saved) {
+      if (isProfileOrAuth) {
+        if (isAuthenticated && saved.startsWith('/auth')) {
+          return '/profile';
+        }
+        if (!isAuthenticated && saved.startsWith('/profile')) {
+          return '/auth';
+        }
+      }
+      return saved;
+    }
+    return itemPath;
+  };
+
   const handleSignOut = () => {
     signOut();
     setIsOpen(false);
@@ -59,10 +108,10 @@ export function Navigation() {
               <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/25 p-1">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
+                  const isActive = isTabActive(item.path);
 
                   return (
-                    <Link key={item.path} to={item.path}>
+                    <Link key={item.path} to={getTargetTabPath(item.path)}>
                       <motion.div
                         className={cn(
                           'relative flex items-center gap-2 rounded-lg px-4 py-2 font-display text-sm transition-all',
@@ -165,12 +214,12 @@ export function Navigation() {
               <div className="flex flex-col gap-2">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
+                  const isActive = isTabActive(item.path);
 
                   return (
                     <Link
                       key={item.path}
-                      to={item.path}
+                      to={getTargetTabPath(item.path)}
                       onClick={() => setIsOpen(false)}
                     >
                       <motion.div
@@ -208,12 +257,12 @@ export function Navigation() {
         <div className="flex h-16 items-center justify-around px-2 sm:px-4">
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = isTabActive(item.path);
 
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                to={getTargetTabPath(item.path)}
                 className="flex flex-1 justify-center py-2"
                 aria-label={item.label}
               >

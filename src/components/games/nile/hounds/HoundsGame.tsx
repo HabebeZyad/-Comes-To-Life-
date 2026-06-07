@@ -219,7 +219,7 @@ export const HoundsGame: React.FC<HoundsGameProps> = ({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.1 }}
-                className="h-[50vh] min-h-[300px] max-h-[550px] aspect-[2/3] relative mx-auto lg:h-[60vh] lg:max-h-[620px]"
+                className="h-[58vh] min-h-[380px] max-h-[640px] aspect-[2/3] relative mx-auto lg:h-[68vh] lg:max-h-[700px]"
               >
                 <HoundsBoard2D 
                   gameState={gameState} 

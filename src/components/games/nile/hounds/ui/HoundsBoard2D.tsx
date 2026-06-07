@@ -46,7 +46,7 @@ export const HoundsBoard2D: React.FC<HoundsBoard2DProps> = ({
   }, []);
 
   return (
-    <svg viewBox="0 0 1000 1000" className="w-full h-full">
+    <svg viewBox="170 10 660 990" className="w-full h-full">
       {/* Wooden Board Background */}
       <rect x="200" y="50" width="600" height="900" rx="40" fill="#3d2b1f" className="stroke-gold/20" strokeWidth="4" />
       <rect x="220" y="70" width="560" height="860" rx="30" fill="#2a1e15" className="opacity-50" />

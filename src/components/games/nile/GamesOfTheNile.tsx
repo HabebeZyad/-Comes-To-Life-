@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Lock, Gamepad2, Trophy, Sparkles, Star, Timer, ChevronRight, Zap, Target, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
@@ -136,9 +137,19 @@ export const GAME_LEVELS = {
 };
 
 export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
-  const [view, setView] = useState<SubGame>('hub');
-  const [selectedGameId, setSelectedGameId] = useState<'senet' | 'mehen' | 'hounds' | null>(null);
-  const [activeLevelIdx, setActiveLevelIdx] = useState<number | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const sub = searchParams.get('sub') as 'senet' | 'mehen' | 'hounds' | null;
+  const levelStr = searchParams.get('level');
+  
+  const selectedGameId = sub;
+  const activeLevelIdx = levelStr ? parseInt(levelStr, 10) - 1 : null;
+  
+  const view: SubGame = activeLevelIdx !== null && selectedGameId
+    ? selectedGameId
+    : selectedGameId
+      ? 'level-select'
+      : 'hub';
   
   // Progression: { senet: highestUnlockedLevel, mehen: highestUnlockedLevel, hounds: highestUnlockedLevel }
   const [progression, setProgression] = useState<Record<string, number>>(() => {
@@ -168,15 +179,20 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
       setProgression(newProg);
       localStorage.setItem('comesToLife_nile_progression', JSON.stringify(newProg));
     }
-    setView('level-select');
-    setActiveLevelIdx(null);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('level');
+    setSearchParams(newParams);
   };
 
   if (view === 'senet' && selectedGameId === 'senet' && activeLevelIdx !== null) {
     const lvl = GAME_LEVELS.senet[activeLevelIdx];
     return (
       <SenetGame 
-        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        onBack={() => {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('level');
+          setSearchParams(newParams);
+        }}
         levelIndex={activeLevelIdx}
         levelName={lvl.name}
         aiDifficulty={lvl.aiDifficulty}
@@ -191,7 +207,11 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
     const lvl = GAME_LEVELS.mehen[activeLevelIdx];
     return (
       <MehenGame 
-        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        onBack={() => {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('level');
+          setSearchParams(newParams);
+        }}
         levelIndex={activeLevelIdx}
         levelName={lvl.name}
         aiDifficulty={lvl.aiDifficulty}
@@ -207,7 +227,11 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
     const lvl = GAME_LEVELS.hounds[activeLevelIdx];
     return (
       <HoundsGame 
-        onBack={() => { setView('level-select'); setActiveLevelIdx(null); }}
+        onBack={() => {
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('level');
+          setSearchParams(newParams);
+        }}
         levelIndex={activeLevelIdx}
         levelName={lvl.name}
         aiDifficulty={lvl.aiDifficulty}
@@ -267,7 +291,16 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
     return (
       <div className="min-h-screen pt-24 pb-12 px-6 bg-hero-gradient relative overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">
-          <EgyptianButton variant="ghost" onClick={() => setView('hub')} className="-ml-4 mb-8 text-muted-foreground hover:text-white transition-colors">
+          <EgyptianButton
+            variant="ghost"
+            onClick={() => {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete('sub');
+              newParams.delete('level');
+              setSearchParams(newParams);
+            }}
+            className="-ml-4 mb-8 text-muted-foreground hover:text-white transition-colors"
+          >
             <ChevronLeft className="mr-2" /> Back to Collection
           </EgyptianButton>
 
@@ -314,8 +347,9 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
                     }`}
                     onClick={() => {
                       if (!isLvlLocked) {
-                        setActiveLevelIdx(index);
-                        setView(selectedGameId);
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('level', String(index + 1));
+                        setSearchParams(newParams);
                       }
                     }}
                   >
@@ -420,8 +454,10 @@ export const GamesOfTheNile: React.FC<GamesOfTheNileProps> = ({ onBack }) => {
                   className="flex flex-col h-full w-full relative z-20"
                   onClick={() => {
                     if (!game.isLocked) {
-                      setSelectedGameId(game.id);
-                      setView('level-select');
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.set('sub', game.id);
+                      newParams.delete('level');
+                      setSearchParams(newParams);
                     }
                   }}
                 >

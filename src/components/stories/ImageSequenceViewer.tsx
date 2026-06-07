@@ -143,14 +143,18 @@ export function ImageSequenceViewer({
       setDirection(1);
       setCurrentIndex((previous) => Math.min(previous + 1, maxIndex));
     } else if (currentIndex === maxIndex) {
-      if (onNextTale) {
-        playTransitionSound();
-        onNextTale();
+      if (!showEndOverlay) {
+        setShowEndOverlay(true);
       } else {
-        onClose();
+        if (onNextTale) {
+          playTransitionSound();
+          onNextTale();
+        } else {
+          onClose();
+        }
       }
     }
-  }, [currentIndex, maxIndex, onNextTale, onClose]);
+  }, [currentIndex, maxIndex, onNextTale, onClose, showEndOverlay]);
 
   const goToPrev = useCallback(() => {
     if (showEndOverlay) {

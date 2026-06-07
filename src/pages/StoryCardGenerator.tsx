@@ -18,7 +18,7 @@ import {
   Heart,
   Flame
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // ── Quote data ────────────────────────────────────────────────────────────────
@@ -1162,15 +1162,15 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
   if (isBoth) {
     // Bilingual mode
     const totalLength = arLength + enLength;
-    if (totalLength < 100) {
-      arSize = "24px";
-      enSize = "21px";
-    } else if (totalLength < 160) {
-      arSize = "21px";
-      enSize = "19px";
+    if (totalLength < 120) {
+      arSize = "25px";
+      enSize = "23px";
+    } else if (totalLength < 180) {
+      arSize = "22px";
+      enSize = "20px";
     } else {
       arSize = "19px";
-      enSize = "17px";
+      enSize = "18px";
     }
   } else {
     // Monolingual mode
@@ -1237,7 +1237,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           transform: "translateX(-50%)",
           fontSize: 15,
           color: theme.accent,
-          opacity: 0.45,
+          opacity: 0.85,
           letterSpacing: 6,
           whiteSpace: "nowrap",
           fontFamily: "var(--font-display), Georgia, serif",
@@ -1251,7 +1251,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
         style={{
           fontSize: 84,
           color: theme.accent,
-          opacity: 0.16,
+          opacity: 0.35,
           lineHeight: 1,
           position: "absolute",
           top: 42,
@@ -1286,8 +1286,8 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
               width: 50,
               height: 1,
               background: theme.accent,
-              opacity: 0.4,
-              margin: "0 auto 12px",
+              opacity: 0.75,
+              margin: "0 auto 14px",
             }}
           />
         )}
@@ -1298,7 +1298,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
               direction: "ltr",
               fontSize: enSize,
               color: theme.text,
-              opacity: 0.95,
+              opacity: 1.0,
               lineHeight: 1.6,
               fontStyle: "italic",
               marginBottom: 0,
@@ -1320,7 +1320,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           width: 72,
           height: 1,
           background: theme.accent,
-          opacity: 0.4,
+          opacity: 0.75,
         }}
       />
 
@@ -1335,7 +1335,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
         }}
       >
         <div style={{ 
-          fontSize: 16, 
+          fontSize: 17, 
           color: theme.accent, 
           fontFamily: "var(--font-display), Georgia, serif", 
           marginBottom: 4,
@@ -1345,9 +1345,9 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           {lang === "en" ? (quote.authorEn || quote.author) : quote.author}
           {lang === "both" && quote.authorEn && (
             <span style={{ 
-              fontSize: "12px", 
+              fontSize: "15px", 
               color: theme.text, 
-              opacity: 0.8, 
+              opacity: 0.95, 
               display: "block", 
               marginTop: 2,
               fontWeight: 400,
@@ -1359,15 +1359,15 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           )}
         </div>
         <div style={{ 
-          fontSize: 12, 
+          fontSize: 14, 
           color: theme.text, 
-          opacity: 0.8,
+          opacity: 0.95,
           letterSpacing: "0.06em",
           fontFamily: "var(--font-body), Georgia, serif",
         }}>
           {lang === "en" ? (quote.workEn || quote.work) : quote.work} {quote.year ? `· ${quote.year}` : ""}
           {lang === "both" && quote.workEn && (
-            <span style={{ display: "block", fontSize: "11px", opacity: 0.75, fontStyle: "italic", marginTop: 1 }}>
+            <span style={{ display: "block", fontSize: "13px", opacity: 0.95, fontStyle: "italic", marginTop: 2 }}>
               {quote.workEn}
             </span>
           )}
@@ -1382,7 +1382,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           right: 24,
           fontSize: 8,
           color: theme.accent,
-          opacity: 0.45,
+          opacity: 0.85,
           letterSpacing: "0.18em",
           fontFamily: "var(--font-display), Georgia, serif",
         }}
@@ -1398,7 +1398,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
           left: 24,
           fontSize: 12,
           color: theme.accent,
-          opacity: 0.3,
+          opacity: 0.7,
           letterSpacing: 5,
         }}
       >
@@ -1410,6 +1410,7 @@ function QuoteCard({ quote, theme, lang, cardRef }: QuoteCardProps) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function StoryCardGenerator() {
+  const navigate = useNavigate();
   const [quoteIdx, setQuoteIdx] = useState(0);
   const [themeIdx, setThemeIdx] = useState(0);
   const [lang, setLang] = useState("ar");
@@ -1495,10 +1496,19 @@ export default function StoryCardGenerator() {
         
         {/* Navigation / Header */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gold/20">
-          <Link to="/stories" className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors font-display text-sm">
+          <button
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/stories');
+              }
+            }}
+            className="flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors font-display text-sm"
+          >
             <ChevronLeft className="w-4 h-4" />
             Back to Stories
-          </Link>
+          </button>
           <div className="text-right">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-gold-gradient tracking-wide">
               منشئ بطاقات الاقتباس
