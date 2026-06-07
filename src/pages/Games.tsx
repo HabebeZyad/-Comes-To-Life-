@@ -104,9 +104,15 @@ const difficultyValue: Record<Game['difficulty'], number> = {
 export default function Games() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [filter, setFilter] = useState<CategoryFilter>('All');
-  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('All');
-  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<CategoryFilter>(() => {
+    return (sessionStorage.getItem('games_filter') as CategoryFilter) || 'All';
+  });
+  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>(() => {
+    return (sessionStorage.getItem('games_difficultyFilter') as DifficultyFilter) || 'All';
+  });
+  const [query, setQuery] = useState(() => {
+    return sessionStorage.getItem('games_query') || '';
+  });
   
   const currentGame = (searchParams.get('id') as GameType) || 'menu';
 
@@ -114,7 +120,41 @@ export default function Games() {
   const progression = getPlayerProgression();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    sessionStorage.setItem('games_filter', filter);
+  }, [filter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('games_difficultyFilter', difficultyFilter);
+  }, [difficultyFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('games_query', query);
+  }, [query]);
+
+  useEffect(() => {
+    if (currentGame !== 'menu') {
+      window.scrollTo(0, 0);
+    } else {
+      const savedScrollY = sessionStorage.getItem('games_scroll_position');
+      if (savedScrollY) {
+        const timer = setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentGame]);
+
+  useEffect(() => {
+    if (currentGame === 'menu') {
+      const handleScroll = () => {
+        sessionStorage.setItem('games_scroll_position', String(window.scrollY));
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
   }, [currentGame]);
 
   const handleBackToMenu = () => {

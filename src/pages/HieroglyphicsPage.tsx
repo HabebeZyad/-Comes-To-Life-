@@ -29,10 +29,53 @@ export default function HieroglyphicsPage() {
   const setViewMode = (mode: ViewMode) => {
     setSearchParams({ mode });
   };
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [gridView, setGridView] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return sessionStorage.getItem('glyphs_searchQuery') || '';
+  });
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    return sessionStorage.getItem('glyphs_selectedCategory') || 'all';
+  });
+  const [gridView, setGridView] = useState(() => {
+    const saved = sessionStorage.getItem('glyphs_gridView');
+    return saved !== null ? saved === 'true' : true;
+  });
   const { incrementHieroglyphsScanned } = useGame();
+
+  useEffect(() => {
+    sessionStorage.setItem('glyphs_searchQuery', searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    sessionStorage.setItem('glyphs_selectedCategory', selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    sessionStorage.setItem('glyphs_gridView', String(gridView));
+  }, [gridView]);
+
+  useEffect(() => {
+    if (viewMode === 'dictionary') {
+      const savedScrollY = sessionStorage.getItem('glyphs_scroll_position');
+      if (savedScrollY) {
+        const timer = setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode === 'dictionary') {
+      const handleScroll = () => {
+        sessionStorage.setItem('glyphs_scroll_position', String(window.scrollY));
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [viewMode]);
 
   const handleSelectGlyph = (glyph: HieroglyphEntry) => {
     setSelectedGlyph(glyph);

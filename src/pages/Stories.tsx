@@ -16,10 +16,42 @@ type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
 type PeriodFilter = 'all' | string;
 
 export default function Stories() {
-  const [typeFilter, setTypeFilter] = useState<FilterType>('all');
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<FilterType>(() => {
+    return (sessionStorage.getItem('stories_typeFilter') as FilterType) || 'all';
+  });
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(() => {
+    return sessionStorage.getItem('stories_periodFilter') || 'all';
+  });
   const [showAIFeatures, setShowAIFeatures] = useState(false);
   const [panoStory, setPanoStory] = useState<string | null>(null);
+
+  useEffect(() => {
+    sessionStorage.setItem('stories_typeFilter', typeFilter);
+  }, [typeFilter]);
+
+  useEffect(() => {
+    sessionStorage.setItem('stories_periodFilter', periodFilter);
+  }, [periodFilter]);
+
+  useEffect(() => {
+    const savedScrollY = sessionStorage.getItem('stories_scroll_position');
+    if (savedScrollY) {
+      const timer = setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollY, 10));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('stories_scroll_position', String(window.scrollY));
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const filteredStories = useMemo(() => {
     return egyptianStories.filter(story => {
