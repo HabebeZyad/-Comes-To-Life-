@@ -1,0 +1,37 @@
+.star {
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: calc(var(--size) * 1px);
+  height: calc(var(--size) * 1px);
+  opacity: var(--opacity);
+  animation: twinkle var(--duration) ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: var(--opacity);
+  }
+  50% {
+    opacity: calc(var(--opacity) * 0.3);
+  }
+}
+
+.orionStar {
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: 4px;
+  height: 4px;
+  animation: orionGlow 2s ease-in-out infinite;
+  animation-delay: calc(var(--delay) * 1s);
+}
+
+@keyframes orionGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
