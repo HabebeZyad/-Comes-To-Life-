@@ -8,6 +8,7 @@ interface Star {
     y: number;
     size: number;
     opacity: number;
+    twinkleDuration: number;
     isSpecial?: boolean;
 }
 
@@ -16,7 +17,7 @@ interface CelestialSimulationProps {
     showOrion?: boolean;
 }
 
-export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
+const CelestialSimulationComponent: React.FC<CelestialSimulationProps> = ({
     timeOfDay = 'night',
     showOrion = true
 }) => {
@@ -29,6 +30,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                 y: Math.random() * 100,
                 size: Math.random() * 2 + 1,
                 opacity: Math.random() * 0.7 + 0.3,
+                twinkleDuration: Math.random() * 3 + 2,
             });
         }
         return s;
@@ -72,7 +74,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                                 opacity: [star.opacity, star.opacity * 0.3, star.opacity],
                             }}
                             transition={{
-                                duration: Math.random() * 3 + 2,
+                                duration: star.twinkleDuration,
                                 repeat: Infinity,
                                 ease: "easeInOut",
                             }}
@@ -126,3 +128,6 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
 function cn(...classes: string[]) {
     return classes.filter(Boolean).join(' ');
 }
+
+export const CelestialSimulation = React.memo(CelestialSimulationComponent);
+CelestialSimulation.displayName = 'CelestialSimulation';
