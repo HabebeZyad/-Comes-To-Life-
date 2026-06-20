@@ -7,13 +7,14 @@ import { egyptianStories, type Story } from '@/data/egyptianStories';
 import { egyptianPeriods } from '@/data/egyptianPeriods';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
 import { EgyptianCard, EgyptianCardContent, EgyptianCardHeader, EgyptianCardTitle, EgyptianCardDescription } from '@/components/ui/EgyptianCard';
-import { HieroglyphScanner } from '@/components/ai/HieroglyphScanner';
-import { SceneGenerator } from '@/components/ai/SceneGenerator';
 import { cn, getAssetUrl } from '@/lib/utils';
 import { TiltCard } from '@/components/ui/TiltCard';
 
 type FilterType = 'all' | 'historical' | 'literary' | 'mythological';
 type PeriodFilter = 'all' | string;
+
+const HieroglyphScanner = React.lazy(() => import('@/components/ai/HieroglyphScanner').then(m => ({ default: m.HieroglyphScanner })));
+const SceneGenerator = React.lazy(() => import('@/components/ai/SceneGenerator').then(m => ({ default: m.SceneGenerator })));
 
 export default function Stories() {
   const [typeFilter, setTypeFilter] = useState<FilterType>(() => {
@@ -178,9 +179,11 @@ export default function Stories() {
                 AI-Powered Features
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <HieroglyphScanner />
-                <SceneGenerator />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start min-h-[400px]">
+                <React.Suspense fallback={<div className="col-span-full py-12 text-center animate-pulse text-gold font-display text-sm tracking-widest">ACTIVATING AI NEURAL NETWORKS...</div>}>
+                  <HieroglyphScanner />
+                  <SceneGenerator />
+                </React.Suspense>
               </div>
 
               {/* AI Technical Notes */}
