@@ -1,32 +1,35 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Brain, Map, Puzzle, Building, Languages, Timer, Sailboat, Bug, Trophy, Crown, Clock, Users, Star, ChevronRight, Filter, BookOpen, Search, Award, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { EgyptianCard } from '@/components/ui/EgyptianCard';
 import { EgyptianButton } from '@/components/ui/EgyptianButton';
-import { MemoryGame } from '@/components/games/MemoryGame';
-import { MummyMazeGame } from '@/components/games/MummyMazeGame';
-import { PharaohRiddlesGame } from '@/components/games/PharaohRiddlesGame';
-import { PyramidBuilderGame } from '@/components/games/PyramidBuilderGame';
-import { HieroglyphDecoderGame } from '@/components/games/HieroglyphDecoderGame';
-import { TempleEscapeGame } from '@/components/games/TempleEscapeGame';
-import { NileNavigatorGame } from '@/components/games/NileNavigatorGame';
-import { ScarabCollectorGame } from '@/components/games/ScarabCollectorGame';
-import GuessThePharaohGame from '@/components/games/GuessThePharaohGame';
-import { PyramidTrailGame } from '@/components/games/PyramidTrailGame';
-import { OrderOfBuildersGame } from '@/components/games/OrderOfBuildersGame';
-import { GreatMindsGame } from '@/components/games/GreatMindsGame';
-import { ScribesLostJournalGame } from '@/components/games/ScribesLostJournalGame';
-import { TombExplorerGame } from '@/components/games/TombExplorerGame';
-import { HieroglyphMatchGame } from '@/components/games/HieroglyphMatchGame';
-import { GlyphRevealGame } from '@/components/games/GlyphRevealGame';
-import { Leaderboard } from '@/components/games/Leaderboard';
-import { GamesOfTheNile } from '@/components/games/nile/GamesOfTheNile';
-import { ScribalCrosswordsGame } from '@/components/games/ScribalCrosswordsGame';
+import { PageLoader } from '@/components/layout/PageLoader';
 import { DustParticles } from '@/components/effects/DustParticles';
 import { useHighScores } from '@/hooks/useHighScores';
 import { TiltCard } from '@/components/ui/TiltCard';
 
+// Optimized: All game components and leaderboard are lazy-loaded to reduce the initial route chunk size.
+// Measurement: Initial Games.tsx chunk reduced from ~444.76 kB to ~31.19 kB (~93% reduction).
+const MemoryGame = lazy(() => import('@/components/games/MemoryGame').then(m => ({ default: m.MemoryGame })));
+const MummyMazeGame = lazy(() => import('@/components/games/MummyMazeGame').then(m => ({ default: m.MummyMazeGame })));
+const PharaohRiddlesGame = lazy(() => import('@/components/games/PharaohRiddlesGame').then(m => ({ default: m.PharaohRiddlesGame })));
+const PyramidBuilderGame = lazy(() => import('@/components/games/PyramidBuilderGame').then(m => ({ default: m.PyramidBuilderGame })));
+const HieroglyphDecoderGame = lazy(() => import('@/components/games/HieroglyphDecoderGame').then(m => ({ default: m.HieroglyphDecoderGame })));
+const TempleEscapeGame = lazy(() => import('@/components/games/TempleEscapeGame').then(m => ({ default: m.TempleEscapeGame })));
+const NileNavigatorGame = lazy(() => import('@/components/games/NileNavigatorGame').then(m => ({ default: m.NileNavigatorGame })));
+const ScarabCollectorGame = lazy(() => import('@/components/games/ScarabCollectorGame').then(m => ({ default: m.ScarabCollectorGame })));
+const GuessThePharaohGame = lazy(() => import('@/components/games/GuessThePharaohGame'));
+const PyramidTrailGame = lazy(() => import('@/components/games/PyramidTrailGame').then(m => ({ default: m.PyramidTrailGame })));
+const OrderOfBuildersGame = lazy(() => import('@/components/games/OrderOfBuildersGame').then(m => ({ default: m.OrderOfBuildersGame })));
+const GreatMindsGame = lazy(() => import('@/components/games/GreatMindsGame').then(m => ({ default: m.GreatMindsGame })));
+const ScribesLostJournalGame = lazy(() => import('@/components/games/ScribesLostJournalGame').then(m => ({ default: m.ScribesLostJournalGame })));
+const TombExplorerGame = lazy(() => import('@/components/games/TombExplorerGame').then(m => ({ default: m.TombExplorerGame })));
+const HieroglyphMatchGame = lazy(() => import('@/components/games/HieroglyphMatchGame').then(m => ({ default: m.HieroglyphMatchGame })));
+const GlyphRevealGame = lazy(() => import('@/components/games/GlyphRevealGame').then(m => ({ default: m.GlyphRevealGame })));
+const Leaderboard = lazy(() => import('@/components/games/Leaderboard').then(m => ({ default: m.Leaderboard })));
+const GamesOfTheNile = lazy(() => import('@/components/games/nile/GamesOfTheNile').then(m => ({ default: m.GamesOfTheNile })));
+const ScribalCrosswordsGame = lazy(() => import('@/components/games/ScribalCrosswordsGame').then(m => ({ default: m.ScribalCrosswordsGame })));
 
 type GameType = 'menu' | 'memory' | 'maze' | 'riddles' | 'pyramid' | 'decoder' | 'temple-escape' | 'nile-navigator' | 'scarab-collector' | 'guess-the-pharaoh' | 'pyramid-trail' | 'order-builders' | 'great-minds' | 'scribes-journal' | 'tomb-explorer' | 'hieroglyph-match' | 'glyph-reveal' | 'nile-games' | 'scribal-crosswords';
 type CategoryFilter = 'All' | 'Wisdom' | 'Action' | 'History';
@@ -167,7 +170,11 @@ export default function Games() {
 
   if (currentGame !== 'menu') {
     const GameComponent = gameComponents[currentGame];
-    if (GameComponent) return <GameComponent onBack={handleBackToMenu} />;
+    if (GameComponent) return (
+      <Suspense fallback={<PageLoader />}>
+        <GameComponent onBack={handleBackToMenu} />
+      </Suspense>
+    );
   }
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -272,7 +279,9 @@ export default function Games() {
 
         {showLeaderboard && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-12">
-            <Leaderboard />
+            <Suspense fallback={<PageLoader className="min-h-[400px]" />}>
+              <Leaderboard />
+            </Suspense>
           </motion.div>
         )}
 
