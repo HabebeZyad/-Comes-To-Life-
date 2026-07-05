@@ -1,6 +1,7 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface Star {
     id: number;
@@ -8,6 +9,7 @@ interface Star {
     y: number;
     size: number;
     opacity: number;
+    duration: number;
     isSpecial?: boolean;
 }
 
@@ -16,7 +18,26 @@ interface CelestialSimulationProps {
     showOrion?: boolean;
 }
 
-export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
+// Hoist static configuration outside the component to avoid redundant recreation
+const ORION_BELT = [
+    { x: 45, y: 40 },
+    { x: 50, y: 42 },
+    { x: 55, y: 44 },
+];
+
+const SKY_COLORS = {
+    day: 'bg-gradient-to-b from-blue-400 to-orange-100',
+    dusk: 'bg-gradient-to-b from-[#1a1c2c] via-[#4a192c] to-[#f26419]',
+    night: 'bg-gradient-to-b from-[#050510] to-[#1a1c2c]',
+    dawn: 'bg-gradient-to-b from-[#1a1c2c] via-[#f26419] to-[#ffd166]',
+};
+
+/**
+ * CelestialSimulation Component
+ * Optimized with useMemo for star field initialization and stable animation durations.
+ * Uses React.memo and hoisted constants to prevent unnecessary re-renders and memory allocation.
+ */
+const CelestialSimulationComponent: React.FC<CelestialSimulationProps> = ({
     timeOfDay = 'night',
     showOrion = true
 }) => {
@@ -29,27 +50,14 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                 y: Math.random() * 100,
                 size: Math.random() * 2 + 1,
                 opacity: Math.random() * 0.7 + 0.3,
+                duration: Math.random() * 3 + 2, // Pre-calculate duration for stable animation frames
             });
         }
         return s;
     }, []);
 
-    // Simplified Orion's Belt simulation
-    const orionBelt = [
-        { x: 45, y: 40 },
-        { x: 50, y: 42 },
-        { x: 55, y: 44 },
-    ];
-
-    const skyColors = {
-        day: 'bg-gradient-to-b from-blue-400 to-orange-100',
-        dusk: 'bg-gradient-to-b from-[#1a1c2c] via-[#4a192c] to-[#f26419]',
-        night: 'bg-gradient-to-b from-[#050510] to-[#1a1c2c]',
-        dawn: 'bg-gradient-to-b from-[#1a1c2c] via-[#f26419] to-[#ffd166]',
-    };
-
     return (
-        <div className={`absolute inset-0 overflow-hidden transition-colors duration-[3000ms] ${skyColors[timeOfDay]}`}>
+        <div className={cn("absolute inset-0 overflow-hidden transition-colors duration-[3000ms]", SKY_COLORS[timeOfDay])}>
             {/* Star Field (only visible at night/dusk/dawn) */}
             {(timeOfDay !== 'day') && (
                 <motion.div
@@ -72,7 +80,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                                 opacity: [star.opacity, star.opacity * 0.3, star.opacity],
                             }}
                             transition={{
-                                duration: Math.random() * 3 + 2,
+                                duration: star.duration,
                                 repeat: Infinity,
                                 ease: "easeInOut",
                             }}
@@ -80,7 +88,7 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
                     ))}
 
                     {/* Orion's Belt */}
-                    {showOrion && orionBelt.map((star, i) => (
+                    {showOrion && ORION_BELT.map((star, i) => (
                         <motion.div
                             key={`orion-${i}`}
                             className="absolute bg-gold rounded-full shadow-[0_0_10px_rgba(189,144,36,0.8)] z-10"
@@ -123,6 +131,5 @@ export const CelestialSimulation: React.FC<CelestialSimulationProps> = ({
     );
 };
 
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(' ');
-}
+export const CelestialSimulation = memo(CelestialSimulationComponent);
+CelestialSimulation.displayName = 'CelestialSimulation';
